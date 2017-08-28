@@ -1,6 +1,8 @@
 package gitlab
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tcnksm/go-gitconfig"
 	"github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/git"
 )
 
 var (
@@ -23,31 +26,90 @@ var (
 	User  string
 )
 
+const defaultGitLabHost = "https://gitlab.com"
+
 func init() {
+	reader := bufio.NewReader(os.Stdin)
 	var err error
+	var errt error
 	host, err = gitconfig.Entire("gitlab.host")
 	if err != nil {
-		log.Fatal("git config gitlab.host must be set")
-	}
-	token, err = gitconfig.Entire("gitlab.token")
-	if err != nil {
-		log.Fatal("git config gitlab.token must be set")
+		fmt.Printf("Enter default GitLab host (default: %s): ", defaultGitLabHost)
+		host, err = reader.ReadString('\n')
+		host = host[:len(host)-1]
+		if err != nil {
+			log.Fatal(err)
+		}
+		if host == "" {
+			host = defaultGitLabHost
+		}
+		cmd := git.New("config", "--global", "gitlab.host", host)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 	}
 	User, err = gitconfig.Entire("gitlab.user")
+	token, errt = gitconfig.Entire("gitlab.token")
 	if err != nil {
-		log.Fatal("git config gitlab.user must be set")
+		fmt.Print("Enter default GitLab user: ")
+		User, err = reader.ReadString('\n')
+		User = User[:len(User)-1]
+		if err != nil {
+			log.Fatal(err)
+		}
+		if User == "" {
+			log.Fatal("git config gitlab.user must be set")
+		}
+		cmd := git.New("config", "--global", "gitlab.user", User)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// If the default user is being set this is the first time lab
+		// is being run. Check if they want to provide an API key for
+		// private repos
+		if errt != nil {
+			fmt.Print("Enter default GitLab token (default: empty): ")
+			token, err = reader.ReadString('\n')
+			token = token[:len(token)-1]
+			if err != nil {
+				log.Fatal(err)
+			}
+			// Its okay for the key to be empty, since you can still call public repos
+			if token != "" {
+				cmd := git.New("config", "--global", "gitlab.token", token)
+				err = cmd.Run()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
 	}
+
+	lab = gitlab.NewClient(nil, token)
+	lab.SetBaseURL(host + "/api/v4")
 
 	if os.Getenv("DEBUG") != "" {
 		log.Println("gitlab.host:", host)
-		log.Println("gitlab.token:", "************"+token[12:])
+		if len(token) > 12 {
+			log.Println("gitlab.token:", "************"+token[12:])
+		} else {
+			log.Println("This token looks invalid due to it's length")
+			log.Println("gitlab.token:", token)
+		}
 		log.Println("gitlab.user:", User)
-	}
-	lab = gitlab.NewClient(nil, token)
-	lab.SetBaseURL(host + "/api/v4")
-	_, _, err = lab.Projects.ListProjects(&gitlab.ListProjectsOptions{})
-	if err != nil {
-		log.Fatal("Error: ", err)
+
+		// Test listing projects
+		projects, _, err := lab.Projects.ListProjects(&gitlab.ListProjectsOptions{})
+		if err != nil {
+			log.Fatal("Error: ", err)
+		}
+		if len(projects) > 0 {
+			spew.Dump(projects[0])
+		}
 	}
 }
 

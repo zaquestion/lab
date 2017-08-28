@@ -15,8 +15,6 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
-var cfgFile string
-
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "lab",
@@ -76,6 +74,20 @@ func labUsage(c *cobra.Command) string {
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
+		// Passthough clone if any flags are in use
+		if cmd.Use == "clone" {
+			// This will fail if their are in a flags because no
+			// flags are defined on the command
+			err = cmd.ParseFlags(os.Args[1:])
+			if err == nil {
+				if err := RootCmd.Execute(); err != nil {
+					// Execute has already logged the error
+					os.Exit(1)
+				}
+			}
+		}
+
+		// Passthrough to git for any unrecognised commands
 		git := git.New(os.Args[1:]...)
 		err = git.Run()
 		if exiterr, ok := err.(*exec.ExitError); ok {

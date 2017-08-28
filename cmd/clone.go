@@ -10,13 +10,13 @@ import (
 )
 
 // cloneCmd represents the clone command
+// NOTE: There is special handling for "clone" in cmd/root.go
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
 	Short: "",
 	Long: `Clone supports these shorthands
 - repo
 - namespace/repo`,
-	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		path, err := gitlab.ClonePath(args[0])
 		if err == gitlab.ErrProjectNotFound {
