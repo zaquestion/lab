@@ -48,7 +48,7 @@ var templateFuncs = template.FuncMap{
 	"rpad": rpad,
 }
 
-const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (ne .Name "clone"))}}
+const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version")))}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{if .HasAvailableLocalFlags}}
 
 Flags:
