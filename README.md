@@ -23,19 +23,6 @@ lab version 0.1.0-alpha
 
 The [hub](https://github.com/github/hub) tool made my life significantly easier and still does! lab is heavily inspired by hub and attempts to provide a similar feel.
 
-The first time you run lab it will prompt for your GitLab information. All configuration is managed through `git config` so don't worry if you mess it up. Keys can be set at the system, global, or local level.
-```
-$ lab
-Enter default GitLab host (default: https://gitlab.com):
-Enter default GitLab user: zaq
-Enter default GitLab token (default: empty):
-```
-
-Relevant lab `git config` keys:
-* gitlab.host
-* gitlab.user
-* gitlab.token
-
 # Installation
 
 Dependencies
@@ -49,6 +36,20 @@ $ lab version
 git version 2.11.0
 lab version 0.1.0-alpha
 ```
+
+The first time you run lab it will prompt for your GitLab information. All configuration is managed through `git config` so don't worry if you mess it up. Keys can be set at the system, global, or local level.
+```
+$ lab
+Enter default GitLab host (default: https://gitlab.com):
+Enter default GitLab user: zaq
+Enter default GitLab token (default: empty):
+```
+
+Relevant lab `git config` keys:
+* gitlab.host
+* gitlab.user
+* gitlab.token
+
 
 # Aliasing
 
