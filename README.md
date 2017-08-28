@@ -13,13 +13,10 @@ $ git clone git@gitlab.com:gitlab-com/infrastructure
 
 lab will look for hub and using that as your git binary when available so you don't have to give up hub to use lab
 ```
-zaq@lappy76:~/projects/go/src/github.com/zaquestion/lab
-```
 $ lab version
 git version 2.11.0
 hub version 2.3.0-pre9
 lab version 0.1.0-alpha
-
 ```
 
 # Inspiration
