@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.9.x
+
+go_import_path: github.com/zaquestion/lab
+
+# use containers which run faster and have cache
+sudo: false
+
+script:
+  - go build -v github.com/zaquestion/lab/...
+
+notifications:
+  email: false

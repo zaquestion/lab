@@ -1,4 +1,4 @@
-# git + lab = gitlab
+# git + lab = gitlab [![Build Status](https://travis-ci.org/zaquestion/lab.svg?branch=master)](https://travis-ci.org/zaquestion/lab)
 
 lab wraps git or [hub](https://github.com/github/hub) and adds additional features to make working with GitLab smoother
 
