@@ -11,7 +11,7 @@ $ git clone git@gitlab.com:gitlab-com/infrastructure
 
 ## hub + lab = hublab??
 
-lab will look for hub and using that as your git binary when available so you don't have to give up hub to use lab
+lab will look for hub and uses that as your git binary when available so you don't have to give up hub to use lab
 ```
 $ lab version
 git version 2.11.0
@@ -53,9 +53,9 @@ Relevant lab `git config` keys:
 
 # Aliasing
 
-Like hub lab feels best when aliased as `git`. However lab is still in early development _some_ clone or fork commands could be broken
+Like hub, lab feels best when aliased as `git`. However lab is still in early development _some_ clone or fork commands could be broken when falling through to hub/git
 
-In you `.bashrc` or `.bash_profile`
+In your `.bashrc` or `.bash_profile`
 ```
 alias git=lab
 ```

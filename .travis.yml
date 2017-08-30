@@ -2,7 +2,6 @@ language: go
 
 go:
   - 1.9
-  - 1.8.3
 
 go_import_path: github.com/zaquestion/lab
 
