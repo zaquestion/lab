@@ -9,7 +9,7 @@ go_import_path: github.com/zaquestion/lab
 sudo: false
 
 script:
-  - go build -v github.com/zaquestion/lab/...
+  - go test ./...
 
 notifications:
   email: false

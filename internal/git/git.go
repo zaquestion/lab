@@ -38,7 +38,7 @@ func New(args ...string) *exec.Cmd {
 	return cmd
 }
 
-func Dir() (string, error) {
+func GitDir() (string, error) {
 	cmd := New("rev-parse", "-q", "--git-dir")
 	cmd.Stdout = nil
 	d, err := cmd.Output()
@@ -65,16 +65,6 @@ func WorkingDir() (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(d)), nil
-}
-
-func EditorPath() (string, error) {
-	cmd := New("var", "GIT_EDITOR")
-	cmd.Stdout = nil
-	e, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(e)), nil
 }
 
 func CommentChar() string {

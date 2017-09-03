@@ -12,7 +12,7 @@ import (
 )
 
 func Edit(filePrefix, message string) (string, string, error) {
-	gitDir, err := Dir()
+	gitDir, err := GitDir()
 	if err != nil {
 		return "", "", err
 	}
@@ -21,7 +21,7 @@ func Edit(filePrefix, message string) (string, string, error) {
 		log.Println("msgFile:", filePath)
 	}
 
-	editorPath, err := EditorPath()
+	editorPath, err := editorPath()
 	if err != nil {
 		return "", "", err
 	}
@@ -35,7 +35,8 @@ func Edit(filePrefix, message string) (string, string, error) {
 		}
 	}
 
-	err = openTextEditor(editorPath, filePath)
+	cmd := editorCMD(editorPath, filePath)
+	err = cmd.Run()
 	if err != nil {
 		return "", "", err
 	}
@@ -48,7 +49,17 @@ func Edit(filePrefix, message string) (string, string, error) {
 	return parseTitleBody(strings.TrimSpace(string(contents)))
 }
 
-func openTextEditor(editorPath, filePath string) error {
+func editorPath() (string, error) {
+	cmd := New("var", "GIT_EDITOR")
+	cmd.Stdout = nil
+	e, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(e)), nil
+}
+
+func editorCMD(editorPath, filePath string) *exec.Cmd {
 	r := regexp.MustCompile("[nmg]?vi[m]?$")
 	args := make([]string, 0, 3)
 	if r.MatchString(editorPath) {
@@ -59,7 +70,7 @@ func openTextEditor(editorPath, filePath string) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return cmd
 }
 
 func parseTitleBody(message string) (string, string, error) {
