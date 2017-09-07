@@ -26,7 +26,7 @@ const (
 
 // mrCmd represents the mr command
 var mrCmd = &cobra.Command{
-	Use:   "mr",
+	Use:   "merge-request",
 	Short: "Open Merge Request on GitLab",
 	Long:  `Currently only supports MRs into origin/master`,
 	Args:  cobra.ExactArgs(0),
