@@ -39,6 +39,12 @@ func Test_parseTitleBody(t *testing.T) {
 			ExpectedTitle: "test commit and more title",
 			ExpectedBody:  "",
 		},
+		{
+			Name:          "Title includes issue number",
+			Message:       "test commit #100", // # is the commentChar
+			ExpectedTitle: "test commit #100",
+			ExpectedBody:  "",
+		},
 	}
 
 	for _, c := range cases {
