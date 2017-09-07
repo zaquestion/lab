@@ -25,6 +25,7 @@ var cloneCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
+			return
 		} else if err != nil {
 			log.Fatal(err)
 		}
