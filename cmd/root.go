@@ -84,6 +84,7 @@ func Execute() {
 					// Execute has already logged the error
 					os.Exit(1)
 				}
+				return
 			}
 		}
 
@@ -98,7 +99,7 @@ func Execute() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		os.Exit(0)
+		return
 	}
 	if err := RootCmd.Execute(); err != nil {
 		// Execute has already logged the error
