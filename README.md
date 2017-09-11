@@ -42,7 +42,7 @@ The first time you run lab it will prompt for your GitLab information. All confi
 $ lab
 Enter default GitLab host (default: https://gitlab.com):
 Enter default GitLab user: zaq
-Enter default GitLab token (default: empty):
+Enter default GitLab token:
 ```
 
 Relevant lab `git config` keys:

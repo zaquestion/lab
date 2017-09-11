@@ -31,7 +31,6 @@ const defaultGitLabHost = "https://gitlab.com"
 func init() {
 	reader := bufio.NewReader(os.Stdin)
 	var err error
-	var errt error
 	host, err = gitconfig.Entire("gitlab.host")
 	if err != nil {
 		fmt.Printf("Enter default GitLab host (default: %s): ", defaultGitLabHost)
@@ -50,6 +49,7 @@ func init() {
 		}
 
 	}
+	var errt error
 	User, err = gitconfig.Entire("gitlab.user")
 	token, errt = gitconfig.Entire("gitlab.token")
 	if err != nil {
@@ -69,10 +69,9 @@ func init() {
 		}
 
 		// If the default user is being set this is the first time lab
-		// is being run. Check if they want to provide an API key for
-		// private repos
+		// is being run.
 		if errt != nil {
-			fmt.Print("Enter default GitLab token (default: empty): ")
+			fmt.Print("Enter default GitLab token: ")
 			token, err = reader.ReadString('\n')
 			token = token[:len(token)-1]
 			if err != nil {
