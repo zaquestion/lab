@@ -74,10 +74,9 @@ func labUsage(c *cobra.Command) string {
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
-		// Passthough clone if any flags are in use
-		if cmd.Use == "clone" {
-			// This will fail if their are in a flags because no
-			// flags are defined on the command
+		// Determine if any undefined flags were passed to "clone
+		if cmd.Use == "clone" && len(os.Args) > 2 {
+			// ParseFlags will err in these cases
 			err = cmd.ParseFlags(os.Args[1:])
 			if err == nil {
 				if err := RootCmd.Execute(); err != nil {
