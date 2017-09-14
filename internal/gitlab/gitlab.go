@@ -188,3 +188,16 @@ func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (strin
 	}
 	return mr.WebURL, nil
 }
+
+func ListMRs(project string, opts *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	list, _, err := lab.MergeRequests.ListMergeRequests(p.ID, opts)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
