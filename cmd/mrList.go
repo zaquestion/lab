@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -19,7 +18,7 @@ var listCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.RepoName()
+		rn, err := git.PathWithNameSpace("origin")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -36,20 +35,16 @@ var listCmd = &cobra.Command{
 				Page:    page,
 				PerPage: 10,
 			},
+			State:   gitlab.String("opened"),
 			OrderBy: gitlab.String("updated_at"),
 		})
 		if err != nil {
 			log.Fatal(err)
 		}
 		for _, mr := range mrs {
-			fmt.Fprintf(os.Stdout, "#%d %s\n", mr.IID, mr.Title)
+			fmt.Printf("#%d %s\n", mr.IID, mr.Title)
 		}
 	},
-}
-
-type formattedMR struct {
-	IID   int
-	Title string
 }
 
 func init() {
