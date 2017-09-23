@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -19,7 +18,7 @@ var checkoutCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.RepoName()
+		rn, err := git.PathWithNameSpace("origin")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,7 +34,7 @@ var checkoutCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if len(mrs) < 1 {
-			fmt.Fprintf(os.Stdout, "MR #%s", mrIDStr)
+			fmt.Printf("MR #%s not found\n", mrIDStr)
 			return
 		}
 		branch := mrs[0].SourceBranch
