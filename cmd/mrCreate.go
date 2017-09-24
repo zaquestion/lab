@@ -61,7 +61,8 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	msg, err := mrMsg(targetBranch, branch, sourceRemote, targetRemote)
+	target := fmt.Sprintf("%s/%s", targetRemote, targetBranch)
+	msg, err := mrMsg(target, branch, sourceRemote, targetRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
