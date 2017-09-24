@@ -8,7 +8,7 @@ import (
 var mergeRequestCmd = &cobra.Command{
 	Use:   "merge-request",
 	Short: "Open Merge Request on GitLab",
-	Long:  `Currently only supports MRs into origin/master`,
+	Long:  `Currently only supports MRs into master`,
 	Args:  cobra.ExactArgs(0),
 	Run:   runMRCreate,
 }

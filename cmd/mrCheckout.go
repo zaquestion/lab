@@ -14,11 +14,11 @@ import (
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
 	Use:   "checkout",
-	Short: "Checkout an open Merge Request",
+	Short: "Checkout an open merge request",
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace("origin")
+		rn, err := git.PathWithNameSpace(targetRemote)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -39,7 +39,7 @@ var checkoutCmd = &cobra.Command{
 		}
 		branch := mrs[0].SourceBranch
 		mr := fmt.Sprintf("refs/merge-requests/%s/head", mrIDStr)
-		gitf := git.New("fetch", "origin", mr, fmt.Sprintf(":%s", branch))
+		gitf := git.New("fetch", targetRemote, mr, fmt.Sprintf(":%s", branch))
 		err = gitf.Run()
 		if err != nil {
 			log.Fatal(err)

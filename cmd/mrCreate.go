@@ -21,6 +21,10 @@ import (
 // track of reference when setting your own base allowed
 const (
 	targetBranch = "master"
+)
+
+var (
+	// Will be updated to upstream in init() if user if remote exists
 	targetRemote = "origin"
 )
 
@@ -28,13 +32,17 @@ const (
 var mrCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Open Merge Request on GitLab",
-	Long:  `Currently only supports MRs into origin/master`,
+	Long:  `Currently only supports MRs into master`,
 	Args:  cobra.ExactArgs(0),
 	Run:   runMRCreate,
 }
 
 func init() {
 	mrCmd.AddCommand(mrCreateCmd)
+	_, err := gitconfig.Local("remote.upstream.url")
+	if err == nil {
+		targetRemote = "upstream"
+	}
 }
 
 func runMRCreate(cmd *cobra.Command, args []string) {
@@ -61,8 +69,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	target := fmt.Sprintf("%s/%s", targetRemote, targetBranch)
-	msg, err := mrMsg(target, branch, sourceRemote, targetRemote)
+	msg, err := mrMsg(targetBranch, branch, sourceRemote, targetRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,7 +113,8 @@ func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
 {{.CommentChar}}
 {{.CommitLogs}}{{end}}`
 
-	commitLogs, err := git.Log(base, head)
+	remoteBase := fmt.Sprintf("%s/%s", targetRemote, base)
+	commitLogs, err := git.Log(remoteBase, head)
 	if err != nil {
 		return "", err
 	}

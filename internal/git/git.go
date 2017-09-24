@@ -153,3 +153,17 @@ func RepoName() (string, error) {
 	parts := strings.Split(o, "/")
 	return parts[len(parts)-1:][0], nil
 }
+
+func RemoteAdd(name, url string) error {
+	err := New("remote", "add", name, url).Run()
+	if err != nil {
+		return err
+	}
+	fmt.Println("Updating", name)
+	err = New("fetch", name).Run()
+	if err != nil {
+		return err
+	}
+	fmt.Println("new remote:", name)
+	return nil
+}
