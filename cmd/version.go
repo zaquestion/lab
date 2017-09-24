@@ -17,7 +17,7 @@ var versionCmd = &cobra.Command{
 		git.Stdout = nil
 		git.Stderr = nil
 		version, _ := git.Output()
-		fmt.Printf("%s%s\n", string(version), "lab version 0.2.1-alpha")
+		fmt.Printf("%s%s\n", string(version), "lab version 0.3.0")
 	},
 }
 

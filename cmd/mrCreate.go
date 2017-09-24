@@ -31,7 +31,7 @@ var (
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Open Merge Request on GitLab",
+	Short: "Open a merge request on GitLab",
 	Long:  `Currently only supports MRs into master`,
 	Args:  cobra.ExactArgs(0),
 	Run:   runMRCreate,

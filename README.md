@@ -53,9 +53,7 @@ Relevant lab `git config` keys:
 
 # Aliasing
 
-Like hub, lab feels best when aliased as `git`. However lab is still in early development _some_ clone or fork commands could be broken when falling through to hub/git
-
-In your `.bashrc` or `.bash_profile`
+Like hub, lab feels best when aliased as `git`. In your `.bashrc` or `.bash_profile`
 ```
 alias git=lab
 ```
