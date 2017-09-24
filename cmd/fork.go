@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -44,11 +45,18 @@ var forkCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		git := git.New("remote", "add", lab.User, remote)
-		git.Run()
+		gitCmd := git.New("remote", "add", lab.User, remote)
+		gitCmd.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("Updating", lab.User)
+		gitCmd = git.New("fetch", lab.User)
+		gitCmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("new remote:", lab.User)
 	},
 }
 
