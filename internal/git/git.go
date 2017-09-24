@@ -101,7 +101,7 @@ func Log(sha1, sha2 string) (string, error) {
 	cmd.Stdout = nil
 	outputs, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("Can't load git log %s..%s", sha1, sha2)
+		return "", errors.Errorf("Can't load git log %s..%s", sha1, sha2)
 	}
 
 	return string(outputs), nil
