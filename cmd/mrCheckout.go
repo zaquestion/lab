@@ -37,9 +37,10 @@ var checkoutCmd = &cobra.Command{
 			fmt.Printf("MR #%s not found\n", mrIDStr)
 			return
 		}
+		// https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally
 		branch := mrs[0].SourceBranch
 		mr := fmt.Sprintf("refs/merge-requests/%s/head", mrIDStr)
-		gitf := git.New("fetch", targetRemote, mr, fmt.Sprintf(":%s", branch))
+		gitf := git.New("fetch", targetRemote, fmt.Sprintf("%s:%s", mr, branch))
 		err = gitf.Run()
 		if err != nil {
 			log.Fatal(err)
