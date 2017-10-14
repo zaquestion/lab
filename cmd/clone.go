@@ -18,6 +18,7 @@ var cloneCmd = &cobra.Command{
 	Long: `Clone supports these shorthands
 - repo
 - namespace/repo`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])
 		if err == gitlab.ErrProjectNotFound {

@@ -75,7 +75,7 @@ func labUsage(c *cobra.Command) string {
 func Execute() {
 	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
 		// Determine if any undefined flags were passed to "clone
-		if cmd.Use == "clone" && len(os.Args) > 2 {
+		if cmd.Use == "clone" {
 			// ParseFlags will err in these cases
 			err = cmd.ParseFlags(os.Args[1:])
 			if err == nil {
