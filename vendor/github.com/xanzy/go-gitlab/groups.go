@@ -38,15 +38,16 @@ type Group struct {
 	Name                 string             `json:"name"`
 	Path                 string             `json:"path"`
 	Description          string             `json:"description"`
+	Visibility           *VisibilityValue   `json:"visibility"`
+	LFSEnabled           bool               `json:"lfs_enabled"`
 	AvatarURL            string             `json:"avatar_url"`
+	WebURL               string             `json:"web_url"`
+	RequestAccessEnabled bool               `json:"request_access_enabled"`
 	FullName             string             `json:"full_name"`
 	FullPath             string             `json:"full_path"`
-	LFSEnabled           bool               `json:"lfs_enabled"`
+	ParentID             int                `json:"parent_id"`
 	Projects             []*Project         `json:"projects"`
 	Statistics           *StorageStatistics `json:"statistics"`
-	RequestAccessEnabled bool               `json:"request_access_enabled"`
-	Visibility           *VisibilityValue   `json:"visibility"`
-	WebURL               string             `json:"web_url"`
 }
 
 // ListGroupsOptions represents the available ListGroups() options.
@@ -237,7 +238,7 @@ func (s *GroupsService) SearchGroup(query string, options ...OptionFunc) ([]*Gro
 
 // GroupMember represents a GitLab group member.
 //
-// GitLab API docs: https://docs.gitlab.com/ce/api/groups.html
+// GitLab API docs: https://docs.gitlab.com/ce/api/members.html
 type GroupMember struct {
 	ID          int              `json:"id"`
 	Username    string           `json:"username"`
@@ -252,7 +253,7 @@ type GroupMember struct {
 // options.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/api/groups.html#list-group-members
+// https://docs.gitlab.com/ce/api/members.html#list-all-members-of-a-group-or-project
 type ListGroupMembersOptions struct {
 	ListOptions
 }
@@ -261,7 +262,7 @@ type ListGroupMembersOptions struct {
 // user.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/api/groups.html#list-group-members
+// https://docs.gitlab.com/ce/api/members.html#list-all-members-of-a-group-or-project
 func (s *GroupsService) ListGroupMembers(gid interface{}, opt *ListGroupMembersOptions, options ...OptionFunc) ([]*GroupMember, *Response, error) {
 	group, err := parseID(gid)
 	if err != nil {
@@ -319,16 +320,18 @@ func (s *GroupsService) ListGroupProjects(gid interface{}, opt *ListGroupProject
 
 // AddGroupMemberOptions represents the available AddGroupMember() options.
 //
-// GitLab API docs: https://docs.gitlab.com/ce/api/groups.html#add-group-member
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/members.html#add-a-member-to-a-group-or-project
 type AddGroupMemberOptions struct {
 	UserID      *int              `url:"user_id,omitempty" json:"user_id,omitempty"`
 	AccessLevel *AccessLevelValue `url:"access_level,omitempty" json:"access_level,omitempty"`
+	ExpiresAt   *string           `url:"expires_at,omitempty" json:"expires_at"`
 }
 
 // AddGroupMember adds a user to the list of group members.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/api/groups.html#list-group-members
+// https://docs.gitlab.com/ce/api/members.html#add-a-member-to-a-group-or-project
 func (s *GroupsService) AddGroupMember(gid interface{}, opt *AddGroupMemberOptions, options ...OptionFunc) (*GroupMember, *Response, error) {
 	group, err := parseID(gid)
 	if err != nil {
@@ -350,20 +353,21 @@ func (s *GroupsService) AddGroupMember(gid interface{}, opt *AddGroupMemberOptio
 	return g, resp, err
 }
 
-// UpdateGroupMemberOptions represents the available UpdateGroupMember()
+// EditGroupMemberOptions represents the available EditGroupMember()
 // options.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/api/groups.html#edit-group-team-member
-type UpdateGroupMemberOptions struct {
+// https://docs.gitlab.com/ce/api/members.html#edit-a-member-of-a-group-or-project
+type EditGroupMemberOptions struct {
 	AccessLevel *AccessLevelValue `url:"access_level,omitempty" json:"access_level,omitempty"`
+	ExpiresAt   *string           `url:"expires_at,omitempty" json:"expires_at"`
 }
 
-// UpdateGroupMember updates a group team member to a specified access level.
+// EditGroupMember updates a member of a group.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/api/groups.html#list-group-members
-func (s *GroupsService) UpdateGroupMember(gid interface{}, user int, opt *UpdateGroupMemberOptions, options ...OptionFunc) (*GroupMember, *Response, error) {
+// https://docs.gitlab.com/ce/api/members.html#edit-a-member-of-a-group-or-project
+func (s *GroupsService) EditGroupMember(gid interface{}, user int, opt *EditGroupMemberOptions, options ...OptionFunc) (*GroupMember, *Response, error) {
 	group, err := parseID(gid)
 	if err != nil {
 		return nil, nil, err
@@ -387,7 +391,7 @@ func (s *GroupsService) UpdateGroupMember(gid interface{}, user int, opt *Update
 // RemoveGroupMember removes user from user team.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/api/groups.html#remove-user-from-user-team
+// https://docs.gitlab.com/ce/api/members.html#remove-a-member-from-a-group-or-project
 func (s *GroupsService) RemoveGroupMember(gid interface{}, user int, options ...OptionFunc) (*Response, error) {
 	group, err := parseID(gid)
 	if err != nil {

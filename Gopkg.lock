@@ -46,8 +46,8 @@
 [[projects]]
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
-  revision = "55af103d769f3715bf6dddfdea30ce2899fb0e8b"
-  version = "v0.6.0"
+  revision = "c35b3f712f72376e21b645514ec3635e63fe0cd2"
+  version = "v0.6.2"
 
 [solve-meta]
   analyzer-name = "dep"

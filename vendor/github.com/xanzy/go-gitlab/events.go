@@ -509,10 +509,15 @@ type PipelineEvent struct {
 			Username  string `json:"username"`
 			AvatarURL string `json:"avatar_url"`
 		} `json:"user"`
-		Runner        string `json:"runner"`
+		Runner struct {
+			ID          int    `json:"id"`
+			Description string `json:"description"`
+			Active      bool   `json:"active"`
+			IsShared    bool   `json:"is_shared"`
+		} `json:"runner"`
 		ArtifactsFile struct {
 			Filename string `json:"filename"`
-			Size     string `json:"size"`
+			Size     int    `json:"size"`
 		} `json:"artifacts_file"`
 	} `json:"builds"`
 }
@@ -522,21 +527,21 @@ type PipelineEvent struct {
 // GitLab API docs:
 // https://docs.gitlab.com/ce/web_hooks/web_hooks.html#build-events
 type BuildEvent struct {
-	ObjectKind        string `json:"object_kind"`
-	Ref               string `json:"ref"`
-	Tag               bool   `json:"tag"`
-	BeforeSha         string `json:"before_sha"`
-	Sha               string `json:"sha"`
-	BuildID           int    `json:"build_id"`
-	BuildName         string `json:"build_name"`
-	BuildStage        string `json:"build_stage"`
-	BuildStatus       string `json:"build_status"`
-	BuildStartedAt    string `json:"build_started_at"`
-	BuildFinishedAt   string `json:"build_finished_at"`
-	BuildDuration     string `json:"build_duration"`
-	BuildAllowFailure bool   `json:"build_allow_failure"`
-	ProjectID         int    `json:"project_id"`
-	ProjectName       string `json:"project_name"`
+	ObjectKind        string  `json:"object_kind"`
+	Ref               string  `json:"ref"`
+	Tag               bool    `json:"tag"`
+	BeforeSha         string  `json:"before_sha"`
+	Sha               string  `json:"sha"`
+	BuildID           int     `json:"build_id"`
+	BuildName         string  `json:"build_name"`
+	BuildStage        string  `json:"build_stage"`
+	BuildStatus       string  `json:"build_status"`
+	BuildStartedAt    string  `json:"build_started_at"`
+	BuildFinishedAt   string  `json:"build_finished_at"`
+	BuildDuration     float64 `json:"build_duration"`
+	BuildAllowFailure bool    `json:"build_allow_failure"`
+	ProjectID         int     `json:"project_id"`
+	ProjectName       string  `json:"project_name"`
 	User              struct {
 		ID    int    `json:"id"`
 		Name  string `json:"name"`
