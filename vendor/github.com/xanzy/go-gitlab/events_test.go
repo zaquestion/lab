@@ -284,10 +284,15 @@ func TestPipelineEventUnmarshal(t *testing.T) {
             "username": "root",
             "avatar_url": "http://www.gravatar.com/avatar/e32bd13e2add097461cb96824b7a829c?s=80\u0026d=identicon"
          },
-         "runner": null,
+         "runner": {
+            "id": 6,
+            "description": "Kubernetes Runner",
+            "active": true,
+            "is_shared": true
+         },
          "artifacts_file":{
-            "filename": null,
-            "size": null
+            "filename": "artifacts.zip",
+            "size": 1319148
          }
       },
       {
@@ -386,7 +391,7 @@ func TestBuildEventUnmarshal(t *testing.T) {
   "build_status": "created",
   "build_started_at": null,
   "build_finished_at": null,
-  "build_duration": null,
+  "build_duration": 23.265997,
   "build_allow_failure": false,
   "project_id": 380,
   "project_name": "gitlab-org/gitlab-test",
