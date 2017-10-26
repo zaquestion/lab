@@ -94,7 +94,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(mrURL)
+	fmt.Println(mrURL + "/diffs")
 }
 
 func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
