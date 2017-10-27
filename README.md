@@ -27,10 +27,10 @@ The [hub](https://github.com/github/hub) tool made my life significantly easier 
 
 Dependencies
 
-* git or hub
+* `git` or `hub`
 
 ```
-$ go get github.com/zaquestion/lab
+$ go get -u github.com/zaquestion/lab
 
 $ lab version
 git version 2.11.0
