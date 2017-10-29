@@ -16,7 +16,7 @@ lab will look for hub and uses that as your git binary when available so you don
 $ lab version
 git version 2.11.0
 hub version 2.3.0-pre9
-lab version 0.4.1
+lab version 0.5.0
 ```
 
 # Inspiration
@@ -34,7 +34,7 @@ $ go get -u github.com/zaquestion/lab
 
 $ lab version
 git version 2.11.0
-lab version 0.4.1
+lab version 0.5.0
 ```
 
 The first time you run lab it will prompt for your GitLab information. All configuration is managed through `git config` so don't worry if you mess it up. Keys can be set at the system, global, or local level.
