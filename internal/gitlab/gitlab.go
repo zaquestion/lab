@@ -201,3 +201,37 @@ func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*g
 	}
 	return list, nil
 }
+
+func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	mr, _, err := lab.Issues.CreateIssue(p.ID, opts)
+	if err != nil {
+		return "", err
+	}
+	return mr.WebURL, nil
+}
+
+func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	list, _, err := lab.Issues.ListProjectIssues(p.ID, opts)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
