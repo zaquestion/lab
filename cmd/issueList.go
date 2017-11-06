@@ -12,9 +12,10 @@ import (
 )
 
 var issueListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List issues",
-	Long:  ``,
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List issues",
+	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, err := git.PathWithNameSpace(targetRemote)
 		if err != nil {

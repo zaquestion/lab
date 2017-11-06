@@ -13,10 +13,11 @@ import (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List merge requests",
-	Long:  ``,
-	Args:  cobra.MaximumNArgs(1),
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List merge requests",
+	Long:    ``,
+	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, err := git.PathWithNameSpace(targetRemote)
 		if err != nil {
