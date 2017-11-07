@@ -11,5 +11,12 @@ sudo: false
 script:
   - go test ./...
 
+deploy:
+  provider: script
+  script: curl -sL https://git.io/goreleaser | bash
+  on:
+    branch: master
+    tags: true
+
 notifications:
   email: false
