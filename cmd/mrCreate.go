@@ -102,8 +102,9 @@ func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	const tmpl = `{{if .InitMsg}}{{.InitMsg}}
-{{end}}
+	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
+
+{{if .Tmpl}}{{.Tmpl}}{{end}}
 {{.CommentChar}} Requesting a merge into {{.Base}} from {{.Head}}
 {{.CommentChar}}
 {{.CommentChar}} Write a message for this merge request. The first block
@@ -112,6 +113,8 @@ func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
 {{.CommentChar}} Changes:
 {{.CommentChar}}
 {{.CommitLogs}}{{end}}`
+
+	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 
 	remoteBase := fmt.Sprintf("%s/%s", targetRemote, base)
 	commitLogs, err := git.Log(remoteBase, head)
@@ -130,12 +133,14 @@ func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
 
 	msg := &struct {
 		InitMsg     string
+		Tmpl        string
 		CommentChar string
 		Base        string
 		Head        string
 		CommitLogs  string
 	}{
 		InitMsg:     lastCommitMsg,
+		Tmpl:        mrTmpl,
 		CommentChar: commentChar,
 		Base:        targetRemote + ":" + base,
 		Head:        sourceRemote + ":" + head,

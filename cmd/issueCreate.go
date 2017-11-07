@@ -50,11 +50,16 @@ var issueCreateCmd = &cobra.Command{
 }
 
 func issueMsg() (string, error) {
-	const tmpl = `{{if .InitMsg}}{{.InitMsg}}
-{{end}}
-
+	const tmpl = `{{.InitMsg}}
 {{.CommentChar}} Write a message for this issue. The first block
 {{.CommentChar}} of text is the title and the rest is the description.`
+
+	issueTmpl := lab.LoadGitLabTmpl(lab.TmplIssue)
+
+	initMsg := "\n"
+	if issueTmpl != "" {
+		initMsg = "\n\n" + issueTmpl
+	}
 
 	commentChar := git.CommentChar()
 
@@ -67,7 +72,7 @@ func issueMsg() (string, error) {
 		InitMsg     string
 		CommentChar string
 	}{
-		InitMsg:     "",
+		InitMsg:     initMsg,
 		CommentChar: commentChar,
 	}
 
