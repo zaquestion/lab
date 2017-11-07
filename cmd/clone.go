@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
 	"github.com/zaquestion/lab/internal/gitlab"
@@ -18,6 +19,12 @@ var cloneCmd = &cobra.Command{
 	Long: `Clone supports these shorthands
 - repo
 - namespace/repo`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("You must specify a repo")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])
 		if err == gitlab.ErrProjectNotFound {
