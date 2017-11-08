@@ -118,6 +118,7 @@ func init() {
 	}
 }
 
+// Defines filepath for default GitLab templates
 const (
 	TmplMR    = "merge_request_templates/default.md"
 	TmplIssue = "issue_templates/default.md"
