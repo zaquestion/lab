@@ -1,0 +1,54 @@
+project_name: lab
+release:
+  github:
+    owner: zaquestion
+    name: lab
+  name_template: '{{.Tag}}'
+brew:
+  description: "CLI tool for GitLab, like hub"
+  homepage: "https://github.com/zaquestion/lab"
+  github:
+    owner: zaquestion
+    name: homebrew-tap
+  commit_author:
+    name: goreleaserbot
+    email: goreleaser@carlosbecker.com
+  install: bin.install "lab"
+  test: |
+    system "git", "init"
+    %w[haunted house].each { |f| touch testpath/f }
+    system "git", "add", "haunted", "house"
+    system "git", "commit", "-a", "-m", "Initial Commit"
+    system "git", "config", "--local", "--add", "gitlab.host", "http://example.com"
+    system "git", "config", "--local", "--add", "gitlab.user", "test"
+    system "git", "config", "--local", "--add", "gitlab.token", "test"
+    assert_equal "haunted\nhouse", shell_output("#{bin}/lab ls-files").strip
+builds:
+- goos:
+  - linux
+  - darwin
+  goarch:
+  - amd64
+  - "386"
+  goarm:
+  - "6"
+  main: .
+  ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+  binary: lab
+archive:
+  format: tar.gz
+  name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{
+    .Arm }}{{ end }}'
+  files:
+  - licence*
+  - LICENCE*
+  - license*
+  - LICENSE*
+  - readme*
+  - README*
+  - changelog*
+  - CHANGELOG*
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
