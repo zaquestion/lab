@@ -29,6 +29,15 @@ Dependencies
 
 * `git` or `hub`
 
+### Homebrew
+```
+brew install zaquestion/tap/lab
+```
+
+### Source
+
+Required
+* [Go 1.9+](https://golang.org/doc/install)
 ```
 $ go get -u github.com/zaquestion/lab
 
@@ -36,6 +45,8 @@ $ lab version
 git version 2.11.0
 lab version 0.5.1
 ```
+
+# Configuration
 
 The first time you run lab it will prompt for your GitLab information. All configuration is managed through `git config` so don't worry if you mess it up. Keys can be set at the system, global, or local level.
 ```
