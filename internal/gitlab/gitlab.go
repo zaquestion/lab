@@ -7,9 +7,11 @@ package gitlab
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -116,7 +118,50 @@ func init() {
 	}
 }
 
+// Defines filepath for default GitLab templates
+const (
+	TmplMR    = "merge_request_templates/default.md"
+	TmplIssue = "issue_templates/default.md"
+)
+
+// LoadGitLabTmpl loads gitlab templates for use in creating Issues and MRs
+//
+// https://gitlab.com/help/user/project/description_templates.md#setting-a-default-template-for-issues-and-merge-requests
+func LoadGitLabTmpl(tmplName string) string {
+	wd, err := git.WorkingDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tmplFile := filepath.Join(wd, ".gitlab", tmplName)
+	if os.Getenv("DEBUG") != "" {
+		log.Println("tmplFile:", tmplFile)
+	}
+
+	f, err := os.Open(tmplFile)
+	if os.IsNotExist(err) {
+		return ""
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
+	tmpl, err := ioutil.ReadAll(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(tmpl)
+}
+
+var (
+	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
+)
+
 func FindProject(project string) (*gitlab.Project, error) {
+	if target, ok := localProjects[project]; ok {
+		return target, nil
+	}
+
 	search := project
 	// Assuming that a "/" in the project means its owned by an org
 	if !strings.Contains(project, "/") {
@@ -133,6 +178,9 @@ func FindProject(project string) (*gitlab.Project, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(target)
 	}
+
+	// fwiw, I feel bad about this
+	localProjects[project] = target
 
 	return target, nil
 }
