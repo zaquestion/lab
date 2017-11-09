@@ -31,7 +31,11 @@ var listCmd = &cobra.Command{
 			}
 		}
 
-		mrs, err := lab.ListMRs(rn, &gitlab.ListProjectMergeRequestsOptions{
+		project, err := lab.FindProject(rn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mrs, err := lab.ListMRs(project.ID, &gitlab.ListProjectMergeRequestsOptions{
 			ListOptions: gitlab.ListOptions{
 				Page:    page,
 				PerPage: 10,

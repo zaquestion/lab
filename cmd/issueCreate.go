@@ -38,7 +38,11 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal("aborting issue due to empty issue msg")
 		}
 
-		issueURL, err := lab.IssueCreate(rn, &gitlab.CreateIssueOptions{
+		project, err := lab.FindProject(rn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		issueURL, err := lab.IssueCreate(project.ID, &gitlab.CreateIssueOptions{
 			Title:       &title,
 			Description: &body,
 		})
