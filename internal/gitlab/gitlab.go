@@ -51,7 +51,6 @@ func init() {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 	}
 	var errt error
 	User, err = gitconfig.Entire("gitlab.user")
@@ -137,18 +136,6 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
-func ClonePath(project string) (string, error) {
-	target, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	if target != nil {
-		return target.SSHURLToRepo, nil
-	}
-	return project, nil
-}
-
 func Fork(project string) (string, error) {
 	if !strings.Contains(project, "/") {
 		return "", errors.New("remote must include namespace")
@@ -176,30 +163,20 @@ func Fork(project string) (string, error) {
 	return fork.SSHURLToRepo, nil
 }
 
-func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
+func MergeRequest(project int, opts *gitlab.CreateMergeRequestOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
 	}
 
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	mr, _, err := lab.MergeRequests.CreateMergeRequest(p.ID, opts)
+	mr, _, err := lab.MergeRequests.CreateMergeRequest(project, opts)
 	if err != nil {
 		return "", err
 	}
 	return mr.WebURL, nil
 }
 
-func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
-	list, _, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, opts)
+func ListMRs(project int, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+	list, _, err := lab.MergeRequests.ListProjectMergeRequests(project, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -207,17 +184,12 @@ func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*g
 }
 
 // IssueCreate opens a new issue on a specified GitLab Project
-func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
+func IssueCreate(project int, opts *gitlab.CreateIssueOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
 	}
 
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	mr, _, err := lab.Issues.CreateIssue(p.ID, opts)
+	mr, _, err := lab.Issues.CreateIssue(project, opts)
 	if err != nil {
 		return "", err
 	}
@@ -225,17 +197,12 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 }
 
 // IssueList gets a list of issues on a specified GitLab Project
-func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
+func IssueList(project int, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
 	}
 
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
-	list, _, err := lab.Issues.ListProjectIssues(p.ID, opts)
+	list, _, err := lab.Issues.ListProjectIssues(project, opts)
 	if err != nil {
 		return nil, err
 	}

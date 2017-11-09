@@ -29,7 +29,11 @@ var issueListCmd = &cobra.Command{
 			}
 		}
 
-		issues, err := lab.IssueList(rn, &gitlab.ListProjectIssuesOptions{
+		project, err := lab.FindProject(rn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		issues, err := lab.IssueList(project.ID, &gitlab.ListProjectIssuesOptions{
 			ListOptions: gitlab.ListOptions{
 				Page:    page,
 				PerPage: 10,

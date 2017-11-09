@@ -59,6 +59,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	sourceProject, err := lab.FindProject(sourceProjectName)
 
 	targetProjectName, err := git.PathWithNameSpace(targetRemote)
 	if err != nil {
@@ -84,7 +85,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal("aborting MR due to empty MR msg")
 	}
 
-	mrURL, err := lab.MergeRequest(sourceProjectName, &gitlab.CreateMergeRequestOptions{
+	mrURL, err := lab.MergeRequest(sourceProject.ID, &gitlab.CreateMergeRequestOptions{
 		SourceBranch:    &branch,
 		TargetBranch:    gitlab.String(targetBranch),
 		TargetProjectID: &targetProject.ID,
