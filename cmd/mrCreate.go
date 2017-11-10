@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	// Will be updated to upstream in init() if user if remote exists
+	// Will be updated to upstream in init() if upstream remote exists
 	targetRemote = "origin"
 )
 
@@ -51,13 +51,14 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	sourceRemote, err := gitconfig.Local("branch." + branch + ".remote")
-	if err != nil {
-		sourceRemote = "origin"
-	}
+	sourceRemote := determineSourceRemote(branch)
 	sourceProjectName, err := git.PathWithNameSpace(sourceRemote)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if !lab.BranchPushed(sourceProjectName, branch) {
+		log.Fatal("aborting MR, branch not present on remote: ", sourceRemote)
 	}
 
 	targetProjectName, err := git.PathWithNameSpace(targetRemote)
@@ -95,6 +96,23 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	fmt.Println(mrURL + "/diffs")
+}
+
+func determineSourceRemote(branch string) string {
+	// Check if the branch is being tracked
+	r, err := gitconfig.Local("branch." + branch + ".remote")
+	if err == nil {
+		return r
+	}
+
+	// If not, check if the fork is named after the user
+	_, err = gitconfig.Local("remote." + lab.User + ".url")
+	if err == nil {
+		return lab.User
+	}
+
+	// If not, default to origin
+	return "origin"
 }
 
 func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
