@@ -289,3 +289,16 @@ func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab
 	}
 	return list, nil
 }
+
+func BranchPushed(project, branch string) bool {
+	p, err := FindProject(project)
+	if err != nil {
+		return false
+	}
+
+	b, _, err := lab.Branches.GetBranch(p.ID, branch)
+	if err != nil {
+		return false
+	}
+	return b != nil
+}
