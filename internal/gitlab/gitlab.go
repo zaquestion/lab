@@ -290,6 +290,7 @@ func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab
 	return list, nil
 }
 
+// BranchPushed checks if a branch exists on a specified GitLab Project
 func BranchPushed(project, branch string) bool {
 	p, err := FindProject(project)
 	if err != nil {
