@@ -9,7 +9,7 @@ go_import_path: github.com/zaquestion/lab
 sudo: false
 
 script:
-  - go test ./...
+  - make test
 
 deploy:
   provider: script

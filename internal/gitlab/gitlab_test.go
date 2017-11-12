@@ -13,10 +13,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	os.Rename("test.git", ".git")
-	code := m.Run()
-	os.Rename(".git", "test.git")
-	os.Exit(code)
 }
 
 func TestLoadGitLabTmplMR(t *testing.T) {
@@ -24,7 +20,7 @@ func TestLoadGitLabTmplMR(t *testing.T) {
 	require.Equal(t, mrTmpl, "I am the mr tmpl")
 }
 
-func TestLoadGitLabTmpl(t *testing.T) {
+func TestLoadGitLabTmplIssue(t *testing.T) {
 	issueTmpl := LoadGitLabTmpl(TmplIssue)
 	require.Equal(t, issueTmpl, "I am the issue tmpl")
 }

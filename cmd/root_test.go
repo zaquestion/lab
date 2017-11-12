@@ -26,20 +26,9 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	rand.Seed(time.Now().UnixNano())
-	if _, err := os.Stat("_test"); os.IsNotExist(err) {
-
-		err = exec.Command("git", "clone", "https://gitlab.com/zaquestion/test.git", "_test").Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = exec.Command("sed", "-i", "s|https://gitlab.com/|git@gitlab.com:|", "_test/.git/config").Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 	code := m.Run()
 	os.Remove("lab_bin")
-	testdirs, err := filepath.Glob("_test-*")
+	testdirs, err := filepath.Glob("testdata-*")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,9 +43,9 @@ func TestMain(m *testing.M) {
 }
 
 func copyTestRepo(t *testing.T) string {
-	dir := "_test-" + strconv.Itoa(int(rand.Uint64()))
+	dir := "testdata-" + strconv.Itoa(int(rand.Uint64()))
 	t.Log(dir)
-	err := exec.Command("cp", "-r", "_test", dir).Run()
+	err := exec.Command("cp", "-r", "testdata", dir).Run()
 	if err != nil {
 		t.Fatal(err)
 	}

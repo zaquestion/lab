@@ -13,10 +13,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	os.Rename("test.git", ".git")
-	code := m.Run()
-	os.Rename(".git", "test.git")
-	os.Exit(code)
 }
 
 func TestGitDir(t *testing.T) {

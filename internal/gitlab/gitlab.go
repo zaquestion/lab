@@ -77,7 +77,7 @@ func init() {
 		// If the default user is being set this is the first time lab
 		// is being run.
 		if errt != nil {
-			fmt.Print("Enter default GitLab token: ")
+			fmt.Print("Enter default GitLab token (scope: api ): \nCreate here: https://gitlab.com/profile/personal_access_tokens")
 			token, err = reader.ReadString('\n')
 			token = token[:len(token)-1]
 			if err != nil {
