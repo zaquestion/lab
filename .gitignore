@@ -1,5 +1,12 @@
 # Our binary
 lab
 
-# IntelliJ 
+# IntelliJ
 .idea/
+
+# vim
+*.sw*
+*.vim
+
+# test
+_test

@@ -9,12 +9,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(wd)
-	err = os.Chdir(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
+	err := os.Chdir(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
 	if err != nil {
 		log.Fatal(err)
 	}

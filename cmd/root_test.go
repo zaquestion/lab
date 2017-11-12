@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 	}
 	code := m.Run()
 	os.Remove("lab_bin")
-	testdirs, err := filepath.Glob("_test*")
+	testdirs, err := filepath.Glob("_test-*")
 	if err != nil {
 		log.Fatal(err)
 	}

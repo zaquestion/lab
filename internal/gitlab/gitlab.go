@@ -150,7 +150,7 @@ func LoadGitLabTmpl(tmplName string) string {
 		log.Fatal(err)
 	}
 
-	return string(tmpl)
+	return string(tmpl[:len(tmpl)-1])
 }
 
 var (
