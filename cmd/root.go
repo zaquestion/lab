@@ -105,9 +105,3 @@ func Execute() {
 		os.Exit(1)
 	}
 }
-
-func init() {
-	// Unsure if this will mess up in other parts of the cli, so modified
-	// the function to return a string
-	// RootCmd.SetUsageFunc(labUsage)
-}

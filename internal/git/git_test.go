@@ -9,19 +9,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	wd, err := os.Getwd()
+	err := os.Chdir(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(wd)
-	err = os.Chdir(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	os.Rename("test.git", ".git")
-	code := m.Run()
-	os.Rename(".git", "test.git")
-	os.Exit(code)
 }
 
 func TestGitDir(t *testing.T) {
