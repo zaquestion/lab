@@ -58,7 +58,8 @@ func copyTestRepo(t *testing.T) string {
 }
 
 func TestRootCloneNoArg(t *testing.T) {
-	cmd := exec.Command("./lab_bin", "clone")
+	cmd := exec.Command("../lab_bin", "clone")
+	cmd.Dir = "./testdata"
 	b, _ := cmd.CombinedOutput()
 	require.Contains(t, string(b), "You must specify a repository to clone.")
 }

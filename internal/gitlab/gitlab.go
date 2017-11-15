@@ -34,7 +34,7 @@ var (
 
 const defaultGitLabHost = "https://gitlab.com"
 
-func init() {
+func Init() {
 	reader := bufio.NewReader(os.Stdin)
 	var err error
 	host, err = gitconfig.Entire("gitlab.host")

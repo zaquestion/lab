@@ -14,6 +14,7 @@ func Test_mrCheckoutCmdRun(t *testing.T) {
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
+		t.Log(string(b))
 		t.Fatal(err)
 	}
 	t.Log(string(b))

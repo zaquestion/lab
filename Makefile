@@ -5,4 +5,3 @@ internal-test:
 	mv testdata/test.git testdata/.git
 	go test ./...
 	mv testdata/.git testdata/test.git
-
