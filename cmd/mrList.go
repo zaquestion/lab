@@ -19,7 +19,7 @@ var listCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(targetRemote)
+		rn, err := git.PathWithNameSpace("origin")
 		if err != nil {
 			log.Fatal(err)
 		}

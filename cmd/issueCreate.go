@@ -19,7 +19,7 @@ var issueCreateCmd = &cobra.Command{
 	Short: "Open an issue on GitLab",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(targetRemote)
+		rn, err := git.PathWithNameSpace("origin")
 		if err != nil {
 			log.Fatal(err)
 		}

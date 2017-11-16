@@ -265,7 +265,7 @@ func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*g
 	return list, nil
 }
 
-// IssueCreate opens a new issue on a specified GitLab Project
+// IssueCreate opens a new issue on a GitLab Project
 func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
@@ -283,7 +283,7 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 	return mr.WebURL, nil
 }
 
-// IssueList gets a list of issues on a specified GitLab Project
+// IssueList gets a list of issues on a GitLab Project
 func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
@@ -301,7 +301,7 @@ func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab
 	return list, nil
 }
 
-// BranchPushed checks if a branch exists on a specified GitLab Project
+// BranchPushed checks if a branch exists on a GitLab Project
 func BranchPushed(project, branch string) bool {
 	p, err := FindProject(project)
 	if err != nil {
@@ -313,4 +313,19 @@ func BranchPushed(project, branch string) bool {
 		return false
 	}
 	return b != nil
+}
+
+// CreateSnippet creates a snippet in a project
+func CreateSnippet(project string, opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	snip, _, err := lab.ProjectSnippets.CreateSnippet(p.ID, opts)
+	if err == nil {
+		return nil, err
+	}
+
+	return snip, nil
 }
