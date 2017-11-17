@@ -32,10 +32,20 @@ var (
 	lab   *gitlab.Client
 	host  string
 	token string
-	User  string
+	user  string
 )
 
 const defaultGitLabHost = "https://gitlab.com"
+
+// Host exposes the GitLab scheme://hostname used to interact with the API
+func Host() string {
+	return host
+}
+
+// User exposes the configured GitLab user
+func User() string {
+	return host
+}
 
 func Init() {
 	reader := bufio.NewReader(os.Stdin)
@@ -59,7 +69,7 @@ func Init() {
 
 	}
 	var errt error
-	User, err = gitconfig.Entire("gitlab.user")
+	user, err = gitconfig.Entire("gitlab.user")
 	token, errt = gitconfig.Entire("gitlab.token")
 	if err != nil {
 		fmt.Print("Enter default GitLab user: ")
@@ -68,10 +78,10 @@ func Init() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if User == "" {
+		if user == "" {
 			log.Fatal("git config gitlab.user must be set")
 		}
-		cmd := git.New("config", "--global", "gitlab.user", User)
+		cmd := git.New("config", "--global", "gitlab.user", user)
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal(err)
@@ -116,7 +126,7 @@ func Init() {
 			log.Println("This token looks invalid due to it's length")
 			log.Println("gitlab.token:", token)
 		}
-		log.Println("gitlab.user:", User)
+		log.Println("gitlab.user:", user)
 
 		// Test listing projects
 		projects, _, err := lab.Projects.ListProjects(&gitlab.ListProjectsOptions{})
@@ -176,7 +186,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 	search := project
 	// Assuming that a "/" in the project means its owned by an org
 	if !strings.Contains(project, "/") {
-		search = User + "/" + project
+		search = user + "/" + project
 	}
 
 	target, resp, err := lab.Projects.GetProject(search)

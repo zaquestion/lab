@@ -106,9 +106,9 @@ func determineSourceRemote(branch string) string {
 	}
 
 	// If not, check if the fork is named after the user
-	_, err = gitconfig.Local("remote." + lab.User + ".url")
+	_, err = gitconfig.Local("remote." + lab.User() + ".url")
 	if err == nil {
-		return lab.User
+		return lab.User()
 	}
 
 	// If not, default to origin
