@@ -13,6 +13,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
+
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
@@ -41,7 +44,7 @@ func Init() {
 	if err != nil {
 		fmt.Printf("Enter default GitLab host (default: %s): ", defaultGitLabHost)
 		host, err = reader.ReadString('\n')
-		host = host[:len(host)-1]
+		host = strings.TrimSpace(host)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,7 +64,7 @@ func Init() {
 	if err != nil {
 		fmt.Print("Enter default GitLab user: ")
 		User, err = reader.ReadString('\n')
-		User = User[:len(User)-1]
+		User = strings.TrimSpace(User)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -74,15 +77,23 @@ func Init() {
 			log.Fatal(err)
 		}
 
+		var tokenURL string
+		if strings.HasSuffix(host, "/") {
+			tokenURL = host + "profile/personal_access_tokens"
+		} else {
+			tokenURL = host + "/profile/personal_access_tokens"
+		}
+
 		// If the default user is being set this is the first time lab
 		// is being run.
 		if errt != nil {
-			fmt.Print("Enter default GitLab token (scope: api ): \nCreate here: https://gitlab.com/profile/personal_access_tokens")
-			token, err = reader.ReadString('\n')
-			token = token[:len(token)-1]
+			fmt.Printf("Create a token here: %s\nEnter default GitLab token (scope: api): ", tokenURL)
+			byteToken, err := terminal.ReadPassword(int(syscall.Stdin))
 			if err != nil {
 				log.Fatal(err)
 			}
+			token := strings.TrimSpace(string(byteToken))
+
 			// Its okay for the key to be empty, since you can still call public repos
 			if token != "" {
 				cmd := git.New("config", "--global", "gitlab.token", token)
