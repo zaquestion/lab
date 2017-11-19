@@ -18,42 +18,44 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var (
+	msgs    []string
+	path    string
+	name    string
+	private bool
+	public  bool
+)
+
 // snippetCmd represents the snippet command
 var snippetCmd = &cobra.Command{
 	Use:     "snippet",
 	Aliases: []string{"snip"},
 	Short:   "Create a snippet on GitLab or in a project",
-	Long:    ``,
+	Long: `
+Source snippets from stdin, file, or in editor from scratch
+Write title&description in editor, or -m`,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, err := git.PathWithNameSpace("origin")
 		if err != nil {
 			log.Fatal(err)
 		}
-		msgs, err := cmd.Flags().GetStringSlice("message")
+		code, err := determineCode(path)
 		if err != nil {
 			log.Fatal(err)
 		}
-		path, err := cmd.Flags().GetString("file")
-		if err != nil {
-			log.Fatal(err)
-		}
-		code, err := determineContents(path)
-		if err != nil {
-			log.Fatal(err)
+		if code == "" {
+			log.Fatal("aborting snippet due to empty contents")
 		}
 		title, _, err := determineMsg(msgs, code)
 		if title == "" {
 			log.Fatal("aborting snippet due to empty msg")
 		}
 
-		name, err := cmd.Flags().GetString("name")
-		if err != nil {
-			log.Fatal(err)
-		}
 		visibility := gitlab.InternalVisibility
-		if ok, err := cmd.Flags().GetBool("private"); err != nil && ok {
+		switch {
+		case private:
 			visibility = gitlab.PrivateVisibility
-		} else if ok, err := cmd.Flags().GetBool("public"); err != nil && ok {
+		case public:
 			visibility = gitlab.PublicVisibility
 		}
 		// TODO: expand gitlab api to support creating snippets with descriptions
@@ -65,6 +67,9 @@ var snippetCmd = &cobra.Command{
 		})
 		if err != nil {
 			log.Fatal(err)
+		}
+		if snip == nil {
+			log.Fatal("Fatal: snippet failed to be created")
 		}
 		// TODO: expand gitlab api to expose web_url field
 		// https://github.com/xanzy/go-gitlab/pull/247
@@ -88,8 +93,21 @@ func determineMsg(msgs []string, code string) (string, string, error) {
 	if err != nil {
 		return "", "", nil
 	}
+	i := bytes.IndexByte(b, '\n')
+	if i != -1 {
+		b = b[:i]
+	}
 
-	title, body, err := git.Edit("SNIPPET", string(b))
+	var tmpl = string(b) + `
+{{.CommentChar}} Write a message for this snippet. The first block
+{{.CommentChar}} is the title and the rest is the description.`
+
+	msg, err := snipText(tmpl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	title, body, err := git.Edit("SNIPMSG", msg)
 	if err != nil {
 		_, f, l, _ := runtime.Caller(0)
 		log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -97,26 +115,49 @@ func determineMsg(msgs []string, code string) (string, string, error) {
 	return title, body, err
 }
 
-func snippetMsg(initMsg string) (string, error) {
-	const tmpl = `{{.InitMsg}}
-{{.CommentChar}} Write a message for this snippet. The first block
-{{.CommentChar}} of text is the title and the rest is the description.`
+func determineCode(path string) (string, error) {
+	b, err := ioutil.ReadFile(path)
+	if !os.IsNotExist(err) && err != nil {
+		return "", err
+	}
+	if len(b) > 0 {
+		return string(b), nil
+	}
 
-	commentChar := git.CommentChar()
+	if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+		b, err = ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return "", err
+		}
+		if len(b) > 0 {
+			return string(b), nil
+		}
+	}
 
+	var tmpl = string(b) + `
+{{.CommentChar}} In this mode you are writing a snippet from scratch
+{{.CommentChar}} The first block is the title and the rest is the contents.`
+
+	msg, err := snipText(tmpl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	title, body, err := git.Edit("SNIPCODE", msg)
+	if err != nil {
+		_, f, l, _ := runtime.Caller(0)
+		log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+	}
+	return fmt.Sprintf("%s\n\n%s", title, body), nil
+}
+
+func snipText(tmpl string) (string, error) {
 	t, err := template.New("tmpl").Parse(tmpl)
 	if err != nil {
 		return "", err
 	}
 
-	msg := &struct {
-		InitMsg     string
-		CommentChar string
-	}{
-		InitMsg:     initMsg,
-		CommentChar: commentChar,
-	}
-
+	cc := git.CommentChar()
+	msg := &struct{ CommentChar string }{CommentChar: cc}
 	var b bytes.Buffer
 	err = t.Execute(&b, msg)
 	if err != nil {
@@ -126,31 +167,10 @@ func snippetMsg(initMsg string) (string, error) {
 	return b.String(), nil
 }
 
-func determineContents(path string) (string, error) {
-	b, err := ioutil.ReadFile(path)
-	if !os.IsNotExist(err) && err != nil {
-		return "", err
-	}
-	if len(b) > 0 {
-		return string(b), nil
-	}
-
-	if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) != 0 {
-		// nothing to read on stdin
-		return "", nil
-	}
-	b, err = ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
 func init() {
-	snippetCmd.Flags().Bool("private", false, "Make snippet private; visible only to project members (default: internal)")
-	snippetCmd.Flags().Bool("public", false, "Make snippet public; can be accessed without any authentication (default: internal)")
-	snippetCmd.Flags().StringP("name", "n", "", "(optional) name snippet to add code highlighting, e.g. potato.go for GoLang")
-	snippetCmd.Flags().StringP("file", "f", "", "Use the given file to load the contents of the snippet")
-	snippetCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given file <msg>; multiple -m are concatenated as seperate paragraphs")
+	snippetCmd.Flags().BoolVarP(&private, "private", "p", false, "Make snippet private; visible only to project members (default: internal)")
+	snippetCmd.Flags().BoolVar(&public, "public", false, "Make snippet public; can be accessed without any authentication (default: internal)")
+	snippetCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) Name snippet to add code highlighting, e.g. potato.go for GoLang")
+	snippetCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{}, "Use the given file <msg>; multiple -m are concatenated as seperate paragraphs")
 	RootCmd.AddCommand(snippetCmd)
 }

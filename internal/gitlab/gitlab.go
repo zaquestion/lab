@@ -332,8 +332,11 @@ func CreateSnippet(project string, opts *gitlab.CreateSnippetOptions) (*gitlab.S
 		return nil, err
 	}
 
-	snip, _, err := lab.ProjectSnippets.CreateSnippet(p.ID, opts)
-	if err == nil {
+	snip, resp, err := lab.ProjectSnippets.CreateSnippet(p.ID, opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
 		return nil, err
 	}
 
