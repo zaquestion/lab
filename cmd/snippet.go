@@ -35,7 +35,7 @@ var snippetCmd = &cobra.Command{
 Source snippets from stdin, file, or in editor from scratch
 Write title&description in editor, or -m`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace("origin")
+		rn, err := git.PathWithNameSpace(forkedFromRemote)
 		if err != nil {
 			log.Fatal(err)
 		}
