@@ -23,11 +23,6 @@ const (
 	targetBranch = "master"
 )
 
-var (
-	// Will be updated to upstream in init() if upstream remote exists
-	forkedFromRemote = "origin"
-)
-
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
 	Use:   "create",
@@ -39,10 +34,6 @@ var mrCreateCmd = &cobra.Command{
 
 func init() {
 	mrCmd.AddCommand(mrCreateCmd)
-	_, err := gitconfig.Local("remote.upstream.url")
-	if err == nil {
-		forkedFromRemote = "upstream"
-	}
 }
 
 func runMRCreate(cmd *cobra.Command, args []string) {

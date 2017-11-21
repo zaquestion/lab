@@ -44,7 +44,7 @@ func Host() string {
 
 // User exposes the configured GitLab user
 func User() string {
-	return host
+	return user
 }
 
 func Init() {
@@ -73,8 +73,8 @@ func Init() {
 	token, errt = gitconfig.Entire("gitlab.token")
 	if err != nil {
 		fmt.Print("Enter default GitLab user: ")
-		User, err = reader.ReadString('\n')
-		User = strings.TrimSpace(User)
+		user, err = reader.ReadString('\n')
+		user = strings.TrimSpace(user)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -325,14 +325,27 @@ func BranchPushed(project, branch string) bool {
 	return b != nil
 }
 
-// CreateSnippet creates a snippet in a project
-func CreateSnippet(project string, opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
+// CreateProjectSnippet creates a snippet in a project
+func CreateProjectSnippet(project string, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return nil, err
 	}
 
 	snip, resp, err := lab.ProjectSnippets.CreateSnippet(p.ID, opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return snip, nil
+}
+
+// CreateSnippet creates a personal snippet
+func CreateSnippet(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
+	snip, resp, err := lab.Snippets.CreateSnippet(opts)
 	if os.Getenv("DEBUG") != "" {
 		fmt.Println(resp.Response.Status)
 	}

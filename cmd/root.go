@@ -12,7 +12,9 @@ import (
 	"unicode"
 
 	"github.com/spf13/cobra"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/git"
+	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -70,9 +72,24 @@ func labUsage(c *cobra.Command) string {
 	return buf.String()
 }
 
+var (
+	// Will be updated to upstream in init() if "upstream" remote exists
+	forkedFromRemote = "origin"
+	// Will be updated to lab.User() in init() if forkedFrom is "origin"
+	forkRemote = "origin"
+)
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	_, err := gitconfig.Local("remote.upstream.url")
+	if err == nil {
+		forkedFromRemote = "upstream"
+	}
+
+	if forkedFromRemote == "origin" {
+		forkRemote = lab.User()
+	}
 	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
 		// Determine if any undefined flags were passed to "clone
 		if cmd.Use == "clone" && len(os.Args) > 2 {

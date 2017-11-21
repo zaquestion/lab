@@ -70,8 +70,13 @@
 [[projects]]
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
-  revision = "c35b3f712f72376e21b645514ec3635e63fe0cd2"
-  version = "v0.6.2"
+  revision = "5759674b9a31780c812771c21f3b08c0b3978ef7"
+
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
 
 [[projects]]
   branch = "master"
@@ -94,6 +99,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cf1be9c31bec9979e35d9a06750c17496803ce69a2e201ef7f2482c22a6b3055"
+  inputs-digest = "54a67e70f4c7e3edf9b3508163654ffa37f787da5c5bc03631f74b5fa1f203a4"
   solver-name = "gps-cdcl"
   solver-version = 1

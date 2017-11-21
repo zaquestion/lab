@@ -18,7 +18,7 @@ var checkoutCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(targetRemote)
+		rn, err := git.PathWithNameSpace(forkedFromRemote)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -40,7 +40,7 @@ var checkoutCmd = &cobra.Command{
 		// https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally
 		branch := mrs[0].SourceBranch
 		mr := fmt.Sprintf("refs/merge-requests/%s/head", mrIDStr)
-		gitf := git.New("fetch", targetRemote, fmt.Sprintf("%s:%s", mr, branch))
+		gitf := git.New("fetch", forkedFromRemote, fmt.Sprintf("%s:%s", mr, branch))
 		err = gitf.Run()
 		if err != nil {
 			log.Fatal(err)

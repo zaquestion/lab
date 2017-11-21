@@ -20,8 +20,8 @@ import (
 
 var (
 	msgs    []string
-	path    string
 	name    string
+	file    string
 	private bool
 	public  bool
 )
@@ -33,20 +33,20 @@ var snippetCmd = &cobra.Command{
 	Short:   "Create a snippet on GitLab or in a project",
 	Long: `
 Source snippets from stdin, file, or in editor from scratch
-Write title&description in editor, or -m`,
+Write title & description in editor, or -m`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(forkedFromRemote)
-		if err != nil {
-			log.Fatal(err)
+		if len(args) > 0 {
+			file = args[0]
 		}
-		code, err := determineCode(path)
+		rn, _ := git.PathWithNameSpace(forkedFromRemote)
+		code, err := determineCode(file)
 		if err != nil {
 			log.Fatal(err)
 		}
 		if code == "" {
 			log.Fatal("aborting snippet due to empty contents")
 		}
-		title, _, err := determineMsg(msgs, code)
+		title, body, err := determineMsg(msgs, code)
 		if title == "" {
 			log.Fatal("aborting snippet due to empty msg")
 		}
@@ -58,26 +58,50 @@ Write title&description in editor, or -m`,
 		case public:
 			visibility = gitlab.PublicVisibility
 		}
-		// TODO: expand gitlab api to support creating snippets with descriptions
-		snip, err := lab.CreateSnippet(rn, &gitlab.CreateSnippetOptions{
-			Title:      gitlab.String(title),
-			Code:       gitlab.String(code),
-			FileName:   gitlab.String(name),
-			Visibility: &visibility,
-		})
+		if rn != "" {
+			psOpts := gitlab.CreateProjectSnippetOptions{
+				Title:       gitlab.String(title),
+				Description: gitlab.String(body),
+				Code:        gitlab.String(code),
+				FileName:    gitlab.String(name),
+				Visibility:  &visibility,
+			}
+			// Assuming that if you have permissions to create
+			// snippets on forkedFromRepo thats what you want
+			snip, err := lab.CreateProjectSnippet(rn, &psOpts)
+			if err == nil && snip != nil {
+				fmt.Println(snip.WebURL)
+				return
+			}
+
+			// Try creating on user fork if failed to create on
+			// forkedFromRepo. Seemingly the next best bet
+			rn, err = git.PathWithNameSpace(forkRemote)
+			if err == nil {
+				snip, err = lab.CreateProjectSnippet(rn, &psOpts)
+				if err == nil && snip != nil {
+					fmt.Println(snip.WebURL)
+					return
+				}
+			}
+		}
+
+		sOpts := gitlab.CreateSnippetOptions{
+			Title:       gitlab.String(title),
+			Description: gitlab.String(body),
+			Content:     gitlab.String(code),
+			FileName:    gitlab.String(name),
+			Visibility:  &visibility,
+		}
+		snip, err := lab.CreateSnippet(&sOpts)
 		if err != nil {
 			log.Fatal(err)
+
 		}
 		if snip == nil {
-			log.Fatal("Fatal: snippet failed to be created")
+			log.Fatal("failed to create snippet")
 		}
-		// TODO: expand gitlab api to expose web_url field
-		// https://github.com/xanzy/go-gitlab/pull/247
-		project := lab.User() + "/" + rn
-		if strings.Contains(rn, "/") {
-			project = rn
-		}
-		fmt.Printf("%s/%s/%d", lab.Host(), project, snip.ID)
+		fmt.Println(snip.WebURL)
 	},
 }
 

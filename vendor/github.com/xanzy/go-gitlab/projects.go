@@ -84,6 +84,7 @@ type Project struct {
 		GroupAccessLevel int    `json:"group_access_level"`
 	} `json:"shared_with_groups"`
 	Statistics *ProjectStatistics `json:"statistics"`
+	Links      *Links             `json:"_links,omitempty"`
 }
 
 // Repository represents a repository.
@@ -129,7 +130,7 @@ type ProjectStatistics struct {
 	CommitCount int `json:"commit_count"`
 }
 
-// Permissions represents premissions.
+// Permissions represents permissions.
 type Permissions struct {
 	ProjectAccess *ProjectAccess `json:"project_access"`
 	GroupAccess   *GroupAccess   `json:"group_access"`
@@ -158,6 +159,18 @@ type ForkParent struct {
 	WebURL            string `json:"web_url"`
 }
 
+// Links represents a project web liks for self, issues, merge_requests,
+// repo_branches, labels, events, members.
+type Links struct {
+	Self          string `json:"self"`
+	Issues        string `json:"issues"`
+	MergeRequests string `json:"merge_requests"`
+	RepoBranches  string `json:"repo_branches"`
+	Labels        string `json:"labels"`
+	Events        string `json:"events"`
+	Members       string `json:"members"`
+}
+
 func (s Project) String() string {
 	return Stringify(s)
 }
@@ -184,6 +197,31 @@ type ListProjectsOptions struct {
 // GitLab API docs: https://docs.gitlab.com/ce/api/projects.html#list-projects
 func (s *ProjectsService) ListProjects(opt *ListProjectsOptions, options ...OptionFunc) ([]*Project, *Response, error) {
 	req, err := s.client.NewRequest("GET", "projects", opt, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var p []*Project
+	resp, err := s.client.Do(req, &p)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return p, resp, err
+}
+
+// ListUserProjects gets a list of projects for the given user.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/projects.html#list-user-projects
+func (s *ProjectsService) ListUserProjects(uid interface{}, opt *ListProjectsOptions, options ...OptionFunc) ([]*Project, *Response, error) {
+	user, err := parseID(uid)
+	if err != nil {
+		return nil, nil, err
+	}
+	u := fmt.Sprintf("users/%s/projects", user)
+
+	req, err := s.client.NewRequest("GET", u, opt, options)
 	if err != nil {
 		return nil, nil, err
 	}
