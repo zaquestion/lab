@@ -51,13 +51,7 @@ var templateFuncs = template.FuncMap{
 }
 
 const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version")))}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{if .HasAvailableLocalFlags}}
-
-Flags:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
-
-Global Flags:
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{end}}`
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}`
 
 func labUsage(c *cobra.Command) string {
 	t := template.New("top")

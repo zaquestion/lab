@@ -325,14 +325,12 @@ func BranchPushed(project, branch string) bool {
 	return b != nil
 }
 
-// CreateProjectSnippet creates a snippet in a project
-func CreateProjectSnippet(project string, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
+// ProjectSnippetCreate creates a snippet in a project
+func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
 	}
-
-	snip, resp, err := lab.ProjectSnippets.CreateSnippet(p.ID, opts)
+	snip, resp, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
 	if os.Getenv("DEBUG") != "" {
 		fmt.Println(resp.Response.Status)
 	}
@@ -343,8 +341,35 @@ func CreateProjectSnippet(project string, opts *gitlab.CreateProjectSnippetOptio
 	return snip, nil
 }
 
-// CreateSnippet creates a personal snippet
-func CreateSnippet(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
+// ProjectSnippetDelete deletes a project snippet
+func ProjectSnippetDelete(pid interface{}, id int) error {
+	resp, err := lab.ProjectSnippets.DeleteSnippet(pid, id)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	return err
+}
+
+// ProjectSnippetList lists snippets on a project
+func ProjectSnippetList(pid interface{}, opts *gitlab.ListProjectSnippetsOptions) ([]*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+	snips, resp, err := lab.ProjectSnippets.ListSnippets(pid, opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return snips, nil
+}
+
+// SnippetCreate creates a personal snippet
+func SnippetCreate(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
 	snip, resp, err := lab.Snippets.CreateSnippet(opts)
 	if os.Getenv("DEBUG") != "" {
 		fmt.Println(resp.Response.Status)
@@ -354,4 +379,28 @@ func CreateSnippet(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
 	}
 
 	return snip, nil
+}
+
+// SnippetDelete deletes a personal snippet
+func SnippetDelete(id int) error {
+	resp, err := lab.Snippets.DeleteSnippet(id)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	return err
+}
+
+// SnippetList lists snippets on a project
+func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+	snips, resp, err := lab.Snippets.ListSnippets(opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return snips, nil
 }
