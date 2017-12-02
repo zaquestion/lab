@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	os.Chdir(wd)
-	err = exec.Command("go", "build", "-o", "lab_bin").Run()
+	err = exec.Command("go", "test", "-c", "-coverpkg", "./...", "-covermode", "count", "-o", "lab_bin").Run()
 	if err != nil {
 		log.Fatal(err)
 	}

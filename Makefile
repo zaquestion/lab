@@ -3,5 +3,9 @@ test:
 
 internal-test:
 	mv testdata/test.git testdata/.git
-	go test ./...
+	go test -coverprofile=coverage-git.out -covermode=count github.com/zaquestion/lab/internal/git
+	go test -coverprofile=coverage-gitlab.out -covermode=count github.com/zaquestion/lab/internal/gitlab
+	go test github.com/zaquestion/lab/cmd
 	mv testdata/.git testdata/test.git
+	go get github.com/wadey/gocovmerge
+	gocovmerge coverage-*.out > coverage.txt && rm coverage-*.out

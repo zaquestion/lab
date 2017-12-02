@@ -13,6 +13,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	os.Exit(m.Run())
 }
 
 func TestGitDir(t *testing.T) {
@@ -73,7 +74,7 @@ func TestPathWithNameSpace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedPath := "zaquestion/lab"
+	expectedPath := "zaquestion/test"
 	require.Equal(t, expectedPath, path)
 }
 
@@ -82,6 +83,6 @@ func TestRepoName(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedRepo := "lab"
+	expectedRepo := "test"
 	require.Equal(t, expectedRepo, repo)
 }
