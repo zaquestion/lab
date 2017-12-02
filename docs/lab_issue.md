@@ -18,7 +18,7 @@ lab issue [flags]
 ```
 
 ### SEE ALSO
-* [lab](lab.md)	 - A Git Wrapper for GitLab
+* [lab](index.md)	 - A Git Wrapper for GitLab
 * [lab issue create](lab_issue_create.md)	 - Open an issue on GitLab
 * [lab issue list](lab_issue_list.md)	 - List issues
 
