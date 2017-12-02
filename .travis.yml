@@ -17,6 +17,9 @@ script:
   - ssh-add ~/.ssh/id_rsa
   - make test
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
 deploy:
   provider: script
   script: curl -sL https://git.io/goreleaser | bash
