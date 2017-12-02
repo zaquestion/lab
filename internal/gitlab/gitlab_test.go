@@ -13,6 +13,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	os.Exit(m.Run())
 }
 
 func TestLoadGitLabTmplMR(t *testing.T) {

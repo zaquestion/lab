@@ -10,3 +10,5 @@ lab
 
 # test
 _test
+
+coverage*
