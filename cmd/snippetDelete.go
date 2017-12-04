@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -14,17 +14,33 @@ var snippetDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a personal snippet by ID",
 	Long:  ``,
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id, err := strconv.ParseInt(args[0], 0, 64)
+		remote, id, err := parseArgsRemote(args)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = lab.SnippetDelete(int(id))
+		if remote == "" {
+			remote = forkedFromRemote
+		}
+		rn, _ := git.PathWithNameSpace(remote)
+		if global || rn == "" {
+			err = lab.SnippetDelete(int(id))
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Snippet #%d deleted\n", id)
+			return
+		}
+
+		project, err := lab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Snippet #%d deleted\n", id)
+		err = lab.ProjectSnippetDelete(project.ID, int(id))
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

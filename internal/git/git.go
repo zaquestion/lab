@@ -1,6 +1,7 @@
 package git
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -166,4 +167,16 @@ func RemoteAdd(name, url string) error {
 	}
 	fmt.Println("new remote:", name)
 	return nil
+}
+
+// IsRemote returns true when passed a valid remote in the git repo
+func IsRemote(remote string) (bool, error) {
+	cmd := New("remote")
+	cmd.Stdout = nil
+	remotes, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+
+	return bytes.Contains(remotes, []byte(remote+"\n")), nil
 }

@@ -19,7 +19,12 @@ var snippetCmd = &cobra.Command{
 	},
 }
 
+var (
+	global bool
+)
+
 func init() {
-	// flags added in snippetCreate.go
+	snippetCmd.PersistentFlags().BoolVarP(&global, "global", "g", false, "Create as a personal snippet")
+	// Create flags added in snippetCreate.go
 	RootCmd.AddCommand(snippetCmd)
 }

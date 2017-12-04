@@ -6,11 +6,13 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"syscall"
 	"text/template"
 	"unicode"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/git"
@@ -66,6 +68,39 @@ func labUsage(c *cobra.Command) string {
 	return buf.String()
 }
 
+// parseArgsRemote returns the remote and a number if parsed. Many commands
+// accept a remote to operate on and number such as a page id
+func parseArgsRemote(args []string) (string, int64, error) {
+	if len(args) == 2 {
+		n, err := strconv.ParseInt(args[1], 0, 64)
+		if err != nil {
+			return "", 0, err
+		}
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return "", 0, err
+		} else if !ok {
+			return "", 0, errors.New(fmt.Sprintf("%s is not a valid remote", args[0]))
+		}
+		return args[0], n, nil
+	}
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return "", 0, err
+		}
+		if ok {
+			return args[0], 0, nil
+		}
+		n, err := strconv.ParseInt(args[0], 0, 64)
+		if err == nil {
+			return "", n, nil
+		}
+		return "", 0, errors.New(fmt.Sprintf("%s is not a valid remote or number", args[0]))
+	}
+	return "", 0, nil
+}
+
 var (
 	// Will be updated to upstream in init() if "upstream" remote exists
 	forkedFromRemote = "origin"
@@ -82,10 +117,14 @@ func Execute() {
 	}
 
 	if forkedFromRemote == "origin" {
-		forkRemote = lab.User()
+		// Check if the user fork exists
+		_, err = gitconfig.Local("remote." + lab.User() + ".url")
+		if err == nil {
+			forkRemote = lab.User()
+		}
 	}
 	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
-		// Determine if any undefined flags were passed to "clone
+		// Determine if any undefined flags were passed to "clone"
 		if cmd.Use == "clone" && len(os.Args) > 2 {
 			// ParseFlags will err in these cases
 			err = cmd.ParseFlags(os.Args[1:])

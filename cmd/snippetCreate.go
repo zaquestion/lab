@@ -12,6 +12,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -34,8 +35,21 @@ var snippetCreateCmd = &cobra.Command{
 Source snippets from stdin, file, or in editor from scratch
 Write title & description in editor, or using -m`,
 	Run: func(cmd *cobra.Command, args []string) {
+		remote := forkedFromRemote
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		if ok {
+			remote = args[0]
+		}
 		if len(args) > 0 {
-			file = args[0]
+			if !ok {
+				file = args[0]
+			}
+			if ok && len(args) > 1 {
+				file = args[1]
+			}
 		}
 		code, err := determineCode(file)
 		if err != nil {
@@ -56,54 +70,39 @@ Write title & description in editor, or using -m`,
 		case public:
 			visibility = gitlab.PublicVisibility
 		}
-
-		if rn, _ := git.PathWithNameSpace(forkRemote); rn != "" {
-			// Looking up the fork ensures there is only 1 api call
-			// because it returns the forked from Project
-			project, err := lab.FindProject(rn)
-			if err != nil {
-				log.Fatal(err)
-			}
-			psOpts := gitlab.CreateProjectSnippetOptions{
+		// See if we're in a git repo or if global is set to determine
+		// if this should be a personal snippet
+		rn, _ := git.PathWithNameSpace(remote)
+		if global || rn == "" {
+			opts := gitlab.CreateSnippetOptions{
 				Title:       gitlab.String(title),
 				Description: gitlab.String(body),
-				Code:        gitlab.String(code),
+				Content:     gitlab.String(code),
 				FileName:    gitlab.String(name),
 				Visibility:  &visibility,
 			}
-			// Assuming that if you have permissions to create
-			// snippets on forkedFromRepo thats what you want
-			snip, err := lab.ProjectSnippetCreate(project.ForkedFromProject.ID, &psOpts)
-			if err == nil && snip != nil {
-				fmt.Println(snip.WebURL)
-				return
-			}
-
-			// Try creating on user fork if failed to create on
-			// forkedFromRepo. Seemingly the next best bet
+			snip, err := lab.SnippetCreate(&opts)
 			if err != nil || snip == nil {
-				snip, err = lab.ProjectSnippetCreate(project.ID, &psOpts)
-				if err == nil && snip != nil {
-					fmt.Println(snip.WebURL)
-					return
-				}
+				log.Fatal(errors.Wrap(err, "failed to create snippet"))
 			}
+			fmt.Println(snip.WebURL)
+			return
 		}
 
-		sOpts := gitlab.CreateSnippetOptions{
+		project, err := lab.FindProject(rn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		opts := gitlab.CreateProjectSnippetOptions{
 			Title:       gitlab.String(title),
 			Description: gitlab.String(body),
-			Content:     gitlab.String(code),
+			Code:        gitlab.String(code),
 			FileName:    gitlab.String(name),
 			Visibility:  &visibility,
 		}
-		snip, err := lab.SnippetCreate(&sOpts)
-		if err != nil {
-			log.Fatal(err)
-
-		}
-		if snip == nil {
-			log.Fatal("failed to create snippet")
+		snip, err := lab.ProjectSnippetCreate(project.ID, &opts)
+		if err != nil || snip == nil {
+			log.Fatal(errors.Wrap(err, "failed to create snippet"))
 		}
 		fmt.Println(snip.WebURL)
 	},
