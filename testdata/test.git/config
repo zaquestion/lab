@@ -10,7 +10,3 @@
 [remote "lab-testing"]
         url = git@gitlab.com:lab-testing/test.git
         fetch = +refs/heads/*:refs/remotes/origin/*
-[gitlab]
-	token = uDz6czYV412zK-xC5mUu
-	user = lab-testing
-	host = https://gitlab.com
