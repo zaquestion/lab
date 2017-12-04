@@ -30,7 +30,7 @@ var (
 // mrCmd represents the mr command
 var snippetCreateCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create a snippet on GitLab or in a project",
+	Short: "Create a personal or project snippet",
 	Long: `
 Source snippets from stdin, file, or in editor from scratch
 Write title & description in editor, or using -m`,

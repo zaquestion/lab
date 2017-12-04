@@ -12,7 +12,7 @@ import (
 // snippetDeleteCmd represents the snippetDelete command
 var snippetDeleteCmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Delete a personal snippet by ID",
+	Short: "Delete a snippet by ID",
 	Long:  ``,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
