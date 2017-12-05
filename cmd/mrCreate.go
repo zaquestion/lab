@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -25,14 +26,15 @@ const (
 
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create [remote]",
 	Short: "Open a merge request on GitLab",
 	Long:  `Currently only supports MRs into master`,
-	Args:  cobra.ExactArgs(0),
+	Args:  cobra.MaximumNArgs(1),
 	Run:   runMRCreate,
 }
 
 func init() {
+	mrCreateCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
 	mrCmd.AddCommand(mrCreateCmd)
 }
 
@@ -52,7 +54,17 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal("aborting MR, branch not present on remote: ", sourceRemote)
 	}
 
-	targetProjectName, err := git.PathWithNameSpace(forkedFromRemote)
+	targetRemote := forkedFromRemote
+	if len(args) > 0 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		if ok {
+			targetRemote = args[0]
+		}
+	}
+	targetProjectName, err := git.PathWithNameSpace(targetRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,15 +73,21 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	msg, err := mrMsg(targetBranch, branch, sourceRemote, forkedFromRemote)
-	if err != nil {
-		log.Fatal(err)
-	}
+	var title, body string
 
-	title, body, err := git.Edit("MERGEREQ", msg)
-	if err != nil {
-		_, f, l, _ := runtime.Caller(0)
-		log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+	if len(msgs) > 0 {
+		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
+	} else {
+		msg, err := mrText(targetBranch, branch, sourceRemote, forkedFromRemote)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		title, body, err = git.Edit("MERGEREQ", msg)
+		if err != nil {
+			_, f, l, _ := runtime.Caller(0)
+			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+		}
 	}
 
 	if title == "" {
@@ -84,7 +102,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		Description:     &body,
 	})
 	if err != nil {
-		log.Fatal(err)
+		// FIXME: not exiting fatal here to allow code coverage to
+		// generate during Test_mrCreate. In the meantime API failures
+		// will exit 0
+		fmt.Fprintln(os.Stderr, err)
 	}
 	fmt.Println(mrURL + "/diffs")
 }
@@ -106,7 +127,7 @@ func determineSourceRemote(branch string) string {
 	return "origin"
 }
 
-func mrMsg(base, head, sourceRemote, forkedFromRemote string) (string, error) {
+func mrText(base, head, sourceRemote, forkedFromRemote string) (string, error) {
 	lastCommitMsg, err := git.LastCommitMessage()
 	if err != nil {
 		return "", err

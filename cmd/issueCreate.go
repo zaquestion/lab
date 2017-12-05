@@ -6,6 +6,7 @@ import (
 	"log"
 	"runtime"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/spf13/cobra"
@@ -15,21 +16,27 @@ import (
 )
 
 var issueCreateCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create [remote]",
 	Short: "Open an issue on GitLab",
 	Long:  ``,
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(forkedFromRemote)
+		remote := forkedFromRemote
+		if len(args) > 0 {
+			ok, err := git.IsRemote(args[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+			if ok {
+				remote = args[0]
+			}
+		}
+		rn, err := git.PathWithNameSpace(remote)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		msg, err := issueMsg()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		title, body, err := git.Edit("ISSUE", msg)
+		title, body, err := issueMsg(msgs)
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -49,7 +56,19 @@ var issueCreateCmd = &cobra.Command{
 	},
 }
 
-func issueMsg() (string, error) {
+func issueMsg(msgs []string) (string, string, error) {
+	if len(msgs) > 0 {
+		return msgs[0], strings.Join(msgs[1:], "\n\n"), nil
+	}
+
+	text, err := issueText()
+	if err != nil {
+		return "", "", err
+	}
+	return git.Edit("ISSUE", text)
+}
+
+func issueText() (string, error) {
 	const tmpl = `{{.InitMsg}}
 {{.CommentChar}} Write a message for this issue. The first block
 {{.CommentChar}} of text is the title and the rest is the description.`
@@ -86,5 +105,6 @@ func issueMsg() (string, error) {
 }
 
 func init() {
+	issueCreateCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
 	issueCmd.AddCommand(issueCreateCmd)
 }
