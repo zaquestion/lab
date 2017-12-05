@@ -7,6 +7,8 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
+var Version string
+
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -17,7 +19,7 @@ var versionCmd = &cobra.Command{
 		git.Stdout = nil
 		git.Stderr = nil
 		version, _ := git.Output()
-		fmt.Printf("%s%s\n", string(version), "lab version 0.5.2")
+		fmt.Printf("%s%s %s\n", string(version), "lab version", Version)
 	},
 }
 

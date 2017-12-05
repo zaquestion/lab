@@ -22,7 +22,12 @@ after_success:
 
 deploy:
   provider: script
-  script: curl -sL https://git.io/goreleaser | bash
+  script:
+    - (cd docs && go run main.go && sed -i 's|lab.md|index.md|' *.md && mv lab.md index.md)
+    - git remote add origin-lab https://${GITHUB_TOKEN}@github.com/zaquestion/lab.git > /dev/null 2>&1
+    - git commit -am "(docs) ${TRAVIS_TAG}" && git push origin-lab master
+    - curl -sL https://git.io/goreleaser | bash
+
   on:
     branch: master
     tags: true
