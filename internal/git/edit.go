@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// Edit opens a file in the users editor and returns the title and body
 func Edit(filePrefix, message string) (string, string, error) {
 	gitDir, err := GitDir()
 	if err != nil {

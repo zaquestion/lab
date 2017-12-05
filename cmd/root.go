@@ -80,7 +80,7 @@ func parseArgsRemote(args []string) (string, int64, error) {
 		if err != nil {
 			return "", 0, err
 		} else if !ok {
-			return "", 0, errors.New(fmt.Sprintf("%s is not a valid remote", args[0]))
+			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
 		}
 		return args[0], n, nil
 	}
@@ -96,7 +96,7 @@ func parseArgsRemote(args []string) (string, int64, error) {
 		if err == nil {
 			return "", n, nil
 		}
-		return "", 0, errors.New(fmt.Sprintf("%s is not a valid remote or number", args[0]))
+		return "", 0, errors.Errorf("%s is not a valid remote or number", args[0])
 	}
 	return "", 0, nil
 }

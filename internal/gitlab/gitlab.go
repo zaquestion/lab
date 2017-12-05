@@ -47,6 +47,7 @@ func User() string {
 	return user
 }
 
+// Init handles all of the credential setup and prompts for user input when not present. At the end it initializes a gitlab client for use throughout lab.
 func Init() {
 	reader := bufio.NewReader(os.Stdin)
 	var err error
@@ -178,6 +179,8 @@ var (
 	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 )
 
+// FindProject looks up the Gitlab project. If the namespace is not provided in
+// the project string it will search for projects in the users namespace
 func FindProject(project string) (*gitlab.Project, error) {
 	if target, ok := localProjects[project]; ok {
 		return target, nil
@@ -206,6 +209,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
+// ClonePath returns the ssh url to the GitLab project
 func ClonePath(project string) (string, error) {
 	target, err := FindProject(project)
 	if err != nil {
@@ -218,6 +222,7 @@ func ClonePath(project string) (string, error) {
 	return project, nil
 }
 
+// Fork creates a user fork of a GitLab project
 func Fork(project string) (string, error) {
 	if !strings.Contains(project, "/") {
 		return "", errors.New("remote must include namespace")
@@ -245,6 +250,7 @@ func Fork(project string) (string, error) {
 	return fork.SSHURLToRepo, nil
 }
 
+// MergeRequest opens a merge request on GitLab
 func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
@@ -262,6 +268,7 @@ func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (strin
 	return mr.WebURL, nil
 }
 
+// ListMRs lists the MRs on a GitLab project
 func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 	p, err := FindProject(project)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/tcnksm/go-gitconfig"
 )
 
+// IsHub is true when using "hub" as the git binary
 var IsHub bool
 
 func init() {
@@ -23,6 +24,7 @@ func init() {
 	}
 }
 
+// New looks up the hub or git binary and returns a cmd which outputs to stdout
 func New(args ...string) *exec.Cmd {
 	gitPath, err := exec.LookPath("hub")
 	if err != nil {
@@ -39,6 +41,7 @@ func New(args ...string) *exec.Cmd {
 	return cmd
 }
 
+// GitDir returns the full path to the .git directory
 func GitDir() (string, error) {
 	cmd := New("rev-parse", "-q", "--git-dir")
 	cmd.Stdout = nil
@@ -58,6 +61,7 @@ func GitDir() (string, error) {
 	return filepath.Clean(dir), nil
 }
 
+// WorkingDir returns the full pall to the root of the current git repository
 func WorkingDir() (string, error) {
 	cmd := New("rev-parse", "--show-toplevel")
 	cmd.Stdout = nil
@@ -68,13 +72,9 @@ func WorkingDir() (string, error) {
 	return strings.TrimSpace(string(d)), nil
 }
 
+// CommentChar returns active comment char and defaults to '#'
 func CommentChar() string {
-	char, err := gitconfig.Local("core.commentchar")
-	if err == nil {
-		return char
-	}
-
-	char, err = gitconfig.Global("core.commentchar")
+	char, err := gitconfig.Entire("core.commentchar")
 	if err == nil {
 		return char
 	}
@@ -82,6 +82,7 @@ func CommentChar() string {
 	return "#"
 }
 
+// LastCommitMessage returns the last commits message as one line
 func LastCommitMessage() (string, error) {
 	cmd := New("show", "-s", "--format=%s%n%+b", "HEAD")
 	cmd.Stdout = nil
@@ -92,6 +93,7 @@ func LastCommitMessage() (string, error) {
 	return strings.TrimSpace(string(msg)), nil
 }
 
+// Log produces a a formatted gitlog between 2 git shas
 func Log(sha1, sha2 string) (string, error) {
 	cmd := New("-c", "log.showSignature=false",
 		"log",
@@ -108,6 +110,8 @@ func Log(sha1, sha2 string) (string, error) {
 	return string(outputs), nil
 }
 
+// CurrentBranch returns the currently checked out branch and strips away all
+// but the branchname itself.
 func CurrentBranch() (string, error) {
 	cmd := New("branch")
 	cmd.Stdout = nil
@@ -134,6 +138,8 @@ func CurrentBranch() (string, error) {
 	return branch, nil
 }
 
+// PathWithNameSpace returns the owner/repository for the current repo
+// Such as zaquestion/lab
 func PathWithNameSpace(remote string) (string, error) {
 	remoteURL, err := gitconfig.Local("remote." + remote + ".url")
 	if err != nil {
@@ -146,6 +152,7 @@ func PathWithNameSpace(remote string) (string, error) {
 	return strings.TrimSuffix(parts[len(parts)-1:][0], ".git"), nil
 }
 
+// RepoName returns the name of the repository, such as "lab"
 func RepoName() (string, error) {
 	o, err := PathWithNameSpace("origin")
 	if err != nil {
@@ -155,6 +162,7 @@ func RepoName() (string, error) {
 	return parts[len(parts)-1:][0], nil
 }
 
+// RemoteAdd both adds a remote and fetches it
 func RemoteAdd(name, url string) error {
 	err := New("remote", "add", name, url).Run()
 	if err != nil {
