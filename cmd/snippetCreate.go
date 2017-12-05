@@ -36,19 +36,17 @@ Source snippets from stdin, file, or in editor from scratch
 Write title & description in editor, or using -m`,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote := forkedFromRemote
-		ok, err := git.IsRemote(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-		if ok {
-			remote = args[0]
-		}
 		if len(args) > 0 {
-			if !ok {
-				file = args[0]
+			ok, err := git.IsRemote(args[0])
+			if err != nil {
+				log.Fatal(err)
 			}
-			if ok && len(args) > 1 {
+			if ok {
+				remote = args[0]
+			} else if ok && len(args) > 1 {
 				file = args[1]
+			} else {
+				file = args[0]
 			}
 		}
 		code, err := determineCode(file)
