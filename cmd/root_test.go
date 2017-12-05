@@ -26,7 +26,9 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	rand.Seed(time.Now().UnixNano())
+	os.Chdir(path.Join(wd, "testdata"))
 	code := m.Run()
+	os.Chdir(wd)
 	os.Remove("lab_bin")
 	testdirs, err := filepath.Glob("testdata-*")
 	if err != nil {
@@ -43,9 +45,9 @@ func TestMain(m *testing.M) {
 }
 
 func copyTestRepo(t *testing.T) string {
-	dir := "testdata-" + strconv.Itoa(int(rand.Uint64()))
+	dir := "../testdata-" + strconv.Itoa(int(rand.Uint64()))
 	t.Log(dir)
-	err := exec.Command("cp", "-r", "testdata", dir).Run()
+	err := exec.Command("cp", "-r", "../testdata", dir).Run()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +61,6 @@ func copyTestRepo(t *testing.T) string {
 
 func TestRootCloneNoArg(t *testing.T) {
 	cmd := exec.Command("../lab_bin", "clone")
-	cmd.Dir = "./testdata"
 	b, _ := cmd.CombinedOutput()
 	require.Contains(t, string(b), "You must specify a repository to clone.")
 }
