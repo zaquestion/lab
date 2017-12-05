@@ -1,2 +1,5 @@
 0000000000000000000000000000000000000000 d0e1cc068b44c9622f9046faf24f53b57980e53c Zaq? Wiedmann <zaquestion@gmail.com> 1504410153 -0700	commit (initial): Add test readme for testing gitlog
 d0e1cc068b44c9622f9046faf24f53b57980e53c cd64a7caea4f3ee5696a190379aff1a7f636e598 Zaq? Wiedmann <zaquestion@gmail.com> 1504411119 -0700	commit: Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)
+cd64a7caea4f3ee5696a190379aff1a7f636e598 54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0 Zaq? Wiedmann <zaquestion@gmail.com> 1512509254 -0800	checkout: moving from master to origin/mrtest
+54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0 54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0 Zaq? Wiedmann <zaquestion@gmail.com> 1512509258 -0800	checkout: moving from 54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0 to mrtest
+54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0 cd64a7caea4f3ee5696a190379aff1a7f636e598 Zaq? Wiedmann <zaquestion@gmail.com> 1512509349 -0800	checkout: moving from mrtest to master

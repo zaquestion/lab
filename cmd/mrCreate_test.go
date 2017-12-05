@@ -9,16 +9,10 @@ import (
 
 func Test_mrCreate(t *testing.T) {
 	repo := copyTestRepo(t)
-	git := exec.Command("git", "checkout", "origin/mrtest")
+
+	git := exec.Command("git", "checkout", "mrtest")
 	git.Dir = repo
 	out, err := git.CombinedOutput()
-	if err != nil {
-		t.Log(string(out))
-		t.Fatal(err)
-	}
-	git = exec.Command("git", "checkout", "-b", "mrtest")
-	git.Dir = repo
-	out, err = git.CombinedOutput()
 	if err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
@@ -33,4 +27,28 @@ func Test_mrCreate(t *testing.T) {
 	// This message indicates that the GitLab API tried to create the MR,
 	// its good enough to assert lab is working
 	require.Contains(t, string(b), "409 {message: [Cannot Create: This merge request already exists: [\"mr title\"]]}")
+}
+
+func Test_mrText(t *testing.T) {
+	text, err := mrText("master", "mrtest", "lab-testing", "origin")
+	if err != nil {
+		t.Log(text)
+		t.Fatal(err)
+	}
+	// Normally we we expect the issue template to prefix this. However
+	// since `issueText()` is being called from the `cmd` directory the
+	// underlying LoadGitLabTmpl call doesn't find a template.
+	// This is fine since we have other tests to test loading the template
+	require.Contains(t, text, `Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)
+
+I am the mr tmpl
+# Requesting a merge into origin:master from lab-testing:mrtest
+#
+# Write a message for this merge request. The first block
+# of text is the title and the rest is the description.
+#
+# Changes:
+#
+# 54fd49a (Zaq? Wiedmann`)
+
 }

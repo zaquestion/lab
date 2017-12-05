@@ -42,8 +42,9 @@ func Test_issueText(t *testing.T) {
 	// since `issueText()` is being called from the `cmd` directory the
 	// underlying LoadGitLabTmpl call doesn't find a template.
 	// This is fine since we have other tests to test loading the template
-	assert.Equal(t, `
+	require.Equal(t, `
 
+I am the issue tmpl
 # Write a message for this issue. The first block
 # of text is the title and the rest is the description.`, text)
 
