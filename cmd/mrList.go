@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
@@ -19,21 +18,21 @@ var listCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(forkedFromRemote)
+		remote, page, err := parseArgsRemote(args)
 		if err != nil {
 			log.Fatal(err)
 		}
-		page := 0
-		if len(args) == 1 {
-			page, err = strconv.Atoi(args[0])
-			if err != nil {
-				log.Fatal(err)
-			}
+		if remote == "" {
+			remote = forkedFromRemote
+		}
+		rn, err := git.PathWithNameSpace(remote)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		mrs, err := lab.ListMRs(rn, &gitlab.ListProjectMergeRequestsOptions{
 			ListOptions: gitlab.ListOptions{
-				Page:    page,
+				Page:    int(page),
 				PerPage: 10,
 			},
 			State:   gitlab.String("opened"),
