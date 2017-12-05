@@ -23,11 +23,6 @@ const (
 	targetBranch = "master"
 )
 
-var (
-	// Will be updated to upstream in init() if upstream remote exists
-	targetRemote = "origin"
-)
-
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
 	Use:   "create",
@@ -39,10 +34,6 @@ var mrCreateCmd = &cobra.Command{
 
 func init() {
 	mrCmd.AddCommand(mrCreateCmd)
-	_, err := gitconfig.Local("remote.upstream.url")
-	if err == nil {
-		targetRemote = "upstream"
-	}
 }
 
 func runMRCreate(cmd *cobra.Command, args []string) {
@@ -61,7 +52,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal("aborting MR, branch not present on remote: ", sourceRemote)
 	}
 
-	targetProjectName, err := git.PathWithNameSpace(targetRemote)
+	targetProjectName, err := git.PathWithNameSpace(forkedFromRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +61,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	msg, err := mrMsg(targetBranch, branch, sourceRemote, targetRemote)
+	msg, err := mrMsg(targetBranch, branch, sourceRemote, forkedFromRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,16 +97,16 @@ func determineSourceRemote(branch string) string {
 	}
 
 	// If not, check if the fork is named after the user
-	_, err = gitconfig.Local("remote." + lab.User + ".url")
+	_, err = gitconfig.Local("remote." + lab.User() + ".url")
 	if err == nil {
-		return lab.User
+		return lab.User()
 	}
 
 	// If not, default to origin
 	return "origin"
 }
 
-func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
+func mrMsg(base, head, sourceRemote, forkedFromRemote string) (string, error) {
 	lastCommitMsg, err := git.LastCommitMessage()
 	if err != nil {
 		return "", err
@@ -134,7 +125,7 @@ func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
 
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 
-	remoteBase := fmt.Sprintf("%s/%s", targetRemote, base)
+	remoteBase := fmt.Sprintf("%s/%s", forkedFromRemote, base)
 	commitLogs, err := git.Log(remoteBase, head)
 	if err != nil {
 		return "", err
@@ -160,7 +151,7 @@ func mrMsg(base, head, sourceRemote, targetRemote string) (string, error) {
 		InitMsg:     lastCommitMsg,
 		Tmpl:        mrTmpl,
 		CommentChar: commentChar,
-		Base:        targetRemote + ":" + base,
+		Base:        forkedFromRemote + ":" + base,
 		Head:        sourceRemote + ":" + head,
 		CommitLogs:  commitLogs,
 	}

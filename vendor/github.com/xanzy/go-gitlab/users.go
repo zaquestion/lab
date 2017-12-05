@@ -72,6 +72,7 @@ type UserIdentity struct {
 type ListUsersOptions struct {
 	ListOptions
 	Active   *bool   `url:"active,omitempty" json:"active,omitempty"`
+	Blocked  *bool   `url:"blocked,omitempty" json:"blocked,omitempty"`
 	Search   *string `url:"search,omitempty" json:"search,omitempty"`
 	Username *string `url:"username,omitempty" json:"username,omitempty"`
 }
@@ -595,7 +596,7 @@ type ImpersonationToken struct {
 	Scopes    []string   `json:"scopes"`
 	Revoked   bool       `json:"revoked"`
 	CreatedAt *time.Time `json:"created_at"`
-	ExpiresAt *time.Time `json:"expires_at"`
+	ExpiresAt *ISOTime   `json:"expires_at"`
 }
 
 // GetAllImpersonationTokensOptions represents the available
@@ -694,4 +695,32 @@ func (s *UsersService) RevokeImpersonationToken(user, token int, options ...Opti
 	}
 
 	return s.client.Do(req, nil)
+}
+
+// UserActivity represents an entry in the user/activities response
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
+type UserActivity struct {
+	Username       string   `json:"username"`
+	LastActivityOn *ISOTime `json:"last_activity_on"`
+}
+
+// GetUserActivities retrieves user activities (admin only)
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
+func (s *UsersService) GetUserActivities(options ...OptionFunc) ([]*UserActivity, *Response, error) {
+	req, err := s.client.NewRequest("GET", "user/activities", nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var t []*UserActivity
+	resp, err := s.client.Do(req, &t)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return t, resp, err
 }

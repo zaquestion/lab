@@ -32,11 +32,22 @@ var (
 	lab   *gitlab.Client
 	host  string
 	token string
-	User  string
+	user  string
 )
 
 const defaultGitLabHost = "https://gitlab.com"
 
+// Host exposes the GitLab scheme://hostname used to interact with the API
+func Host() string {
+	return host
+}
+
+// User exposes the configured GitLab user
+func User() string {
+	return user
+}
+
+// Init handles all of the credential setup and prompts for user input when not present. At the end it initializes a gitlab client for use throughout lab.
 func Init() {
 	reader := bufio.NewReader(os.Stdin)
 	var err error
@@ -59,19 +70,19 @@ func Init() {
 
 	}
 	var errt error
-	User, err = gitconfig.Entire("gitlab.user")
+	user, err = gitconfig.Entire("gitlab.user")
 	token, errt = gitconfig.Entire("gitlab.token")
 	if err != nil {
 		fmt.Print("Enter default GitLab user: ")
-		User, err = reader.ReadString('\n')
-		User = strings.TrimSpace(User)
+		user, err = reader.ReadString('\n')
+		user = strings.TrimSpace(user)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if User == "" {
+		if user == "" {
 			log.Fatal("git config gitlab.user must be set")
 		}
-		cmd := git.New("config", "--global", "gitlab.user", User)
+		cmd := git.New("config", "--global", "gitlab.user", user)
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal(err)
@@ -116,7 +127,7 @@ func Init() {
 			log.Println("This token looks invalid due to it's length")
 			log.Println("gitlab.token:", token)
 		}
-		log.Println("gitlab.user:", User)
+		log.Println("gitlab.user:", user)
 
 		// Test listing projects
 		projects, _, err := lab.Projects.ListProjects(&gitlab.ListProjectsOptions{})
@@ -168,6 +179,8 @@ var (
 	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 )
 
+// FindProject looks up the Gitlab project. If the namespace is not provided in
+// the project string it will search for projects in the users namespace
 func FindProject(project string) (*gitlab.Project, error) {
 	if target, ok := localProjects[project]; ok {
 		return target, nil
@@ -176,7 +189,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 	search := project
 	// Assuming that a "/" in the project means its owned by an org
 	if !strings.Contains(project, "/") {
-		search = User + "/" + project
+		search = user + "/" + project
 	}
 
 	target, resp, err := lab.Projects.GetProject(search)
@@ -196,6 +209,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
+// ClonePath returns the ssh url to the GitLab project
 func ClonePath(project string) (string, error) {
 	target, err := FindProject(project)
 	if err != nil {
@@ -208,6 +222,7 @@ func ClonePath(project string) (string, error) {
 	return project, nil
 }
 
+// Fork creates a user fork of a GitLab project
 func Fork(project string) (string, error) {
 	if !strings.Contains(project, "/") {
 		return "", errors.New("remote must include namespace")
@@ -235,6 +250,7 @@ func Fork(project string) (string, error) {
 	return fork.SSHURLToRepo, nil
 }
 
+// MergeRequest opens a merge request on GitLab
 func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
@@ -252,6 +268,7 @@ func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (strin
 	return mr.WebURL, nil
 }
 
+// ListMRs lists the MRs on a GitLab project
 func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -265,7 +282,7 @@ func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*g
 	return list, nil
 }
 
-// IssueCreate opens a new issue on a specified GitLab Project
+// IssueCreate opens a new issue on a GitLab Project
 func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
@@ -283,7 +300,7 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 	return mr.WebURL, nil
 }
 
-// IssueList gets a list of issues on a specified GitLab Project
+// IssueList gets a list of issues on a GitLab Project
 func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
@@ -301,7 +318,7 @@ func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab
 	return list, nil
 }
 
-// BranchPushed checks if a branch exists on a specified GitLab Project
+// BranchPushed checks if a branch exists on a GitLab Project
 func BranchPushed(project, branch string) bool {
 	p, err := FindProject(project)
 	if err != nil {
@@ -313,4 +330,84 @@ func BranchPushed(project, branch string) bool {
 		return false
 	}
 	return b != nil
+}
+
+// ProjectSnippetCreate creates a snippet in a project
+func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+	snip, resp, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return snip, nil
+}
+
+// ProjectSnippetDelete deletes a project snippet
+func ProjectSnippetDelete(pid interface{}, id int) error {
+	resp, err := lab.ProjectSnippets.DeleteSnippet(pid, id)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	return err
+}
+
+// ProjectSnippetList lists snippets on a project
+func ProjectSnippetList(pid interface{}, opts *gitlab.ListProjectSnippetsOptions) ([]*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+	snips, resp, err := lab.ProjectSnippets.ListSnippets(pid, opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return snips, nil
+}
+
+// SnippetCreate creates a personal snippet
+func SnippetCreate(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+	snip, resp, err := lab.Snippets.CreateSnippet(opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return snip, nil
+}
+
+// SnippetDelete deletes a personal snippet
+func SnippetDelete(id int) error {
+	resp, err := lab.Snippets.DeleteSnippet(id)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	return err
+}
+
+// SnippetList lists snippets on a project
+func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(opts)
+	}
+	snips, resp, err := lab.Snippets.ListSnippets(opts)
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return snips, nil
 }

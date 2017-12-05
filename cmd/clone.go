@@ -42,7 +42,7 @@ var cloneCmd = &cobra.Command{
 		// treating forks as origin. Add upstream as remoted pointing
 		// to forked from repo
 		if project.ForkedFromProject != nil &&
-			strings.Contains(project.PathWithNamespace, gitlab.User) {
+			strings.Contains(project.PathWithNamespace, gitlab.User()) {
 			if len(args) > 1 {
 				os.Chdir(args[1])
 			} else {

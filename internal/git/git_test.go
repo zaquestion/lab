@@ -86,3 +86,11 @@ func TestRepoName(t *testing.T) {
 	expectedRepo := "test"
 	require.Equal(t, expectedRepo, repo)
 }
+
+func TestIsRemote(t *testing.T) {
+	res, err := IsRemote("origin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.True(t, res)
+}
