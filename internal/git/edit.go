@@ -61,13 +61,15 @@ func editorPath() (string, error) {
 }
 
 func editorCMD(editorPath, filePath string) *exec.Cmd {
+	parts := strings.Split(editorPath, " ")
 	r := regexp.MustCompile("[nmg]?vi[m]?$")
 	args := make([]string, 0, 3)
 	if r.MatchString(editorPath) {
 		args = append(args, "--cmd", "set ft=gitcommit tw=0 wrap lbr")
 	}
+	args = append(args, parts[1:]...)
 	args = append(args, filePath)
-	cmd := exec.Command(editorPath, args...)
+	cmd := exec.Command(parts[0], args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

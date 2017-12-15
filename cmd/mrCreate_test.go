@@ -35,10 +35,6 @@ func Test_mrText(t *testing.T) {
 		t.Log(text)
 		t.Fatal(err)
 	}
-	// Normally we we expect the issue template to prefix this. However
-	// since `issueText()` is being called from the `cmd` directory the
-	// underlying LoadGitLabTmpl call doesn't find a template.
-	// This is fine since we have other tests to test loading the template
 	require.Contains(t, text, `Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)
 
 I am the mr tmpl

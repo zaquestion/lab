@@ -24,13 +24,37 @@ func Test_issueCreate(t *testing.T) {
 }
 
 func Test_issueMsg(t *testing.T) {
-	title, body, err := issueMsg([]string{"issue title", "issue body", "issue body 2"})
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		Name          string
+		Msgs          []string
+		ExpectedTitle string
+		ExpectedBody  string
+	}{
+		{
+			Name:          "Using messages",
+			Msgs:          []string{"issue title", "issue body", "issue body 2"},
+			ExpectedTitle: "issue title",
+			ExpectedBody:  "issue body\n\nissue body 2",
+		},
+		{
+			Name:          "From Editor",
+			Msgs:          nil,
+			ExpectedTitle: "I am the issue tmpl",
+			ExpectedBody:  "",
+		},
 	}
-	assert.Equal(t, "issue title", title)
-	assert.Equal(t, "issue body\n\nissue body 2", body)
-
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+			title, body, err := issueMsg(test.Msgs)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, test.ExpectedTitle, title)
+			assert.Equal(t, test.ExpectedBody, body)
+		})
+	}
 }
 
 func Test_issueText(t *testing.T) {
@@ -38,10 +62,6 @@ func Test_issueText(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Normally we we expect the issue template to prefix this. However
-	// since `issueText()` is being called from the `cmd` directory the
-	// underlying LoadGitLabTmpl call doesn't find a template.
-	// This is fine since we have other tests to test loading the template
 	require.Equal(t, `
 
 I am the issue tmpl
