@@ -84,3 +84,82 @@ func TestRootNoArg(t *testing.T) {
 
   fork          Fork a remote repository on GitLab and add as remote`)
 }
+
+func Test_parseArgsRemote(t *testing.T) {
+	tests := []struct {
+		Name           string
+		Args           []string
+		ExpectedString string
+		ExpectedInt    int64
+		ExpectedErr    string
+	}{
+		{
+			Name:           "No Args",
+			Args:           nil,
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg remote",
+			Args:           []string{"origin"},
+			ExpectedString: "origin",
+			ExpectedInt:    0,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg non remote",
+			Args:           []string{"foo"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "foo is not a valid remote or number",
+		},
+		{
+			Name:           "1 arg page",
+			Args:           []string{"100"},
+			ExpectedString: "",
+			ExpectedInt:    100,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg invalid page",
+			Args:           []string{"asdf100"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "asdf100 is not a valid remote or number",
+		},
+		{
+			Name:           "2 arg remote page",
+			Args:           []string{"origin", "100"},
+			ExpectedString: "origin",
+			ExpectedInt:    100,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "2 arg invalid remote valid page",
+			Args:           []string{"foo", "100"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "foo is not a valid remote",
+		},
+		{
+			Name:           "2 arg valid remote invalid page",
+			Args:           []string{"foo", "asdf100"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "strconv.ParseInt: parsing \"asdf100\": invalid syntax",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+			s, i, err := parseArgsRemote(test.Args)
+			if err != nil {
+				assert.EqualError(t, err, test.ExpectedErr)
+			}
+			assert.Equal(t, test.ExpectedString, s)
+			assert.Equal(t, test.ExpectedInt, i)
+		})
+	}
+}
