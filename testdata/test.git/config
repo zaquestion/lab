@@ -3,6 +3,7 @@
 	filemode = true
 	bare = false
 	logallrefupdates = true
+	editor = test -f
 [remote "origin"]
 	url = git@gitlab.com:zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin/*

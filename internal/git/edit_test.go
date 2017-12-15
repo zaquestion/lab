@@ -9,7 +9,7 @@ import (
 )
 
 func Test_parseTitleBody(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		Name          string
 		Message       string
 		ExpectedTitle string
@@ -47,16 +47,17 @@ func Test_parseTitleBody(t *testing.T) {
 		},
 	}
 
-	for _, c := range cases {
-		t.Run(c.Name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			test := test
 			t.Parallel()
-			title, body, err := parseTitleBody(c.Message)
+			title, body, err := parseTitleBody(test.Message)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			assert.Equal(t, title, c.ExpectedTitle)
-			assert.Equal(t, body, c.ExpectedBody)
+			assert.Equal(t, title, test.ExpectedTitle)
+			assert.Equal(t, body, test.ExpectedBody)
 		})
 	}
 }

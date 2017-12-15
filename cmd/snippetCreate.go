@@ -159,7 +159,7 @@ func snipCode(path string) (string, error) {
 		}
 	}
 
-	var tmpl = string(b) + `
+	var tmpl = `
 {{.CommentChar}} In this mode you are writing a snippet from scratch
 {{.CommentChar}} The first block is the title and the rest is the contents.`
 
