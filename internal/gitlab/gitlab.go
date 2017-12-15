@@ -209,19 +209,6 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
-// ClonePath returns the ssh url to the GitLab project
-func ClonePath(project string) (string, error) {
-	target, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	if target != nil {
-		return target.SSHURLToRepo, nil
-	}
-	return project, nil
-}
-
 // Fork creates a user fork of a GitLab project
 func Fork(project string) (string, error) {
 	if !strings.Contains(project, "/") {
