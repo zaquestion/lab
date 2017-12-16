@@ -10,6 +10,8 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var mrLabels []string
+
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:     "list",
@@ -35,6 +37,7 @@ var listCmd = &cobra.Command{
 				Page:    int(page),
 				PerPage: 10,
 			},
+			Labels:  mrLabels,
 			State:   gitlab.String("opened"),
 			OrderBy: gitlab.String("updated_at"),
 		})
@@ -48,5 +51,7 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
+	listCmd.Flags().StringSliceVarP(
+		&mrLabels, "label", "l", []string{}, "filter merge requests by label")
 	mrCmd.AddCommand(listCmd)
 }
