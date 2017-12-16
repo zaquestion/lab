@@ -53,7 +53,7 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	err = git.RemoteAdd(lab.User(), remote)
+	err = git.RemoteAdd(lab.User(), remote, ".")
 	if err != nil {
 		log.Fatal(err)
 	}

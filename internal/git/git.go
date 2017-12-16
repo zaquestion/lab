@@ -163,14 +163,16 @@ func RepoName() (string, error) {
 }
 
 // RemoteAdd both adds a remote and fetches it
-func RemoteAdd(name, url string) error {
-	err := New("remote", "add", name, url).Run()
-	if err != nil {
+func RemoteAdd(name, url, dir string) error {
+	cmd := New("remote", "add", name, url)
+	cmd.Dir = dir
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	fmt.Println("Updating", name)
-	err = New("fetch", name).Run()
-	if err != nil {
+	cmd = New("fetch", name)
+	cmd.Dir = dir
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	fmt.Println("new remote:", name)

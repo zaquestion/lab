@@ -14,10 +14,11 @@ func Test_clone(t *testing.T) {
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
+		t.Log(string(b))
 		t.Fatal(err)
 	}
-
 	out := string(b)
+	t.Log(out)
 
 	assert.Contains(t, out, "Cloning into 'test'...")
 	assert.Contains(t, out, " * [new branch]      master     -> upstream/master")

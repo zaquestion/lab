@@ -43,16 +43,17 @@ var cloneCmd = &cobra.Command{
 		// to forked from repo
 		if project.ForkedFromProject != nil &&
 			strings.Contains(project.PathWithNamespace, gitlab.User()) {
+			var dir string
 			if len(args) > 1 {
-				os.Chdir(args[1])
+				dir = args[1]
 			} else {
-				os.Chdir(project.Name)
+				dir = project.Name
 			}
 			ffProject, err := gitlab.FindProject(project.ForkedFromProject.PathWithNamespace)
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = git.RemoteAdd("upstream", ffProject.SSHURLToRepo)
+			err = git.RemoteAdd("upstream", ffProject.SSHURLToRepo, "./"+dir)
 			if err != nil {
 				log.Fatal(err)
 			}
