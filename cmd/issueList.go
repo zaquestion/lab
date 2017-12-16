@@ -10,6 +10,8 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var issueLabels []string
+
 var issueListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
@@ -33,6 +35,7 @@ var issueListCmd = &cobra.Command{
 				Page:    int(page),
 				PerPage: 10,
 			},
+			Labels:  issueLabels,
 			State:   gitlab.String("opened"),
 			OrderBy: gitlab.String("updated_at"),
 		})
@@ -46,5 +49,7 @@ var issueListCmd = &cobra.Command{
 }
 
 func init() {
+	issueListCmd.Flags().StringSliceVarP(
+		&issueLabels, "label", "l", []string{}, "filter issues by label")
 	issueCmd.AddCommand(issueListCmd)
 }
