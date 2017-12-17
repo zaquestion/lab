@@ -287,6 +287,21 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 	return mr.WebURL, nil
 }
 
+// IssueGet retrieves the issue information from a GitLab project
+func IssueGet(project string, issueNum int) (*gitlab.Issue, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	issue, _, err := lab.Issues.GetIssue(p.ID, issueNum)
+	if err != nil {
+		return nil, err
+	}
+
+	return issue, nil
+}
+
 // IssueList gets a list of issues on a GitLab Project
 func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
 	if os.Getenv("DEBUG") != "" {
