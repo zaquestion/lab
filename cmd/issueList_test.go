@@ -38,3 +38,18 @@ func Test_issueListFlagLabel(t *testing.T) {
 	t.Log(issues)
 	require.Equal(t, "#3 test filter labels 1", issues[0])
 }
+
+func Test_issueListStateClosed(t *testing.T) {
+	repo := copyTestRepo(t)
+	cmd := exec.Command("../lab_bin", "issue", "list", "-s", "closed")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.Equal(t, "#4 test closed issue", issues[0])
+}

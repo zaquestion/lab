@@ -11,6 +11,7 @@ import (
 )
 
 var issueLabels []string
+var issueState string
 
 var issueListCmd = &cobra.Command{
 	Use:     "list",
@@ -36,7 +37,7 @@ var issueListCmd = &cobra.Command{
 				PerPage: 10,
 			},
 			Labels:  issueLabels,
-			State:   gitlab.String("opened"),
+			State:   &issueState,
 			OrderBy: gitlab.String("updated_at"),
 		})
 		if err != nil {
@@ -51,5 +52,8 @@ var issueListCmd = &cobra.Command{
 func init() {
 	issueListCmd.Flags().StringSliceVarP(
 		&issueLabels, "label", "l", []string{}, "filter issues by label")
+	issueListCmd.Flags().StringVarP(
+		&issueState, "state", "s", "opened",
+		"filter issues by state (opened/closed)")
 	issueCmd.AddCommand(issueListCmd)
 }
