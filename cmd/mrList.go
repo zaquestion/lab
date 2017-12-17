@@ -11,6 +11,7 @@ import (
 )
 
 var mrLabels []string
+var mrState string
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
@@ -38,7 +39,7 @@ var listCmd = &cobra.Command{
 				PerPage: 10,
 			},
 			Labels:  mrLabels,
-			State:   gitlab.String("opened"),
+			State:   &mrState,
 			OrderBy: gitlab.String("updated_at"),
 		})
 		if err != nil {
@@ -53,5 +54,8 @@ var listCmd = &cobra.Command{
 func init() {
 	listCmd.Flags().StringSliceVarP(
 		&mrLabels, "label", "l", []string{}, "filter merge requests by label")
+	listCmd.Flags().StringVarP(
+		&mrState, "state", "s", "opened",
+		"filter merge requests by state (opened/closed/merged)")
 	mrCmd.AddCommand(listCmd)
 }
