@@ -255,6 +255,21 @@ func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (strin
 	return mr.WebURL, nil
 }
 
+// GetMR retrieves the merge request from GitLab project
+func GetMR(project string, mrNum int) (*gitlab.MergeRequest, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	mr, _, err := lab.MergeRequests.GetMergeRequest(p.ID, mrNum)
+	if err != nil {
+		return nil, err
+	}
+
+	return mr, nil
+}
+
 // ListMRs lists the MRs on a GitLab project
 func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 	p, err := FindProject(project)
