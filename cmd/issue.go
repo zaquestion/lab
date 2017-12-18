@@ -6,8 +6,8 @@ import (
 
 var issueCmd = &cobra.Command{
 	Use:   "issue",
-	Short: issueShowCmd.Short,
-	Long:  issueShowCmd.Long,
+	Short: `Describe, list, and create issues`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			issueListCmd.Run(cmd, args)

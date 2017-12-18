@@ -7,8 +7,8 @@ import (
 // mrCmd represents the mr command
 var mrCmd = &cobra.Command{
 	Use:   "mr",
-	Short: mrShowCmd.Short,
-	Long:  mrShowCmd.Long,
+	Short: `Describe, list, and create merge requests`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			listCmd.Run(cmd, args)
