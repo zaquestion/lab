@@ -1,20 +1,20 @@
-## lab mr checkout
+## lab mr show
 
-Checkout an open merge request
+Describe a merge request
 
 ### Synopsis
 
 
-Checkout an open merge request
+Describe a merge request
 
 ```
-lab mr checkout [flags]
+lab mr show [remote] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for checkout
+  -h, --help   help for show
 ```
 
 ### SEE ALSO
