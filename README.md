@@ -16,7 +16,7 @@ lab will look for hub and uses that as your git binary when available so you don
 $ lab version
 git version 2.11.0
 hub version 2.3.0-pre9
-lab version 0.5.2
+lab version 0.7.0
 ```
 
 # Inspiration
@@ -43,24 +43,18 @@ $ go get -u github.com/zaquestion/lab
 
 $ lab version
 git version 2.11.0
-lab version 0.5.2
+lab version 0.7.0
 ```
 
 # Configuration
 
-The first time you run lab it will prompt for your GitLab information. All configuration is managed through `git config` so don't worry if you mess it up. Keys can be set at the system, global, or local level.
+The first time you run lab it will prompt for your GitLab information. lab uses HCL for its config and looks in `~/.config/lab.hcl` and `./lab.hcl`
 ```
 $ lab
 Enter default GitLab host (default: https://gitlab.com):
 Enter default GitLab user: zaq
 Enter default GitLab token:
 ```
-
-Relevant lab `git config` keys:
-* gitlab.host
-* gitlab.user
-* gitlab.token
-
 
 # Aliasing
 
