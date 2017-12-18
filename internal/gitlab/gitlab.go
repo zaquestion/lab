@@ -164,8 +164,8 @@ func Fork(project string) (string, error) {
 	return fork.SSHURLToRepo, nil
 }
 
-// MergeRequest opens a merge request on GitLab
-func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
+// MRCreate opens a merge request on GitLab
+func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
 	if os.Getenv("DEBUG") != "" {
 		spew.Dump(opts)
 	}
@@ -182,8 +182,8 @@ func MergeRequest(project string, opts *gitlab.CreateMergeRequestOptions) (strin
 	return mr.WebURL, nil
 }
 
-// GetMR retrieves the merge request from GitLab project
-func GetMR(project string, mrNum int) (*gitlab.MergeRequest, error) {
+// MRGet retrieves the merge request from GitLab project
+func MRGet(project string, mrNum int) (*gitlab.MergeRequest, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return nil, err
@@ -197,8 +197,8 @@ func GetMR(project string, mrNum int) (*gitlab.MergeRequest, error) {
 	return mr, nil
 }
 
-// ListMRs lists the MRs on a GitLab project
-func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+// MRList lists the MRs on a GitLab project
+func MRList(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return nil, err
@@ -209,6 +209,28 @@ func ListMRs(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*g
 		return nil, err
 	}
 	return list, nil
+}
+
+// MRClose closes an mr on a GitLab project
+func MRClose(pid interface{}, id int) error {
+	_, _, err := lab.MergeRequests.UpdateMergeRequest(pid, int(id), &gitlab.UpdateMergeRequestOptions{
+		StateEvent: gitlab.String("close"),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MRMerge merges an mr on a GitLab project
+func MRMerge(pid interface{}, id int) error {
+	_, _, err := lab.MergeRequests.AcceptMergeRequest(pid, int(id), &gitlab.AcceptMergeRequestOptions{
+		MergeWhenPipelineSucceeds: gitlab.Bool(true),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // IssueCreate opens a new issue on a GitLab Project
@@ -262,7 +284,16 @@ func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab
 	return list, nil
 }
 
-// BranchPushed checks if a branch exists on a GitLab Project
+// IssueClose closes an issue on a GitLab project
+func IssueClose(pid interface{}, id int) error {
+	_, err := lab.Issues.DeleteIssue(pid, int(id))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// BranchPushed checks if a branch exists on a GitLab project
 func BranchPushed(project, branch string) bool {
 	p, err := FindProject(project)
 	if err != nil {

@@ -27,7 +27,7 @@ var checkoutCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		mrs, err := lab.ListMRs(rn, &gitlab.ListProjectMergeRequestsOptions{
+		mrs, err := lab.MRList(rn, &gitlab.ListProjectMergeRequestsOptions{
 			IIDs: []int{mrID},
 		})
 		if err != nil {
