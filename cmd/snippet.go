@@ -11,7 +11,6 @@ var snippetCmd = &cobra.Command{
 	Short:   snippetCreateCmd.Short,
 	Long:    snippetCreateCmd.Long,
 	Run: func(cmd *cobra.Command, args []string) {
-
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			snippetListCmd.Run(cmd, args)
 			return

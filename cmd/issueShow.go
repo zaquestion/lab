@@ -13,10 +13,11 @@ import (
 )
 
 var issueShowCmd = &cobra.Command{
-	Use:     "show [remote]",
-	Aliases: []string{"get", "s"},
-	Short:   "describe an issue",
-	Long:    ``,
+	Use:        "show [remote]",
+	Aliases:    []string{"get"},
+	ArgAliases: []string{"s"},
+	Short:      "Describe an issue",
+	Long:       ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, issueNum, err := parseArgsRemote(args)
 		if err != nil {
