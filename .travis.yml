@@ -20,15 +20,15 @@ script:
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
+before_deploy:
+  - DEPLOY=1 docs/build.sh
+
 deploy:
   provider: script
   script: curl -sL https://git.io/goreleaser | bash
   on:
     branch: master
     tags: true
-
-after_deploy:
-  - DEPLOY=1 docs/build.sh
 
 notifications:
   email: false
