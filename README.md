@@ -39,11 +39,7 @@ brew install zaquestion/tap/lab
 Required
 * [Go 1.9+](https://golang.org/doc/install)
 ```
-$ go get -u github.com/zaquestion/lab
-
-$ lab version
-git version 2.11.0
-lab version 0.7.0
+$ bash <(curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh)
 ```
 
 # Configuration

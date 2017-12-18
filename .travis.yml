@@ -8,6 +8,10 @@ go_import_path: github.com/zaquestion/lab
 # use containers which run faster and have cache
 sudo: false
 
+before_script:
+  - go get -u github.com/golang/dep/cmd/dep
+  - dep ensure -v
+
 script:
   - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   - echo -e "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkTcgXnHuqR0gbwegnr9Zxz4hTkjjV/SpgJNPJz7mo/HKNbx0rqjj1P0yGR053R9GSFFim2ut4NK9DPPUkQdyucw+DoLkYRHJmlJ4BNa9NTCD0sl+eSXO2969kZojCYSOgbmkCJx8mdgTwhzdgE/jhBrsY0hPE6pRTlU+H68/zeNdJUAIJf0LLXOm3hpTKLA19VICltl/j9VvBJpgRHdBylXEyL8HokYpjkQQk1ZXj3m7Nlo8yDdg4VcljOJWC+Xh8kxRMfK5x/VRVsYKCQXN5QlzKeqf7USRDUS/7mFoPUBW+d4kwKtGxRsWuIL2yeqzifZUTOgsh9+ZWAWxWffQZ your_email@example.com" > ~/.ssh/id_rsa.pub
@@ -19,6 +23,11 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+cache:
+  directories:
+    - vendor
+
 
 before_deploy:
   - DEPLOY=1 docs/build.sh
