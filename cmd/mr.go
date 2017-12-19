@@ -15,6 +15,11 @@ var mrCmd = &cobra.Command{
 			return
 		}
 
+		if browse, _ := cmd.Flags().GetBool("browse"); browse {
+			mrBrowseCmd.Run(cmd, args)
+			return
+		}
+
 		if len(args) == 0 || len(args) > 2 {
 			cmd.Help()
 			return
@@ -26,5 +31,6 @@ var mrCmd = &cobra.Command{
 
 func init() {
 	mrCmd.Flags().BoolP("list", "l", false, "list MRs")
+	mrCmd.Flags().BoolP("browse", "b", false, "browse MRs")
 	RootCmd.AddCommand(mrCmd)
 }

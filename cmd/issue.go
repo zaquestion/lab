@@ -14,6 +14,11 @@ var issueCmd = &cobra.Command{
 			return
 		}
 
+		if browse, _ := cmd.Flags().GetBool("browse"); browse {
+			issueBrowseCmd.Run(cmd, args)
+			return
+		}
+
 		if len(args) == 0 || len(args) > 2 {
 			cmd.Help()
 			return
@@ -25,5 +30,6 @@ var issueCmd = &cobra.Command{
 
 func init() {
 	issueCmd.Flags().BoolP("list", "l", false, "list issues")
+	issueCmd.Flags().BoolP("browse", "b", false, "browse issues")
 	RootCmd.AddCommand(issueCmd)
 }
