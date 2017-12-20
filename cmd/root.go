@@ -7,10 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"syscall"
 	"text/template"
-	"unicode"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -33,21 +31,16 @@ var RootCmd = &cobra.Command{
 	},
 }
 
-func trimRightSpace(s string) string {
-	return strings.TrimRightFunc(s, unicode.IsSpace)
-}
-
 func rpad(s string, padding int) string {
 	template := fmt.Sprintf("%%-%ds", padding)
 	return fmt.Sprintf(template, s)
 }
 
 var templateFuncs = template.FuncMap{
-	"trimTrailingWhitespaces": trimRightSpace,
 	"rpad": rpad,
 }
 
-const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version") (ne .Name "ci")))}}
+const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version")))}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}`
 
 func labUsageFormat(c *cobra.Command) string {

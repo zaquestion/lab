@@ -7,10 +7,8 @@ import (
 // ciCmd represents the ci command
 var ciCmd = &cobra.Command{
 	Use:   "ci",
-	Short: "",
+	Short: "Work with the GitLab CI pipeline for your refs",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 func init() {
