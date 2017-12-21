@@ -60,4 +60,6 @@ changelog:
     exclude:
       - '^\(docs\)'
       - '^\(ci\)'
-      - '^\(tests?\)'
+      - '^\(coverage\)'
+      - '^\(tests?'
+      - '^Merge pull request'
