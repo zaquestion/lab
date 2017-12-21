@@ -15,9 +15,9 @@ import (
 var browse = browser.Open
 
 var issueBrowseCmd = &cobra.Command{
-	Use:     "browse [remote]",
+	Use:     "browse [remote] <id>",
 	Aliases: []string{"b"},
-	Short:   "browse issues",
+	Short:   "View issue in a browser",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, num, err := parseArgsRemote(args)

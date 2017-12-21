@@ -10,9 +10,9 @@ import (
 )
 
 var mrCloseCmd = &cobra.Command{
-	Use:     "close [remote]",
+	Use:     "close [remote] <id>",
 	Aliases: []string{"delete"},
-	Short:   "Close mr by id",
+	Short:   "Close merge request",
 	Long:    ``,
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

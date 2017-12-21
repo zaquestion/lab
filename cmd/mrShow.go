@@ -13,7 +13,7 @@ import (
 )
 
 var mrShowCmd = &cobra.Command{
-	Use:        "show [remote]",
+	Use:        "show [remote] <id>",
 	Aliases:    []string{"get"},
 	ArgAliases: []string{"s"},
 	Short:      "Describe a merge request",

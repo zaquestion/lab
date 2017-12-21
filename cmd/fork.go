@@ -12,7 +12,7 @@ import (
 
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
-	Use:   "fork",
+	Use:   "fork [upstream-to-fork]",
 	Short: "Fork a remote repository on GitLab and add as remote",
 	Long:  ``,
 	Args:  cobra.MaximumNArgs(1),

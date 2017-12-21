@@ -10,7 +10,7 @@ import (
 )
 
 var issueCloseCmd = &cobra.Command{
-	Use:     "close [remote]",
+	Use:     "close [remote] <id>",
 	Aliases: []string{"delete"},
 	Short:   "Close issue by id",
 	Long:    ``,
