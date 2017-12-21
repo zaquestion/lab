@@ -30,9 +30,8 @@ cache:
 
 deploy:
   provider: script
-  script:
-   - dep ensure -v
-   - curl -sL https://git.io/goreleaser | bash
+  skip_cleanup: true
+  script: curl -sL https://git.io/goreleaser | bash
   on:
     branch: master
     tags: true
