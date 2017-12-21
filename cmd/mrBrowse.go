@@ -12,9 +12,9 @@ import (
 )
 
 var mrBrowseCmd = &cobra.Command{
-	Use:     "browse [remote]",
+	Use:     "browse [remote] <id>",
 	Aliases: []string{"b"},
-	Short:   "browse merge requests",
+	Short:   "View merge request in a browser",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, num, err := parseArgsRemote(args)

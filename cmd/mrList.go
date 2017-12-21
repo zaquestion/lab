@@ -15,7 +15,7 @@ var mrState string
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:     "list",
+	Use:     "list [remote] [page]",
 	Aliases: []string{"ls"},
 	Short:   "List merge requests",
 	Long:    ``,

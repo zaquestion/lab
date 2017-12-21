@@ -34,8 +34,8 @@ var issueCmd = &cobra.Command{
 }
 
 func init() {
-	issueCmd.Flags().BoolP("list", "l", false, "list issues")
-	issueCmd.Flags().BoolP("browse", "b", false, "browse issues")
-	issueCmd.Flags().StringP("close", "d", "", "close issue by ID")
+	issueCmd.Flags().BoolP("list", "l", false, "List issues on a remote")
+	issueCmd.Flags().BoolP("browse", "b", false, "View issue <id> in a browser")
+	issueCmd.Flags().StringP("close", "d", "", "Close issue <id> on remote")
 	RootCmd.AddCommand(issueCmd)
 }

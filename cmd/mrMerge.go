@@ -9,10 +9,10 @@ import (
 )
 
 var mrMergeCmd = &cobra.Command{
-	Use:     "merge [remote]",
+	Use:     "merge [remote] <id>",
 	Aliases: []string{"delete"},
-	Short:   "Merge mr by id",
-	Long:    ``,
+	Short:   "Merge an open merge request",
+	Long:    `If the pipeline for the mr is still running, lab sets merge on success`,
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, id, err := parseArgsRemote(args)

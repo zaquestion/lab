@@ -12,7 +12,7 @@ import (
 
 // snippetListCmd represents the snippetList command
 var snippetListCmd = &cobra.Command{
-	Use:   "list",
+	Use:   "list [remote] [page]",
 	Short: "List personal or project snippets",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {

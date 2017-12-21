@@ -10,11 +10,13 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-var issueLabels []string
-var issueState string
+var (
+	issueLabels []string
+	issueState  string
+)
 
 var issueListCmd = &cobra.Command{
-	Use:     "list",
+	Use:     "list [remote] [page]",
 	Aliases: []string{"ls"},
 	Short:   "List issues",
 	Long:    ``,

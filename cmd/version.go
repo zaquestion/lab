@@ -7,6 +7,7 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
+// Version is set by main during build
 var Version string
 
 // versionCmd represents the version command

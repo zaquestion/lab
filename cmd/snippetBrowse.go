@@ -12,8 +12,8 @@ import (
 )
 
 var snippetBrowseCmd = &cobra.Command{
-	Use:   "browse [remote]",
-	Short: "browse personal or project snippets",
+	Use:   "browse [remote] <id>",
+	Short: "View personal or project snippet in a browser",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, id, err := parseArgsRemote(args)
