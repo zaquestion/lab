@@ -28,16 +28,17 @@ cache:
   directories:
     - vendor
 
-
-before_deploy:
-  - DEPLOY=1 docs/build.sh
-
 deploy:
   provider: script
   script: curl -sL https://git.io/goreleaser | bash
   on:
     branch: master
     tags: true
+
+# docs have to be built and deployed after goreleaser or the release shas won't
+# match
+after_deploy:
+  - DEPLOY=1 docs/build.sh
 
 notifications:
   email: false
