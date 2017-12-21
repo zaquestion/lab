@@ -1,20 +1,20 @@
-## lab snippet list
+## lab snippet browse
 
-List personal or project snippets
+View personal or project snippet in a browser
 
 ### Synopsis
 
 
-List personal or project snippets
+View personal or project snippet in a browser
 
 ```
-lab snippet list [remote] [page] [flags]
+lab snippet browse [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list
+  -h, --help   help for browse
 ```
 
 ### Options inherited from parent commands

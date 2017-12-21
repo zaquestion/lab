@@ -1,20 +1,20 @@
-## lab issue show
+## lab issue browse
 
-Describe an issue
+View issue in a browser
 
 ### Synopsis
 
 
-Describe an issue
+View issue in a browser
 
 ```
-lab issue show [remote] <id> [flags]
+lab issue browse [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help   help for browse
 ```
 
 ### SEE ALSO

@@ -1,20 +1,20 @@
-## lab mr show
+## lab mr close
 
-Describe a merge request
+Close merge request
 
 ### Synopsis
 
 
-Describe a merge request
+Close merge request
 
 ```
-lab mr show [remote] <id> [flags]
+lab mr close [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help   help for close
 ```
 
 ### SEE ALSO

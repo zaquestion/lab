@@ -1,20 +1,20 @@
-## lab mr show
+## lab mr browse
 
-Describe a merge request
+View merge request in a browser
 
 ### Synopsis
 
 
-Describe a merge request
+View merge request in a browser
 
 ```
-lab mr show [remote] <id> [flags]
+lab mr browse [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help   help for browse
 ```
 
 ### SEE ALSO

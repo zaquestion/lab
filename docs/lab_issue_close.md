@@ -1,20 +1,20 @@
-## lab issue show
+## lab issue close
 
-Describe an issue
+Close issue by id
 
 ### Synopsis
 
 
-Describe an issue
+Close issue by id
 
 ```
-lab issue show [remote] <id> [flags]
+lab issue close [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help   help for close
 ```
 
 ### SEE ALSO

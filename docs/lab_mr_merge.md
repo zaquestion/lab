@@ -1,20 +1,20 @@
-## lab mr show
+## lab mr merge
 
-Describe a merge request
+Merge an open merge request
 
 ### Synopsis
 
 
-Describe a merge request
+If the pipeline for the mr is still running, lab sets merge on success
 
 ```
-lab mr show [remote] <id> [flags]
+lab mr merge [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help   help for merge
 ```
 
 ### SEE ALSO
