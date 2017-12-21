@@ -30,7 +30,9 @@ cache:
 
 deploy:
   provider: script
-  script: curl -sL https://git.io/goreleaser | bash
+  script:
+   - dep ensure -v
+   - curl -sL https://git.io/goreleaser | bash
   on:
     branch: master
     tags: true
