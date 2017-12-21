@@ -31,7 +31,7 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		mr, err := lab.GetMR(rn, int(mrNum))
+		mr, err := lab.MRGet(rn, int(mrNum))
 		if err != nil {
 			log.Fatal(err)
 		}

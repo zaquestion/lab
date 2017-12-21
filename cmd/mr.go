@@ -20,6 +20,11 @@ var mrCmd = &cobra.Command{
 			return
 		}
 
+		if id, _ := cmd.Flags().GetString("close"); id != "" {
+			mrCloseCmd.Run(cmd, append(args, id))
+			return
+		}
+
 		if len(args) == 0 || len(args) > 2 {
 			cmd.Help()
 			return
@@ -32,5 +37,6 @@ var mrCmd = &cobra.Command{
 func init() {
 	mrCmd.Flags().BoolP("list", "l", false, "list MRs")
 	mrCmd.Flags().BoolP("browse", "b", false, "browse MRs")
+	mrCmd.Flags().StringP("close", "d", "", "close MR by ID")
 	RootCmd.AddCommand(mrCmd)
 }

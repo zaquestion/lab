@@ -94,7 +94,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal("aborting MR due to empty MR msg")
 	}
 
-	mrURL, err := lab.MergeRequest(sourceProjectName, &gitlab.CreateMergeRequestOptions{
+	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
 		SourceBranch:    &branch,
 		TargetBranch:    gitlab.String(targetBranch),
 		TargetProjectID: &targetProject.ID,

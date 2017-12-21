@@ -19,6 +19,11 @@ var issueCmd = &cobra.Command{
 			return
 		}
 
+		if id, _ := cmd.Flags().GetString("close"); id != "" {
+			issueCloseCmd.Run(cmd, append(args, id))
+			return
+		}
+
 		if len(args) == 0 || len(args) > 2 {
 			cmd.Help()
 			return
@@ -31,5 +36,6 @@ var issueCmd = &cobra.Command{
 func init() {
 	issueCmd.Flags().BoolP("list", "l", false, "list issues")
 	issueCmd.Flags().BoolP("browse", "b", false, "browse issues")
+	issueCmd.Flags().StringP("close", "d", "", "close issue by ID")
 	RootCmd.AddCommand(issueCmd)
 }

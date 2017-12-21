@@ -21,10 +21,10 @@ var snippetCmd = &cobra.Command{
 			return
 		}
 
-		if deleteID, _ := cmd.Flags().GetInt("delete"); deleteID != 0 {
+		if deleteID, _ := cmd.Flags().GetString("delete"); deleteID != "" {
 			// append the args here so that remote can stil be
 			// properly passed in
-			snippetDeleteCmd.Run(cmd, append(args, string(deleteID)))
+			snippetDeleteCmd.Run(cmd, append(args, deleteID))
 			return
 		}
 		if len(args) == 0 && file == "" {
@@ -43,7 +43,7 @@ func init() {
 	snippetCmd.PersistentFlags().BoolVarP(&global, "global", "g", false, "create as a personal snippet")
 	snippetCmd.Flags().BoolP("list", "l", false, "list snippets")
 	snippetCmd.Flags().BoolP("browse", "b", false, "browse snippets")
-	snippetCmd.Flags().IntP("delete", "d", 0, "delete snippet with id")
+	snippetCmd.Flags().StringP("delete", "d", "", "delete snippet with id")
 	// Create flags added in snippetCreate.go
 	RootCmd.AddCommand(snippetCmd)
 }
