@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -36,6 +37,7 @@ var issueCloseCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("Issue #%d closed\n", id)
 	},
 }
 

@@ -1,10 +1,17 @@
 package cmd
 
-import "testing"
+import (
+	"fmt"
+	"os/exec"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func Test_snippetCmd(t *testing.T) {
 	var snipID string
-	t.Run("create", func(t *testing.T) {
+	t.Run("create_personal", func(t *testing.T) {
 		repo := copyTestRepo(t)
 		cmd := exec.Command("../lab_bin", "snippet", "create", "-g",
 			"-m", "personal snippet title",
@@ -31,10 +38,41 @@ func Test_snippetCmd(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		require.Contains(t, string(b), "https://gitlab.com/snippets/")
-		snipID := strings.TrimPrefix("https://gitlab.com/snippets/")
+		out := string(b)
+		require.Contains(t, out, "https://gitlab.com/snippets/")
+
+		i := strings.Index(out, "\n")
+		snipID = strings.TrimPrefix(out[:i], "https://gitlab.com/snippets/")
+		t.Log(snipID)
 	})
-	t.Run("delete", func(t *testing.T) {
+	t.Run("delete_personal", func(t *testing.T) {
+		if snipID == "" {
+			t.Skip("snipID is empty, create likely failed")
+		}
 		repo := copyTestRepo(t)
+		cmd := exec.Command("../lab_bin", "snippet", "-g", "-d", snipID)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		require.Contains(t, string(b), fmt.Sprintf("Snippet #%s deleted", snipID))
 	})
+}
+
+func Test_snippetCmd_noArgs(t *testing.T) {
+	repo := copyTestRepo(t)
+	cmd := exec.Command("../lab_bin", "snippet")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+	require.Contains(t, string(b), `Usage:
+  lab snippet [flags]
+  lab snippet [command]`)
 }

@@ -213,7 +213,14 @@ func MRList(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gi
 
 // MRClose closes an mr on a GitLab project
 func MRClose(pid interface{}, id int) error {
-	_, _, err := lab.MergeRequests.UpdateMergeRequest(pid, int(id), &gitlab.UpdateMergeRequestOptions{
+	mr, _, err := lab.MergeRequests.GetMergeRequest(pid, id)
+	if err != nil {
+		return err
+	}
+	if mr.State == "closed" {
+		return fmt.Errorf("mr already closed")
+	}
+	_, _, err = lab.MergeRequests.UpdateMergeRequest(pid, int(id), &gitlab.UpdateMergeRequestOptions{
 		StateEvent: gitlab.String("close"),
 	})
 	if err != nil {
