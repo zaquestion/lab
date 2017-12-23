@@ -62,8 +62,8 @@ func printIssue(issue *gitlab.Issue, project string) {
 	if issue.DueDate != nil {
 		dueDate = time.Time(*issue.DueDate).String()
 	}
-	if issue.Assignee.Username != "" {
-		assignee = issue.Assignee.Username
+	if len(issue.Assignees) > 0 && issue.Assignees[0].Username != "" {
+		assignee = issue.Assignees[0].Username
 	}
 
 	fmt.Printf(`
