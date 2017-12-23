@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zaquestion/lab/internal/git"
@@ -27,7 +28,17 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	rand.Seed(time.Now().UnixNano())
+
+	// Load config for non-testbinary based tests
 	os.Chdir(path.Join(wd, "testdata"))
+	viper.SetConfigName("lab")
+	viper.SetConfigType("hcl")
+	viper.AddConfigPath(".")
+	err = viper.ReadInConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	code := m.Run()
 	os.Chdir(wd)
 	os.Remove("lab_bin")
