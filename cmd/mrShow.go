@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -67,7 +66,6 @@ func printMR(mr *gitlab.MergeRequest, project string) {
 Project: %s
 Branches: %s->%s
 Status: %s
-Work in Progress: %s
 Assignee: %s
 Author: %s
 Milestone: %s
@@ -75,7 +73,7 @@ Labels: %s
 WebURL: %s
 `,
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
-		mr.TargetBranch, state, strconv.FormatBool(mr.WorkInProgress), assignee,
+		mr.TargetBranch, state, assignee,
 		mr.Author.Username, milestone, labels, mr.WebURL)
 }
 

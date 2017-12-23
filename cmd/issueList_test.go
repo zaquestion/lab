@@ -20,8 +20,7 @@ func Test_issueList(t *testing.T) {
 
 	issues := strings.Split(string(b), "\n")
 	t.Log(issues)
-	firstIssue := issues[len(issues)-5 : len(issues)-4]
-	require.Equal(t, "#1 test issue for lab list", firstIssue[0])
+	require.Equal(t, "#1 test issue for lab list", issues[0])
 }
 
 func Test_issueListFlagLabel(t *testing.T) {

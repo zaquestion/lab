@@ -44,7 +44,6 @@ func printIssue(issue *gitlab.Issue, project string) {
 	milestone := "None"
 	timestats := "None"
 	dueDate := "None"
-	assignee := "None"
 	state := map[string]string{
 		"opened": "Open",
 		"closed": "Closed",
@@ -62,8 +61,11 @@ func printIssue(issue *gitlab.Issue, project string) {
 	if issue.DueDate != nil {
 		dueDate = time.Time(*issue.DueDate).String()
 	}
-	if issue.Assignee.Username != "" {
-		assignee = issue.Assignee.Username
+	assignees := make([]string, len(issue.Assignees))
+	if len(issue.Assignees) > 0 && issue.Assignees[0].Username != "" {
+		for i, a := range issue.Assignees {
+			assignees[i] = a.Username
+		}
 	}
 
 	fmt.Printf(`
@@ -73,7 +75,7 @@ func printIssue(issue *gitlab.Issue, project string) {
 -----------------------------------
 Project: %s
 Status: %s
-Assignee: %s
+Assignees: %s
 Author: %s
 Milestone: %s
 Due Date: %s
@@ -81,7 +83,7 @@ Time Stats: %s
 Labels: %s
 WebURL: %s
 `,
-		issue.IID, issue.Title, issue.Description, project, state, assignee,
+		issue.IID, issue.Title, issue.Description, project, state, strings.Join(assignees, ", "),
 		issue.Author.Username, milestone, dueDate, timestats,
 		strings.Join(issue.Labels, ", "), issue.WebURL,
 	)
