@@ -8,7 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -19,14 +18,7 @@ var issueShowCmd = &cobra.Command{
 	Short:      "Describe an issue",
 	Long:       ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, issueNum, err := parseArgsRemote(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
-		}
-		rn, err := git.PathWithNameSpace(remote)
+		rn, issueNum, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}

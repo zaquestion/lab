@@ -8,7 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/zaquestion/lab/internal/git"
 )
 
 var mrBrowseCmd = &cobra.Command{
@@ -17,14 +16,7 @@ var mrBrowseCmd = &cobra.Command{
 	Short:   "View merge request in a browser",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, num, err := parseArgsRemote(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
-		}
-		rn, err := git.PathWithNameSpace(remote)
+		rn, num, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}

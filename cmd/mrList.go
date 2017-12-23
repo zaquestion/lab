@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -21,14 +20,7 @@ var listCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, page, err := parseArgsRemote(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
-		}
-		rn, err := git.PathWithNameSpace(remote)
+		rn, page, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}
