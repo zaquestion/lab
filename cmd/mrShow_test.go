@@ -9,7 +9,7 @@ import (
 
 func Test_mrShow(t *testing.T) {
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "4")
+	cmd := exec.Command("../lab_bin", "mr", "1")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -19,18 +19,17 @@ func Test_mrShow(t *testing.T) {
 	}
 
 	require.Contains(t, string(b), `
-#4 merged merge request
+#1 Test MR for lab list
 ===================================
-
+This MR is to remain open for testing the `+"`lab mr list`"+` functionality
 -----------------------------------
 Project: zaquestion/test
-Branches: merged->master
-Status: Merged
-Work in Progress: false
-Assignee: None
+Branches: mrtest->master
+Status: Open
+Assignee: zaquestion
 Author: zaquestion
-Milestone: None
-Labels: None
-WebURL: https://gitlab.com/zaquestion/test/merge_requests/4
+Milestone: 1.0
+Labels: documentation
+WebURL: https://gitlab.com/zaquestion/test/merge_requests/1
 `)
 }

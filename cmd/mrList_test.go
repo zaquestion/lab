@@ -18,10 +18,9 @@ func Test_mrList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	issues := strings.Split(string(b), "\n")
-	t.Log(issues)
-	firstIssue := issues[len(issues)-4 : len(issues)-3]
-	require.Equal(t, "#1 Test MR for lab list", firstIssue[0])
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Equal(t, "#1 Test MR for lab list", mrs[0])
 }
 
 func Test_mrListFlagLabel(t *testing.T) {
