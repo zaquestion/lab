@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -45,26 +44,6 @@ func Init(_host, _user, _token string) {
 	user = _user
 	lab = gitlab.NewClient(nil, _token)
 	lab.SetBaseURL(host + "/api/v4")
-
-	if os.Getenv("DEBUG") != "" {
-		log.Println("gitlab.host:", host)
-		if len(_token) > 12 {
-			log.Println("gitlab.token:", "************"+_token[12:])
-		} else {
-			log.Println("This token looks invalid due to it's length")
-			log.Println("gitlab.token:", _token)
-		}
-		log.Println("gitlab.user:", user)
-
-		// Test listing projects
-		projects, _, err := lab.Projects.ListProjects(&gitlab.ListProjectsOptions{})
-		if err != nil {
-			log.Fatal("Error: ", err)
-		}
-		if len(projects) > 0 {
-			spew.Dump(projects[0])
-		}
-	}
 }
 
 // Defines filepath for default GitLab templates
@@ -83,10 +62,6 @@ func LoadGitLabTmpl(tmplName string) string {
 	}
 
 	tmplFile := filepath.Join(wd, ".gitlab", tmplName)
-	if os.Getenv("DEBUG") != "" {
-		log.Println("tmplFile:", tmplFile)
-	}
-
 	f, err := os.Open(tmplFile)
 	if os.IsNotExist(err) {
 		return ""
@@ -126,10 +101,6 @@ func FindProject(project string) (*gitlab.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(target)
-	}
-
 	// fwiw, I feel bad about this
 	localProjects[project] = target
 
@@ -166,10 +137,6 @@ func Fork(project string) (string, error) {
 
 // MRCreate opens a merge request on GitLab
 func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-
 	p, err := FindProject(project)
 	if err != nil {
 		return "", err
@@ -242,10 +209,6 @@ func MRMerge(pid interface{}, id int) error {
 
 // IssueCreate opens a new issue on a GitLab Project
 func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-
 	p, err := FindProject(project)
 	if err != nil {
 		return "", err
@@ -275,10 +238,6 @@ func IssueGet(project string, issueNum int) (*gitlab.Issue, error) {
 
 // IssueList gets a list of issues on a GitLab Project
 func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-
 	p, err := FindProject(project)
 	if err != nil {
 		return nil, err
@@ -316,13 +275,7 @@ func BranchPushed(project, branch string) bool {
 
 // ProjectSnippetCreate creates a snippet in a project
 func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-	snip, resp, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
-	}
+	snip, _, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -332,22 +285,13 @@ func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOpti
 
 // ProjectSnippetDelete deletes a project snippet
 func ProjectSnippetDelete(pid interface{}, id int) error {
-	resp, err := lab.ProjectSnippets.DeleteSnippet(pid, id)
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
-	}
+	_, err := lab.ProjectSnippets.DeleteSnippet(pid, id)
 	return err
 }
 
 // ProjectSnippetList lists snippets on a project
 func ProjectSnippetList(pid interface{}, opts *gitlab.ListProjectSnippetsOptions) ([]*gitlab.Snippet, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-	snips, resp, err := lab.ProjectSnippets.ListSnippets(pid, opts)
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
-	}
+	snips, _, err := lab.ProjectSnippets.ListSnippets(pid, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -356,13 +300,7 @@ func ProjectSnippetList(pid interface{}, opts *gitlab.ListProjectSnippetsOptions
 
 // SnippetCreate creates a personal snippet
 func SnippetCreate(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-	snip, resp, err := lab.Snippets.CreateSnippet(opts)
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
-	}
+	snip, _, err := lab.Snippets.CreateSnippet(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -372,22 +310,13 @@ func SnippetCreate(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
 
 // SnippetDelete deletes a personal snippet
 func SnippetDelete(id int) error {
-	resp, err := lab.Snippets.DeleteSnippet(id)
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
-	}
+	_, err := lab.Snippets.DeleteSnippet(id)
 	return err
 }
 
 // SnippetList lists snippets on a project
 func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(opts)
-	}
-	snips, resp, err := lab.Snippets.ListSnippets(opts)
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
-	}
+	snips, _, err := lab.Snippets.ListSnippets(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -395,12 +324,9 @@ func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
 }
 
 func Lint(content string) (bool, error) {
-	lint, resp, err := lab.Validate.Lint(content)
+	lint, _, err := lab.Validate.Lint(content)
 	if err != nil {
 		return false, err
-	}
-	if os.Getenv("DEBUG") != "" {
-		fmt.Println(resp.Response.Status)
 	}
 	if len(lint.Errors) > 0 {
 		return false, errors.New(strings.Join(lint.Errors, " - "))

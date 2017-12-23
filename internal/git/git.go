@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/tcnksm/go-gitconfig"
 )
@@ -120,9 +119,6 @@ func CurrentBranch() (string, error) {
 		return "", err
 	}
 	branches := strings.Split(string(gBranches), "\n")
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(branches)
-	}
 	var branch string
 	for _, b := range branches {
 		if strings.HasPrefix(b, "* ") {

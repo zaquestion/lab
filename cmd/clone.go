@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"log"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -30,9 +29,6 @@ var cloneCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		path := project.SSHURLToRepo
-		if os.Getenv("DEBUG") != "" {
-			log.Println("clonePath:", path)
-		}
 		err = git.New(append([]string{"clone", path}, args[1:]...)...).Run()
 		if err != nil {
 			log.Fatal(err)
