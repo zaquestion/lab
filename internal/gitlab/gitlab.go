@@ -393,3 +393,17 @@ func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
 	}
 	return snips, nil
 }
+
+func Lint(content string) (bool, error) {
+	lint, resp, err := lab.Validate.Lint(content)
+	if err != nil {
+		return false, err
+	}
+	if os.Getenv("DEBUG") != "" {
+		fmt.Println(resp.Response.Status)
+	}
+	if len(lint.Errors) > 0 {
+		return false, errors.New(strings.Join(lint.Errors, " - "))
+	}
+	return lint.Status == "valid", nil
+}
