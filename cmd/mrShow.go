@@ -49,8 +49,8 @@ func printMR(mr *gitlab.MergeRequest, project string) {
 		"closed": "Closed",
 		"merged": "Merged",
 	}[mr.State]
-	if mr.Assignee.Username != "" {
-		assignee = mr.Assignee.Username
+	if len(mr.Assignees) > 0 && mr.Assignees[0].Username != "" {
+		assignee = mr.Assignees[0].Username
 	}
 	if mr.Milestone != nil {
 		milestone = mr.Milestone.Title
