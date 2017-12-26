@@ -101,6 +101,21 @@ func parseArgsRemote(args []string) (string, int64, error) {
 	return "", 0, nil
 }
 
+func parseArgs(args []string) (string, int64, error) {
+	remote, num, err := parseArgsRemote(args)
+	if err != nil {
+		return "", 0, err
+	}
+	if remote == "" {
+		remote = forkedFromRemote
+	}
+	rn, err := git.PathWithNameSpace(remote)
+	if err != nil {
+		return "", 0, err
+	}
+	return rn, num, nil
+}
+
 var (
 	// Will be updated to upstream in init() if "upstream" remote exists
 	forkedFromRemote = "origin"

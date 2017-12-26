@@ -174,3 +174,82 @@ func Test_parseArgsRemote(t *testing.T) {
 		})
 	}
 }
+
+func Test_parseArgs(t *testing.T) {
+	tests := []struct {
+		Name           string
+		Args           []string
+		ExpectedString string
+		ExpectedInt    int64
+		ExpectedErr    string
+	}{
+		{
+			Name:           "No Args",
+			Args:           nil,
+			ExpectedString: "zaquestion/test",
+			ExpectedInt:    0,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg remote",
+			Args:           []string{"lab-testing"},
+			ExpectedString: "lab-testing/test",
+			ExpectedInt:    0,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg non remote",
+			Args:           []string{"foo"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "foo is not a valid remote or number",
+		},
+		{
+			Name:           "1 arg page",
+			Args:           []string{"100"},
+			ExpectedString: "zaquestion/test",
+			ExpectedInt:    100,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg invalid page",
+			Args:           []string{"asdf100"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "asdf100 is not a valid remote or number",
+		},
+		{
+			Name:           "2 arg remote page",
+			Args:           []string{"origin", "100"},
+			ExpectedString: "zaquestion/test",
+			ExpectedInt:    100,
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "2 arg invalid remote valid page",
+			Args:           []string{"foo", "100"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "foo is not a valid remote",
+		},
+		{
+			Name:           "2 arg valid remote invalid page",
+			Args:           []string{"foo", "asdf100"},
+			ExpectedString: "",
+			ExpectedInt:    0,
+			ExpectedErr:    "strconv.ParseInt: parsing \"asdf100\": invalid syntax",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+			s, i, err := parseArgs(test.Args)
+			if err != nil {
+				assert.EqualError(t, err, test.ExpectedErr)
+			}
+			assert.Equal(t, test.ExpectedString, s)
+			assert.Equal(t, test.ExpectedInt, i)
+		})
+	}
+}

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
@@ -18,28 +17,24 @@ var checkoutCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := git.PathWithNameSpace(forkedFromRemote)
+		rn, mrID, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}
-		mrIDStr := args[0]
-		mrID, err := strconv.Atoi(mrIDStr)
-		if err != nil {
-			log.Fatal(err)
-		}
+
 		mrs, err := lab.MRList(rn, &gitlab.ListProjectMergeRequestsOptions{
-			IIDs: []int{mrID},
+			IIDs: []int{int(mrID)},
 		})
 		if err != nil {
 			log.Fatal(err)
 		}
 		if len(mrs) < 1 {
-			fmt.Printf("MR #%s not found\n", mrIDStr)
+			fmt.Printf("MR #%d not found\n", mrID)
 			return
 		}
 		// https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally
 		branch := mrs[0].SourceBranch
-		mr := fmt.Sprintf("refs/merge-requests/%s/head", mrIDStr)
+		mr := fmt.Sprintf("refs/merge-requests/%d/head", mrID)
 		gitf := git.New("fetch", forkedFromRemote, fmt.Sprintf("%s:%s", mr, branch))
 		err = gitf.Run()
 		if err != nil {

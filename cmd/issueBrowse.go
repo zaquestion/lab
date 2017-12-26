@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/internal/browser"
-	"github.com/zaquestion/lab/internal/git"
 )
 
 var browse = browser.Open
@@ -20,14 +19,7 @@ var issueBrowseCmd = &cobra.Command{
 	Short:   "View issue in a browser",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, num, err := parseArgsRemote(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
-		}
-		rn, err := git.PathWithNameSpace(remote)
+		rn, num, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}
