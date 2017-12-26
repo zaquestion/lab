@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,10 +17,6 @@ func Edit(filePrefix, message string) (string, string, error) {
 		return "", "", err
 	}
 	filePath := filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", filePrefix))
-	if os.Getenv("DEBUG") != "" {
-		log.Println("msgFile:", filePath)
-	}
-
 	editorPath, err := editorPath()
 	if err != nil {
 		return "", "", err
