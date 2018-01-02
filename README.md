@@ -2,7 +2,7 @@
 
 ![banner](https://user-images.githubusercontent.com/2358914/34196973-420d389a-e519-11e7-92e6-3a1486d6b280.png)
 
-Lab wraps Git or [Hub](https://github.com/github/hub) and makes it simple to clone, fork, and interact with repositories on GitLab. Lab provides seamless workflows for creating merge requests, issues and snippets.
+Lab wraps Git or [Hub](https://github.com/github/hub), making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
 
 ```
 $ lab clone gitlab-com/infrastructure
