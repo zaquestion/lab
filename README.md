@@ -1,6 +1,8 @@
 # git + lab = gitlab [![Build Status](https://travis-ci.org/zaquestion/lab.svg?branch=master)](https://travis-ci.org/zaquestion/lab) [![Go Report Card](https://goreportcard.com/badge/github.com/zaquestion/lab)](https://goreportcard.com/report/github.com/zaquestion/lab) [![codecov](https://codecov.io/gh/zaquestion/lab/branch/master/graph/badge.svg)](https://codecov.io/gh/zaquestion/lab) [![Join the chat at https://gitter.im/labcli](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/labcli)
 
-lab wraps git or [hub](https://github.com/github/hub) and adds additional features to make working with GitLab smoother
+![banner](https://user-images.githubusercontent.com/2358914/34196973-420d389a-e519-11e7-92e6-3a1486d6b280.png)
+
+Lab wraps Git or [Hub](https://github.com/github/hub) and makes it simple to clone, fork, and interact with repositories on GitLab. Lab provides seamless workflows for creating merge requests, issues and snippets.
 
 ```
 $ lab clone gitlab-com/infrastructure
