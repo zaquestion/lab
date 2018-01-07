@@ -47,7 +47,7 @@ func Test_snippetList_Global(t *testing.T) {
 		// make sure personal snippets are getting created. One should
 		// be guaranteed to be in the top 3, since a given test run
 		// only creates 2 personal and 1 project snippet
-		if ok = assert.Regexp(t, `#\d+ personal snippet title`, snips[0]); ok {
+		if ok = assert.Regexp(t, `#\d+ personal snippet title`, snips[i]); ok {
 			break
 		}
 	}
