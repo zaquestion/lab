@@ -9,6 +9,7 @@ import (
 )
 
 func Test_issueCreate(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "issue", "create", "lab-testing",
 		"-m", "issue title")
@@ -58,6 +59,7 @@ func Test_issueMsg(t *testing.T) {
 }
 
 func Test_issueText(t *testing.T) {
+	t.Parallel()
 	text, err := issueText()
 	if err != nil {
 		t.Fatal(err)

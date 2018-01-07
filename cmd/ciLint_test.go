@@ -8,6 +8,7 @@ import (
 )
 
 func Test_ciLint(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "ci", "lint")
 	cmd.Dir = repo

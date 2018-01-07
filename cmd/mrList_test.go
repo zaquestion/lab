@@ -9,6 +9,7 @@ import (
 )
 
 func Test_mrList(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "mr", "list")
 	cmd.Dir = repo
@@ -24,6 +25,7 @@ func Test_mrList(t *testing.T) {
 }
 
 func Test_mrListFlagLabel(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "mr", "list", "-l", "confirmed")
 	cmd.Dir = repo
@@ -39,6 +41,7 @@ func Test_mrListFlagLabel(t *testing.T) {
 }
 
 func Test_mrListStateMerged(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "mr", "list", "-s", "merged")
 	cmd.Dir = repo
@@ -54,6 +57,7 @@ func Test_mrListStateMerged(t *testing.T) {
 }
 
 func Test_mrListStateClosed(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "mr", "list", "-s", "closed")
 	cmd.Dir = repo

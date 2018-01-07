@@ -9,6 +9,7 @@ import (
 // MR Create is tested in cmd/mr_test.go
 
 func Test_mrText(t *testing.T) {
+	t.Parallel()
 	text, err := mrText("master", "mrtest", "lab-testing", "origin")
 	if err != nil {
 		t.Log(text)

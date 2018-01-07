@@ -8,6 +8,7 @@ import (
 )
 
 func Test_mrCheckoutCmdRun(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 
 	cmd := exec.Command("../lab_bin", "mr", "checkout", "1")

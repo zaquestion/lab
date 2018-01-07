@@ -8,6 +8,7 @@ import (
 )
 
 func Test_fork(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	// remove the remote so we can test adding it back
 	// NOTE: we aren't actually going to test that forks are created on

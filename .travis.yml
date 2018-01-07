@@ -8,6 +8,10 @@ go_import_path: github.com/zaquestion/lab
 # use containers which run faster and have cache
 sudo: false
 
+cache:
+  directories:
+    - $GOPATH/pkg/dep/sources
+
 before_script:
   - go get -u github.com/golang/dep/cmd/dep
   - dep ensure -v
