@@ -43,4 +43,4 @@
 
 [[constraint]]
   name = "github.com/xanzy/go-gitlab"
-  revision = "ec65bc7934094df33cb05d541a4ffadcd1f64861"
+  revision = "266c87ba209d842f6c190920a55db959e5b13971"

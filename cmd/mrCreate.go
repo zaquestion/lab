@@ -50,8 +50,12 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	if !lab.BranchPushed(sourceProjectName, branch) {
-		log.Fatal("aborting MR, branch not present on remote: ", sourceRemote)
+	p, err := lab.FindProject(sourceProjectName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !lab.BranchPushed(p.ID, branch) {
+		log.Fatalf("aborting MR, branch %s not present on remote %s. did you forget to push?", branch, sourceRemote)
 	}
 
 	targetRemote := forkedFromRemote

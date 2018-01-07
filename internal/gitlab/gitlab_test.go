@@ -71,7 +71,40 @@ func TestLint(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
 			test := test
+			t.Parallel()
 			ok, _ := Lint(test.content)
+			require.Equal(t, test.expected, ok)
+		})
+	}
+}
+
+func TestBranchPushed(t *testing.T) {
+	tests := []struct {
+		desc     string
+		branch   string
+		expected bool
+	}{
+		{
+			"alpha is pushed",
+			"mrtest",
+			true,
+		},
+		{
+			"needs encoding is pushed",
+			"needs/encode",
+			true,
+		},
+		{
+			"alpha not pushed",
+			"not_a_branch",
+			false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			test := test
+			t.Parallel()
+			ok := BranchPushed(4181224, test.branch)
 			require.Equal(t, test.expected, ok)
 		})
 	}

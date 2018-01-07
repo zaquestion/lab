@@ -260,13 +260,8 @@ func IssueClose(pid interface{}, id int) error {
 }
 
 // BranchPushed checks if a branch exists on a GitLab project
-func BranchPushed(project, branch string) bool {
-	p, err := FindProject(project)
-	if err != nil {
-		return false
-	}
-
-	b, _, err := lab.Branches.GetBranch(p.ID, branch)
+func BranchPushed(pid interface{}, branch string) bool {
+	b, _, err := lab.Branches.GetBranch(pid, branch)
 	if err != nil {
 		return false
 	}
@@ -323,6 +318,7 @@ func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
 	return snips, nil
 }
 
+// Lint validates .gitlab-ci.yml contents
 func Lint(content string) (bool, error) {
 	lint, _, err := lab.Validate.Lint(content)
 	if err != nil {

@@ -7,9 +7,9 @@ import (
 // mrCmd represents the mr command
 var mergeRequestCmd = &cobra.Command{
 	Use:   "merge-request [remote]",
-	Short: "Open a merge request on GitLab",
-	Long:  `Currently only supports MRs into master`,
-	Args:  cobra.ExactArgs(0),
+	Short: mrCreateCmd.Short,
+	Long:  mrCreateCmd.Long,
+	Args:  mrCreateCmd.Args,
 	Run:   runMRCreate,
 }
 
