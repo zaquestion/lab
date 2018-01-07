@@ -318,6 +318,7 @@ func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
 	return snips, nil
 }
 
+// Lint validates .gitlab-ci.yml contents
 func Lint(content string) (bool, error) {
 	lint, _, err := lab.Validate.Lint(content)
 	if err != nil {

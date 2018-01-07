@@ -21,6 +21,6 @@ func Test_clone(t *testing.T) {
 	t.Log(out)
 
 	assert.Contains(t, out, "Cloning into 'test'...")
-	assert.Contains(t, out, " * [new branch]      master     -> upstream/master")
+	assert.Contains(t, out, " * [new branch]      master       -> upstream/master")
 	assert.Contains(t, out, "new remote: upstream")
 }
