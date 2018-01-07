@@ -10,6 +10,7 @@ import (
 )
 
 func Test_mrCmd(t *testing.T) {
+	t.Parallel()
 	var mrID string
 	t.Run("create", func(t *testing.T) {
 		repo := copyTestRepo(t)

@@ -10,6 +10,7 @@ import (
 )
 
 func Test_snippetCreate(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "snippet", "create", "lab-testing",
 		"-m", "snippet title",
@@ -40,6 +41,7 @@ func Test_snippetCreate(t *testing.T) {
 }
 
 func Test_snippetCreate_Global(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "snippet", "create", "-g",
 		"-m", "personal snippet title",

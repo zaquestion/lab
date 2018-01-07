@@ -8,6 +8,7 @@ import (
 )
 
 func Test_issueShow(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "issue", "1")
 	cmd.Dir = repo

@@ -9,6 +9,7 @@ import (
 )
 
 func Test_issueList(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "issue", "list")
 	cmd.Dir = repo
@@ -24,6 +25,7 @@ func Test_issueList(t *testing.T) {
 }
 
 func Test_issueListFlagLabel(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "issue", "list", "-l", "enhancement")
 	cmd.Dir = repo
@@ -39,6 +41,7 @@ func Test_issueListFlagLabel(t *testing.T) {
 }
 
 func Test_issueListStateClosed(t *testing.T) {
+	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "issue", "list", "-s", "closed")
 	cmd.Dir = repo
