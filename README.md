@@ -40,7 +40,7 @@ brew install zaquestion/tap/lab
 
 Installs lab into `/usr/local/bin/`
 ```
-bash <(curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh)
+curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | bash
 ```
 
 ### Source
