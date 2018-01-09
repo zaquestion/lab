@@ -18,7 +18,7 @@ lab will look for hub and uses that as your git binary when available so you don
 $ lab version
 git version 2.11.0
 hub version 2.3.0-pre9
-lab version 0.7.0
+lab version 0.9.0
 ```
 
 # Inspiration
@@ -36,12 +36,24 @@ Dependencies
 brew install zaquestion/tap/lab
 ```
 
+### Bash
+
+Installs lab into `/usr/local/bin/`
+```
+$ bash <(curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh)
+```
+
 ### Source
 
 Required
 * [Go 1.9+](https://golang.org/doc/install)
+* [GOPATH](https://golang.org/doc/code.html#GOPATH)
+* [dep](https://github.com/golang/dep)
 ```
-$ bash <(curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh)
+go get -u -d github.com/zaquestion/lab
+cd $GOPATH/src/github.com/zaquestion/lab
+dep ensure
+go install -ldflags "-X \"main.version=$(git  rev-parse --short=10 HEAD)\""  github.com/zaquestion/lab
 ```
 
 # Configuration
