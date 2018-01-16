@@ -186,3 +186,13 @@ func IsRemote(remote string) (bool, error) {
 
 	return bytes.Contains(remotes, []byte(remote+"\n")), nil
 }
+
+// InsideGitRepo returns true when the current working directory is inside the
+// working tree of a git repo
+func InsideGitRepo() bool {
+	cmd := New("rev-parse", "--is-inside-work-tree")
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	out, _ := cmd.CombinedOutput()
+	return bytes.Contains(out, []byte("true\n"))
+}

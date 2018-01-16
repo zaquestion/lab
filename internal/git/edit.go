@@ -10,20 +10,31 @@ import (
 	"strings"
 )
 
-// Edit opens a file in the users editor and returns the title and body
+// Edit opens a file in the users editor and returns the title and body. It
+// store a temporary file in your .git directory or /tmp if accessed outside of
+// a git repo.
 func Edit(filePrefix, message string) (string, string, error) {
-	gitDir, err := GitDir()
-	if err != nil {
-		return "", "", err
+	var (
+		dir string
+		err error
+	)
+	if InsideGitRepo() {
+		dir, err = GitDir()
+		if err != nil {
+			return "", "", err
+		}
+	} else {
+		dir = "/tmp"
 	}
-	filePath := filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", filePrefix))
+	filePath := filepath.Join(dir, fmt.Sprintf("%s_EDITMSG", filePrefix))
+	fmt.Println(filePath)
 	editorPath, err := editorPath()
 	if err != nil {
 		return "", "", err
 	}
 	defer os.Remove(filePath)
 
-	// Write generated/tempate message to file
+	// Write generated/template message to file
 	if _, err := os.Stat(filePath); os.IsNotExist(err) && message != "" {
 		err = ioutil.WriteFile(filePath, []byte(message), 0644)
 		if err != nil {
