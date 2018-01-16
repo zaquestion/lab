@@ -94,3 +94,7 @@ func TestIsRemote(t *testing.T) {
 	}
 	require.True(t, res)
 }
+
+func TestInsideGitRepo(t *testing.T) {
+	require.True(t, InsideGitRepo())
+}

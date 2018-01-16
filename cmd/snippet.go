@@ -27,6 +27,12 @@ var snippetCmd = &cobra.Command{
 			snippetDeleteCmd.Run(cmd, append(args, deleteID))
 			return
 		}
+
+		if global, _ := cmd.Flags().GetBool("global"); global {
+			snippetCreateCmd.Run(cmd, args)
+			return
+		}
+
 		if len(args) == 0 && file == "" {
 			cmd.Help()
 			return
