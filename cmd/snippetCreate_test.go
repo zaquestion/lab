@@ -102,7 +102,7 @@ func Test_snippetCreate_Global_Editor(t *testing.T) {
 	// Write the editor file here, since its tricky to get a file with
 	// contents in it otherwise. We need a file with contents to
 	// successfully create the snippet
-	err = ioutil.WriteFile("/tmp/SNIPCODE_EDITMSG", []byte("test personal snippet contents outside repo"), 0644)
+	err = ioutil.WriteFile("/tmp/SNIPCODE_EDITMSG", []byte("personal snippet title outside repo"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,14 +129,8 @@ func Test_snippetCreate_Global_Editor(t *testing.T) {
 }
 
 func Test_snipMsg(t *testing.T) {
-	title, desc, err := snipMsg(nil, "snip title\nthis should be dropped")
-	if err != nil {
-		t.Fatal(err)
-	}
-	// This title was defaulted from the snippet contents/code because no
-	// msgs -m title was provided
-	assert.Equal(t, "snip title", title)
-	// This is the body created in during editing or with provided msgs -m
+	title, desc := snipMsg(msgs)
+	assert.Equal(t, "-", title)
 	assert.Equal(t, "", desc)
 }
 
