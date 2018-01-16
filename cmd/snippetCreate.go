@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -33,7 +32,7 @@ var snippetCreateCmd = &cobra.Command{
 	Short: "Create a personal or project snippet",
 	Long: `
 Source snippets from stdin, file, or in editor from scratch
-Write title & description in editor, or using -m`,
+Optionally add a title & description with -m`,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote := forkedFromRemote
 		if len(args) > 0 {
@@ -56,7 +55,7 @@ Write title & description in editor, or using -m`,
 		if strings.TrimSpace(code) == "" {
 			log.Fatal("aborting snippet due to empty contents")
 		}
-		title, body, err := snipMsg(msgs, code)
+		title, body := snipMsg(msgs)
 		if title == "" {
 			log.Fatal("aborting snippet due to empty msg")
 		}
@@ -106,38 +105,8 @@ Write title & description in editor, or using -m`,
 	},
 }
 
-func snipMsg(msgs []string, code string) (string, string, error) {
-	if len(msgs) > 0 {
-		return msgs[0], strings.Join(msgs[1:], "\n\n"), nil
-	}
-
-	// Read up to the first 30 chars
-	buf := bytes.NewBufferString(code)
-	reader := io.LimitReader(buf, 30)
-	b, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return "", "", nil
-	}
-	i := bytes.IndexByte(b, '\n')
-	if i != -1 {
-		b = b[:i]
-	}
-
-	var tmpl = string(b) + `
-{{.CommentChar}} Write a message for this snippet. The first block
-{{.CommentChar}} is the title and the rest is the description.`
-
-	msg, err := snipText(tmpl)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	title, body, err := git.Edit("SNIPMSG", msg)
-	if err != nil {
-		_, f, l, _ := runtime.Caller(0)
-		log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
-	}
-	return title, body, err
+func snipMsg(msgs []string) (string, string) {
+	return msgs[0], strings.Join(msgs[1:], "\n\n")
 }
 
 func snipCode(path string) (string, error) {
@@ -196,7 +165,7 @@ func init() {
 	snippetCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make snippet private; visible only to project members (default: internal)")
 	snippetCreateCmd.Flags().BoolVar(&public, "public", false, "Make snippet public; can be accessed without any authentication (default: internal)")
 	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) Name snippet to add code highlighting, e.g. potato.go for GoLang")
-	snippetCreateCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	snippetCreateCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
 	snippetCmd.Flags().AddFlagSet(snippetCreateCmd.Flags())
 	snippetCmd.AddCommand(snippetCreateCmd)
 }

@@ -2,6 +2,7 @@ test:
 	  bash -c "trap 'trap - SIGINT SIGTERM ERR; mv testdata/.git testdata/test.git; exit 1' SIGINT SIGTERM ERR; $(MAKE) internal-test"
 
 internal-test:
+	dep ensure
 	rm coverage-* 2>&1 > /dev/null || true
 	mv testdata/test.git testdata/.git
 	go test -coverprofile=coverage-git.out -covermode=count github.com/zaquestion/lab/internal/git
