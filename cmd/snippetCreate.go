@@ -42,10 +42,11 @@ Optionally add a title & description with -m`,
 			}
 			if ok {
 				remote = args[0]
-			} else if ok && len(args) > 1 {
-				file = args[1]
 			} else {
 				file = args[0]
+			}
+			if ok && len(args) > 1 {
+				file = args[1]
 			}
 		}
 		code, err := snipCode(file)

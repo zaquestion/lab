@@ -28,7 +28,7 @@ func Test_snippetList(t *testing.T) {
 func Test_snippetList_Global(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "snippet", "list", "-g")
+	cmd := exec.Command("../lab_bin", "snippet", "-l", "-g")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
