@@ -115,7 +115,7 @@ func Test_snippetCreate_Global_Editor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/lab_bin"), "snippet", "-g")
+	cmd = exec.Command(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/lab_bin"), "snippet", "create", "-g")
 	cmd.Env = []string{"PATH=/usr/local/bin:/usr/bin:/bin", "EDITOR=test -f"}
 	cmd.Dir = repo
 

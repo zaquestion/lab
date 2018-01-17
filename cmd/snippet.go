@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -28,16 +30,17 @@ var snippetCmd = &cobra.Command{
 			return
 		}
 
-		if global, _ := cmd.Flags().GetBool("global"); global {
+		if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
 			snippetCreateCmd.Run(cmd, args)
 			return
 		}
 
-		if len(args) == 0 && file == "" {
-			cmd.Help()
+		if !(len(args) == 0 || file == "") {
+			snippetCreateCmd.Run(cmd, args)
 			return
 		}
-		snippetCreateCmd.Run(cmd, args)
+
+		cmd.Help()
 	},
 }
 
