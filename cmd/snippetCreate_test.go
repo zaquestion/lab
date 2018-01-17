@@ -42,19 +42,34 @@ func Test_snippetCreate(t *testing.T) {
 	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/snippets/")
 }
 
-func Test_snippetCreate_Global(t *testing.T) {
+func Test_snippetCreate_file(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-
-	// Remove .git dir forcing the cmd to exec outside of a git repo
-	cmd := exec.Command("rm", "-rf", ".git")
-	cmd.Dir = repo
-	err := cmd.Run()
+	t.Log(filepath.Join(repo, "testfile"))
+	err := ioutil.WriteFile(filepath.Join(repo, "testfile"), []byte("test file contents"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command("../lab_bin", "snippet", "create", "-g",
+	cmd := exec.Command("../lab_bin", "snippet", "lab-testing", "testfile",
+		"-m", "snippet title",
+		"-m", "snippet description")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/snippets/")
+}
+
+func Test_snippetCreate_Global(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+
+	cmd := exec.Command("../lab_bin", "snippet", "create", "-g",
 		"-m", "personal snippet title",
 		"-m", "personal snippet description")
 
@@ -83,7 +98,9 @@ func Test_snippetCreate_Global(t *testing.T) {
 }
 
 // This test is a little ridiculus, if we find it doesn't work well on other
-// envionments, we can just remove it. Its sole purpose is to test that a personal snippet can be created (with the users git editor) outside of a git repo. issue #98
+// envionments, we can just remove it. Its sole purpose is to test that a
+// personal snippet can be created (with the users git editor) outside of a git
+// repo. issue #98
 func Test_snippetCreate_Global_Editor(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)

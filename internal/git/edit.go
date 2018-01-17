@@ -27,7 +27,6 @@ func Edit(filePrefix, message string) (string, string, error) {
 		dir = "/tmp"
 	}
 	filePath := filepath.Join(dir, fmt.Sprintf("%s_EDITMSG", filePrefix))
-	fmt.Println(filePath)
 	editorPath, err := editorPath()
 	if err != nil {
 		return "", "", err

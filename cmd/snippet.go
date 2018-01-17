@@ -35,7 +35,7 @@ var snippetCmd = &cobra.Command{
 			return
 		}
 
-		if !(len(args) == 0 || file == "") {
+		if len(args) > 0 || file != "" {
 			snippetCreateCmd.Run(cmd, args)
 			return
 		}

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_snippetCmd(t *testing.T) {
+func Test_snippetCmd_personal(t *testing.T) {
 	t.Parallel()
 	var snipID string
 	t.Run("create_personal", func(t *testing.T) {
