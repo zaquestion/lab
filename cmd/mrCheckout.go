@@ -10,6 +10,10 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var (
+	branch string
+)
+
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
 	Use:   "checkout",
@@ -33,7 +37,9 @@ var checkoutCmd = &cobra.Command{
 			return
 		}
 		// https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally
-		branch := mrs[0].SourceBranch
+		if branch == "" {
+			branch = mrs[0].SourceBranch
+		}
 		mr := fmt.Sprintf("refs/merge-requests/%d/head", mrID)
 		gitf := git.New("fetch", forkedFromRemote, fmt.Sprintf("%s:%s", mr, branch))
 		err = gitf.Run()
@@ -50,5 +56,6 @@ var checkoutCmd = &cobra.Command{
 }
 
 func init() {
+	checkoutCmd.Flags().StringVarP(&branch, "branch", "b", "", "checkout merge request with <branch> name")
 	mrCmd.AddCommand(checkoutCmd)
 }
