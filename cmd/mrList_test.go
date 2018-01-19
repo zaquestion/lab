@@ -69,5 +69,5 @@ func Test_mrListStateClosed(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, "#2 asdf", mrs[0])
+	require.Equal(t, "#5 closed mr", mrs[0])
 }

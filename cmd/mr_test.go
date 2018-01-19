@@ -11,10 +11,9 @@ import (
 
 func Test_mrCmd(t *testing.T) {
 	t.Parallel()
+	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("create", func(t *testing.T) {
-		repo := copyTestRepo(t)
-
 		git := exec.Command("git", "checkout", "mrtest")
 		git.Dir = repo
 		b, err := git.CombinedOutput()
@@ -24,7 +23,9 @@ func Test_mrCmd(t *testing.T) {
 		}
 
 		cmd := exec.Command("../lab_bin", "mr", "create", "lab-testing",
-			"-m", "mr title")
+			"-m", "mr title",
+			"-m", "mr description",
+		)
 		cmd.Dir = repo
 
 		b, _ = cmd.CombinedOutput()
@@ -36,11 +37,30 @@ func Test_mrCmd(t *testing.T) {
 		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/merge_requests/")
 		t.Log(mrID)
 	})
+	t.Run("show", func(t *testing.T) {
+		if mrID == "" {
+			t.Skip("mrID is empty, create likely failed")
+		}
+		cmd := exec.Command("../lab_bin", "mr", "show", "lab-testing", mrID)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		out := string(b)
+		require.Contains(t, out, "Project: lab-testing/test\n")
+		require.Contains(t, out, "Branches: mrtest->master\n")
+		require.Contains(t, out, "Status: Open\n")
+		require.Contains(t, out, fmt.Sprintf("#%s mr title", mrID))
+		require.Contains(t, out, "===================================\nmr description")
+		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/merge_requests/%s", mrID))
+	})
 	t.Run("delete", func(t *testing.T) {
 		if mrID == "" {
 			t.Skip("mrID is empty, create likely failed")
 		}
-		repo := copyTestRepo(t)
 		cmd := exec.Command("../lab_bin", "mr", "lab-testing", "-d", mrID)
 		cmd.Dir = repo
 

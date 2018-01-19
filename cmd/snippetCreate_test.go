@@ -146,6 +146,10 @@ func Test_snippetCreate_Global_Editor(t *testing.T) {
 }
 
 func Test_snipMsg(t *testing.T) {
+	msgs, err := snippetCreateCmd.Flags().GetStringSlice("message")
+	if err != nil {
+		t.Fatal(err)
+	}
 	title, desc := snipMsg(msgs)
 	assert.Equal(t, "-", title)
 	assert.Equal(t, "", desc)

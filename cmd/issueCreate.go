@@ -21,6 +21,10 @@ var issueCreateCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		msgs, err := cmd.Flags().GetStringSlice("message")
+		if err != nil {
+			log.Fatal(err)
+		}
 		remote := forkedFromRemote
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
@@ -105,6 +109,6 @@ func issueText() (string, error) {
 }
 
 func init() {
-	issueCreateCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
 	issueCmd.AddCommand(issueCreateCmd)
 }
