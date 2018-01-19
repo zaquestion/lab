@@ -11,9 +11,9 @@ import (
 
 func Test_snippetCmd_personal(t *testing.T) {
 	t.Parallel()
+	repo := copyTestRepo(t)
 	var snipID string
 	t.Run("create_personal", func(t *testing.T) {
-		repo := copyTestRepo(t)
 		cmd := exec.Command("../lab_bin", "snippet", "-g",
 			"-m", "personal snippet title",
 			"-m", "personal snippet description")
@@ -46,11 +46,27 @@ func Test_snippetCmd_personal(t *testing.T) {
 		snipID = strings.TrimPrefix(out[:i], "https://gitlab.com/snippets/")
 		t.Log(snipID)
 	})
+	t.Run("list_personal", func(t *testing.T) {
+		if snipID == "" {
+			t.Skip("snipID is empty, create likely failed")
+		}
+		cmd := exec.Command("../lab_bin", "snippet", "-l", "-g")
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+
+		snips := strings.Split(string(b), "\n")
+		t.Log(snips)
+		require.Contains(t, snips, fmt.Sprintf("#%s personal snippet title", snipID))
+	})
 	t.Run("delete_personal", func(t *testing.T) {
 		if snipID == "" {
 			t.Skip("snipID is empty, create likely failed")
 		}
-		repo := copyTestRepo(t)
 		cmd := exec.Command("../lab_bin", "snippet", "-g", "-d", snipID)
 		cmd.Dir = repo
 
