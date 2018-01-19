@@ -34,11 +34,15 @@ var mrCreateCmd = &cobra.Command{
 }
 
 func init() {
-	mrCreateCmd.Flags().StringSliceVarP(&msgs, "message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
 	mrCmd.AddCommand(mrCreateCmd)
 }
 
 func runMRCreate(cmd *cobra.Command, args []string) {
+	msgs, err := cmd.Flags().GetStringSlice("message")
+	if err != nil {
+		log.Fatal(err)
+	}
 	branch, err := git.CurrentBranch()
 	if err != nil {
 		log.Fatal(err)
