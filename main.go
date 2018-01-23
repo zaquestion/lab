@@ -46,7 +46,16 @@ func main() {
 	}
 
 	c := viper.AllSettings()["core"]
-	config := c.([]map[string]interface{})[0]
+	var config map[string]interface{}
+	switch v := c.(type) {
+	// Most run this is the type
+	case []map[string]interface{}:
+		config = v[0]
+	// On the first run when the config is created it comes in as this type
+	// for whatever reason
+	case map[string]interface{}:
+		config = v
+	}
 
 	lab.Init(
 		config["host"].(string),
