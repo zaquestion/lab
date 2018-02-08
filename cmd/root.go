@@ -25,16 +25,7 @@ var RootCmd = &cobra.Command{
 	Short: "A Git Wrapper for GitLab",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		formatChar := "\n"
-		if git.IsHub {
-			formatChar = ""
-		}
-
-		git := git.New()
-		git.Stdout = nil
-		git.Stderr = nil
-		usage, _ := git.CombinedOutput()
-		fmt.Printf("%s%sThese GitLab commands are provided by lab:\n%s\n\n", string(usage), formatChar, labUsage(cmd))
+		helpCmd.Run(cmd, args)
 	},
 }
 
@@ -55,7 +46,7 @@ var templateFuncs = template.FuncMap{
 const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version") (ne .Name "ci")))}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}`
 
-func labUsage(c *cobra.Command) string {
+func labUsageFormat(c *cobra.Command) string {
 	t := template.New("top")
 	t.Funcs(templateFuncs)
 	template.Must(t.Parse(labUsageTmpl))
@@ -66,6 +57,50 @@ func labUsage(c *cobra.Command) string {
 		c.Println(err)
 	}
 	return buf.String()
+}
+
+func helpFunc(cmd *cobra.Command, args []string) {
+	if len(args) == 0 {
+		args = os.Args[1:]
+	}
+	rootCmd := cmd.Root()
+	if cmd, _, err := rootCmd.Find(args); err == nil && cmd != rootCmd {
+		// Cobra will check parent commands for a helpFunc and we only
+		// want the root command to actually use this custom help func.
+		// Here we trick cobra into thinking that there is no help func
+		// so it will use the default help for the subcommands
+		cmd.Root().SetHelpFunc(nil)
+		err2 := cmd.Help()
+		if err2 != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+	formatChar := "\n"
+	if git.IsHub {
+		formatChar = ""
+	}
+
+	git := git.New()
+	git.Stdout = nil
+	git.Stderr = nil
+	usage, _ := git.CombinedOutput()
+	fmt.Printf("%s%sThese GitLab commands are provided by lab:\n%s\n\n", string(usage), formatChar, labUsageFormat(cmd.Root()))
+}
+
+var helpCmd = &cobra.Command{
+	Use:   "help",
+	Short: "Show the help for lab",
+	Long:  ``,
+	Run:   helpFunc,
+}
+
+func init() {
+	// NOTE: Calling SetHelpCommand like this causes helpFunc to be called
+	// with correct arguments. If the default cobra help func is used no
+	// arguments are passed through and subcommand help breaks.
+	RootCmd.SetHelpCommand(helpCmd)
+	RootCmd.SetHelpFunc(helpFunc)
 }
 
 // parseArgsRemote returns the remote and a number if parsed. Many commands
@@ -138,9 +173,13 @@ func Execute() {
 			forkRemote = lab.User()
 		}
 	}
+	// Check if the user is calling a lab command or if we should passthrough
+	// NOTE: The help command won't be found by Find, which we are counting on
 	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
 		// Determine if any undefined flags were passed to "clone"
-		if cmd.Use == "clone" && len(os.Args) > 2 {
+		// TODO: Evaluate and support some of these flags
+		// NOTE: `hub help -a` wraps the `git help -a` output
+		if (cmd.Use == "clone" && len(os.Args) > 2) || os.Args[1] == "help" {
 			// ParseFlags will err in these cases
 			err = cmd.ParseFlags(os.Args[1:])
 			if err == nil {
@@ -152,9 +191,8 @@ func Execute() {
 			}
 		}
 
-		// Passthrough to git for any unrecognised commands
-		git := git.New(os.Args[1:]...)
-		err = git.Run()
+		// Passthrough to git for any unrecognized commands
+		err = git.New(os.Args[1:]...).Run()
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				os.Exit(status.ExitStatus())

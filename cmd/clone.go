@@ -34,7 +34,7 @@ var cloneCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		// Clone project was a fork belonging to the user so user is
+		// Clone project was a fork belonging to the user; user is
 		// treating forks as origin. Add upstream as remoted pointing
 		// to forked from repo
 		if project.ForkedFromProject != nil &&
