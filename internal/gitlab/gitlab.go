@@ -95,7 +95,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 	}
 
 	target, resp, err := lab.Projects.GetProject(search)
-	if resp.StatusCode == http.StatusNotFound {
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
 	}
 	if err != nil {
