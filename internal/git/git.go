@@ -141,11 +141,18 @@ func PathWithNameSpace(remote string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	parts := strings.Split(remoteURL, ":")
-	if len(parts) == 0 {
-		return "", errors.New("remote." + remote + ".url missing repository")
+	parts := strings.Split(remoteURL, "/")
+	l := len(parts)
+	if l < 2 {
+		return "", errors.Errorf("cannot parse remote: %s url: %s", remote, remoteURL)
 	}
-	return strings.TrimSuffix(parts[len(parts)-1:][0], ".git"), nil
+
+	path := strings.Join(parts[l-2:l], "/")
+	if i := strings.LastIndex(path, ":"); i != -1 {
+		path = path[i+1:]
+	}
+	path = strings.TrimSuffix(path, ".git")
+	return path, nil
 }
 
 // RepoName returns the name of the repository, such as "lab"
