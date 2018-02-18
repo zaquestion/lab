@@ -10,3 +10,27 @@
 [remote "lab-testing"]
         url = git@gitlab.com:lab-testing/test.git
         fetch = +refs/heads/*:refs/remotes/origin/*
+
+# Other formats for testing in internal/git/git_test.go
+# https://git-scm.com/docs/git-clone#_git_urls_a_id_urls_a
+[remote "origin-http"]
+	url = http://gitlab.com/zaquestion/test.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin-https"]
+	url = https://gitlab.com/zaquestion/test.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin-https-token"]
+	url = https://gitlab.com/zaquestion/test.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin-git"]
+	url = git://gitlab.com/zaquestion/test.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin-ssh-alt"]
+	url = ssh://gitlab.com/zaquestion/test.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin-no_dot_git"]
+	url = git@gitlab.com:zaquestion/test
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "garbage"]
+	url = garbageurl
+	fetch = +refs/heads/*:refs/remotes/garbage/*

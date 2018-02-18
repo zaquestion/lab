@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,12 +71,81 @@ func TestCurrentBranch(t *testing.T) {
 }
 
 func TestPathWithNameSpace(t *testing.T) {
-	path, err := PathWithNameSpace("origin")
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		desc        string
+		remote      string
+		expected    string
+		expectedErr string
+	}{
+		{
+			desc:        "ssh",
+			remote:      "origin",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "http",
+			remote:      "origin-http",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "https",
+			remote:      "origin-https",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "https://token@gitlab.com/org/repo",
+			remote:      "origin-https",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "git://",
+			remote:      "origin-https",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "ssh://",
+			remote:      "origin-https",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "no .git suffix",
+			remote:      "origin-no_dot_git",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "remote doesn't exist",
+			remote:      "phoney",
+			expected:    "",
+			expectedErr: "the key `remote.phoney.url` is not found",
+		},
+		{
+			desc:        "remote doesn't exist",
+			remote:      "garbage",
+			expected:    "",
+			expectedErr: "cannot parse remote: garbage url: garbageurl",
+		},
 	}
-	expectedPath := "zaquestion/test"
-	require.Equal(t, expectedPath, path)
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			path, err := PathWithNameSpace(test.remote)
+			if test.expectedErr != "" {
+				assert.EqualError(t, err, test.expectedErr)
+			} else {
+				assert.Nil(t, err)
+			}
+			assert.Equal(t, test.expected, path)
+		})
+	}
 }
 
 func TestRepoName(t *testing.T) {
