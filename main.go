@@ -28,10 +28,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	confpath := path.Join(home, ".config")
+	if _, err := os.Stat(confpath); os.IsNotExist(err) {
+		os.Mkdir(confpath, 0700)
+	}
 
 	viper.SetConfigName("lab")
 	viper.SetConfigType("hcl")
-	confpath := path.Join(home, ".config")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath(confpath)
 	viper.AutomaticEnv()
