@@ -11,6 +11,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tcnksm/go-gitconfig"
 	"github.com/xanzy/go-gitlab"
@@ -18,18 +19,12 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-// Only supporting merges into master currently, using this constant to keep
-// track of reference when setting your own base allowed
-const (
-	targetBranch = "master"
-)
-
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
-	Use:   "create [remote]",
+	Use:   "create [remote [branch]]",
 	Short: "Open a merge request on GitLab",
 	Long:  `Currently only supports MRs into master`,
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.MaximumNArgs(2),
 	Run:   runMRCreate,
 }
 
@@ -59,17 +54,15 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	if !lab.BranchPushed(p.ID, branch) {
-		log.Fatalf("aborting MR, branch %s not present on remote %s. did you forget to push?", branch, sourceRemote)
+		log.Fatalf("aborting MR, source branch %s not present on remote %s. did you forget to push?", branch, sourceRemote)
 	}
 
 	targetRemote := forkedFromRemote
 	if len(args) > 0 {
-		ok, err := git.IsRemote(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-		if ok {
-			targetRemote = args[0]
+		targetRemote = args[0]
+		ok, err := git.IsRemote(targetRemote)
+		if err != nil || !ok {
+			log.Fatal(errors.Wrapf(err, "%s is not a valid remote", targetRemote))
 		}
 	}
 	targetProjectName, err := git.PathWithNameSpace(targetRemote)
@@ -79,6 +72,13 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	targetProject, err := lab.FindProject(targetProjectName)
 	if err != nil {
 		log.Fatal(err)
+	}
+	targetBranch := "master"
+	if len(args) > 1 {
+		targetBranch = args[1]
+		if !lab.BranchPushed(targetProject.ID, targetBranch) {
+			log.Fatalf("aborting MR, target branch %s not present on remote %s. did you forget to push?", targetBranch, targetRemote)
+		}
 	}
 
 	var title, body string

@@ -22,7 +22,7 @@ func Test_mrCmd(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		cmd := exec.Command("../lab_bin", "mr", "create", "lab-testing",
+		cmd := exec.Command("../lab_bin", "mr", "create", "lab-testing", "master",
 			"-m", "mr title",
 			"-m", "mr description",
 		)
