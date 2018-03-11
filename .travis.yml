@@ -4,7 +4,8 @@ os:
   - linux
 
 go:
-  - 1.9
+  - 1.9.x
+  - 1.10.x
 
 go_import_path: github.com/zaquestion/lab
 

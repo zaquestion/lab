@@ -105,14 +105,15 @@ func Test_snippetCreate_Global_Editor(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
 
-	err := os.Rename(repo, "/tmp/testdata-6810350901254661225")
+	err := exec.Command("cp", "-rf", repo, "/tmp/testdata-6810350901254661225").Run()
 	if err != nil {
 		t.Fatal(err)
 	}
 	repo = "/tmp/testdata-6810350901254661225"
 	defer func() {
 		coveragePath, _ := filepath.Glob("/tmp/coverage-*")
-		os.Rename(coveragePath[0], "../coverage-6810350901254661225.out")
+		exec.Command("cp", coveragePath[0], "../coverage-6810350901254661225.out").Run()
+		os.Remove(coveragePath[0])
 		os.RemoveAll(repo)
 	}()
 
