@@ -49,11 +49,19 @@ Required
 * [Go 1.9+](https://golang.org/doc/install)
 * [GOPATH](https://golang.org/doc/code.html#GOPATH)
 * [dep](https://github.com/golang/dep)
+
 ```
 go get -u -d github.com/zaquestion/lab
 cd $GOPATH/src/github.com/zaquestion/lab
 dep ensure
 go install -ldflags "-X \"main.version=$(git  rev-parse --short=10 HEAD)\""  github.com/zaquestion/lab
+```
+
+or
+
+```
+make dep
+make install
 ```
 
 # Configuration

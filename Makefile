@@ -1,3 +1,11 @@
+install:
+	go install -ldflags "-X \"main.version=$$(git  rev-parse --short=10 HEAD)\""  github.com/zaquestion/lab
+
+dep:
+	go get -u -d github.com/zaquestion/lab
+	cd $GOPATH/src/github.com/zaquestion/lab
+	dep ensure
+
 test:
 	  bash -c "trap 'trap - SIGINT SIGTERM ERR; mv testdata/.git testdata/test.git; rm coverage-* 2>&1 > /dev/null; exit 1' SIGINT SIGTERM ERR; $(MAKE) internal-test"
 
