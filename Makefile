@@ -1,5 +1,5 @@
 test:
-	  bash -c "trap 'trap - SIGINT SIGTERM ERR; mv testdata/.git testdata/test.git; exit 1' SIGINT SIGTERM ERR; $(MAKE) internal-test"
+	  bash -c "trap 'trap - SIGINT SIGTERM ERR; mv testdata/.git testdata/test.git; rm coverage-* 2>&1 > /dev/null; exit 1' SIGINT SIGTERM ERR; $(MAKE) internal-test"
 
 internal-test:
 	dep ensure

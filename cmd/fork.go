@@ -27,7 +27,7 @@ var forkCmd = &cobra.Command{
 
 func forkFromOrigin(cmd *cobra.Command, args []string) {
 	if _, err := gitconfig.Local("remote." + lab.User() + ".url"); err == nil {
-		log.Println("remote:", lab.User, "already exists")
+		log.Println("remote:", lab.User(), "already exists")
 		return
 	}
 

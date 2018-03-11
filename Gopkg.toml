@@ -22,10 +22,6 @@
 
 
 [[constraint]]
-  name = "github.com/davecgh/go-spew"
-  version = "1.1.0"
-
-[[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.0"
 
