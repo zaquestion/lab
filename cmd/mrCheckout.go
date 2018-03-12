@@ -62,36 +62,30 @@ var checkoutCmd = &cobra.Command{
 				if err != nil {
 					log.Fatal(err)
 				}
-				err = git.RemoteAdd(mr.Author.Username, mrProject.SSHURLToRepo, ".")
-				if err != nil {
+				if err := git.RemoteAdd(mr.Author.Username, mrProject.SSHURLToRepo, "."); err != nil {
 					log.Fatal(err)
 				}
 			}
 			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", mr.Author.Username, mr.SourceBranch)
 		}
 
-		// https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally
+		// https://docs.gitlab.com/ce/user/project/merge_requests/#checkout-merge-requests-locally
 		mrRef := fmt.Sprintf("refs/merge-requests/%d/head", mrID)
-		gitf := git.New("fetch", forkedFromRemote, fmt.Sprintf("%s:%s", mrRef, fetchToRef))
-		err = gitf.Run()
-		if err != nil {
+		fetchRefSpec := fmt.Sprintf("%s:%s", mrRef, fetchToRef)
+		if err := git.New("fetch", forkedFromRemote, fetchRefSpec).Run(); err != nil {
 			log.Fatal(err)
 		}
 
 		if mrCheckoutCfg.track {
 			// Create configured branch with tracking from fetchToRef
 			// git branch --flags <branchname> [<start-point>]
-			gitb := git.New("branch", "--track", mrCheckoutCfg.branch, fetchToRef)
-			err = gitb.Run()
-			if err != nil {
+			if err := git.New("branch", "--track", mrCheckoutCfg.branch, fetchToRef).Run(); err != nil {
 				log.Fatal(err)
 			}
 		}
 
 		// Check out branch
-		gitc := git.New("checkout", mrCheckoutCfg.branch)
-		err = gitc.Run()
-		if err != nil {
+		if err := git.New("checkout", mrCheckoutCfg.branch).Run(); err != nil {
 			log.Fatal(err)
 		}
 	},
