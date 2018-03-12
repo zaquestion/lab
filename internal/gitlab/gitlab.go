@@ -81,6 +81,18 @@ var (
 	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 )
 
+// GetProject looks up a Gitlab project by ID.
+func GetProject(projectID int) (*gitlab.Project, error) {
+	target, resp, err := lab.Projects.GetProject(projectID)
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
+		return nil, ErrProjectNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return target, nil
+}
+
 // FindProject looks up the Gitlab project. If the namespace is not provided in
 // the project string it will search for projects in the users namespace
 func FindProject(project string) (*gitlab.Project, error) {
