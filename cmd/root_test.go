@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zaquestion/lab/internal/git"
+	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 func TestMain(m *testing.M) {
@@ -38,6 +39,12 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	c := viper.AllSettings()["core"]
+	config := c.([]map[string]interface{})[0]
+	lab.Init(
+		config["host"].(string),
+		config["user"].(string),
+		config["token"].(string))
 
 	code := m.Run()
 	os.Chdir(wd)

@@ -329,3 +329,21 @@ func Lint(content string) (bool, error) {
 	}
 	return lint.Status == "valid", nil
 }
+
+// ProjectCreate creates a new project on GitLab
+func ProjectCreate(opts *gitlab.CreateProjectOptions) (*gitlab.Project, error) {
+	p, _, err := lab.Projects.CreateProject(opts)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+// ProjectDelete creates a new project on GitLab
+func ProjectDelete(pid interface{}) error {
+	_, err := lab.Projects.DeleteProject(pid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
