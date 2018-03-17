@@ -27,8 +27,10 @@ var forkCmd = &cobra.Command{
 
 func forkFromOrigin(cmd *cobra.Command, args []string) {
 	if _, err := gitconfig.Local("remote." + lab.User() + ".url"); err == nil {
-		log.Println("remote:", lab.User(), "already exists")
-		return
+		log.Fatalf("remote: %s already exists", lab.User())
+	}
+	if _, err := gitconfig.Local("remote.upstream.url"); err == nil {
+		log.Fatal("remote: upstream already exists")
 	}
 
 	remoteURL, err := gitconfig.Local("remote.origin.url")
@@ -48,12 +50,13 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	remote, err := lab.Fork(project)
+	forkRemoteURL, err := lab.Fork(project)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = git.RemoteAdd(lab.User(), remote, ".")
+	name := determineForkRemote(project)
+	err = git.RemoteAdd(name, forkRemoteURL, ".")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,6 +67,15 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	cloneCmd.Run(nil, []string{strings.Split(args[0], "/")[1]})
+}
+func determineForkRemote(project string) string {
+	name := lab.User()
+	if strings.Split(project, "/")[0] == lab.User() {
+		// #78 allow upstream remote to be added when "origin" is
+		// referring to the user fork (and the fork already exists)
+		name = "upstream"
+	}
+	return name
 }
 
 func init() {
