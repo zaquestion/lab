@@ -25,6 +25,10 @@ var issueCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		labels, err := cmd.Flags().GetStringSlice("label")
+		if err != nil {
+			log.Fatal(err)
+		}
 		remote := forkedFromRemote
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
@@ -52,6 +56,7 @@ var issueCreateCmd = &cobra.Command{
 		issueURL, err := lab.IssueCreate(rn, &gitlab.CreateIssueOptions{
 			Title:       &title,
 			Description: &body,
+			Labels:      gitlab.Labels(labels),
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -110,5 +115,6 @@ func issueText() (string, error) {
 
 func init() {
 	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCmd.AddCommand(issueCreateCmd)
 }
