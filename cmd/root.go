@@ -152,9 +152,9 @@ func parseArgs(args []string) (string, int64, error) {
 }
 
 var (
-	// Will be updated to upstream in init() if "upstream" remote exists
+	// Will be updated to upstream in Execute() if "upstream" remote exists
 	forkedFromRemote = "origin"
-	// Will be updated to lab.User() in init() if forkedFrom is "origin"
+	// Will be updated to lab.User() in Execute() if forkedFrom is "origin"
 	forkRemote = "origin"
 )
 
