@@ -15,7 +15,10 @@ func Test_issueCmd(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		repo := copyTestRepo(t)
 		cmd := exec.Command("../lab_bin", "issue", "create", "lab-testing",
-			"-m", "issue title")
+			"-m", "issue title",
+			"-m", "issue description",
+			"-l", "bug",
+			"-l", "critical")
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -30,6 +33,27 @@ func Test_issueCmd(t *testing.T) {
 		i := strings.Index(out, "\n")
 		issueID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/issues/")
 		t.Log(issueID)
+	})
+	t.Run("show", func(t *testing.T) {
+		if issueID == "" {
+			t.Skip("issueID is empty, create likely failed")
+		}
+		repo := copyTestRepo(t)
+		cmd := exec.Command("../lab_bin", "issue", "show", "lab-testing", issueID)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		out := string(b)
+		require.Contains(t, out, "Project: lab-testing/test\n")
+		require.Contains(t, out, "Status: Open\n")
+		require.Contains(t, out, fmt.Sprintf("#%s issue title", issueID))
+		require.Contains(t, out, "===================================\nissue description")
+		require.Contains(t, out, "Labels: bug, critical\n")
+		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/issues/%s", issueID))
 	})
 	t.Run("delete", func(t *testing.T) {
 		if issueID == "" {
