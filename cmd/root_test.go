@@ -103,6 +103,34 @@ func TestRootNoArg(t *testing.T) {
   fork          Fork a remote repository on GitLab and add as remote`)
 }
 
+func TestGitHelp(t *testing.T) {
+	cmd := exec.Command("../lab_bin")
+	expected, _ := cmd.CombinedOutput()
+
+	tests := []struct {
+		Cmd string
+	}{
+		{
+			Cmd: "--help",
+		},
+		{
+			Cmd: "help",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Cmd, func(t *testing.T) {
+			cmd := exec.Command("../lab_bin")
+			b, _ := cmd.CombinedOutput()
+			assert.Equal(t, expected, b)
+			assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>] [-c name=value]")
+			assert.Contains(t, string(b), `These GitLab commands are provided by lab:
+
+  fork          Fork a remote repository on GitLab and add as remote`)
+		})
+	}
+}
+
 func Test_parseArgsRemote(t *testing.T) {
 	tests := []struct {
 		Name           string
