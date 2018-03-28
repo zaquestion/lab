@@ -141,16 +141,25 @@ func PathWithNameSpace(remote string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	parts := strings.Split(remoteURL, "/")
-	l := len(parts)
-	if l < 2 {
+
+	parts := strings.Split(remoteURL, "//")
+
+	if len(parts) == 1 {
+		// scp-like short syntax (e.g. git@gitlab.com...)
+		part := parts[0]
+		parts = strings.Split(part, ":")
+	} else if len(parts) == 2 {
+		// every other protocol syntax (e.g. ssh://, http://, git://)
+		part := parts[1]
+		parts = strings.SplitN(part, "/", 2)
+	} else {
 		return "", errors.Errorf("cannot parse remote: %s url: %s", remote, remoteURL)
 	}
 
-	path := strings.Join(parts[l-2:l], "/")
-	if i := strings.LastIndex(path, ":"); i != -1 {
-		path = path[i+1:]
+	if len(parts) != 2 {
+		return "", errors.Errorf("cannot parse remote: %s url: %s", remote, remoteURL)
 	}
+	path := parts[1]
 	path = strings.TrimSuffix(path, ".git")
 	return path, nil
 }
