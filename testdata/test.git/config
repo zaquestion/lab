@@ -34,6 +34,9 @@
 [remote "garbage"]
 	url = garbageurl
 	fetch = +refs/heads/*:refs/remotes/garbage/*
-[remote "origin-subfolder"]
-	url = git://gitlab.com/zaquestion/sub/folder/test.git
-	fetch = +refs/heads/*:refs/remotes/origin-subfolder/*
+[remote "origin-subfolder-ssh"]
+	url = ssh://gitlab.com/zaquestion/sub/folder/test.git
+	fetch = +refs/heads/*:refs/remotes/origin-subfolder-ssh/*
+[remote "origin-subfolder-git"]
+	url = git@gitlab.com:zaquestion/sub/folder/test.git
+	fetch = +refs/heads/*:refs/remotes/origin-subfolder-git/*

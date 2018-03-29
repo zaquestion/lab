@@ -120,8 +120,14 @@ func TestPathWithNameSpace(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			desc:        "subdfolders",
-			remote:      "origin-subfolder",
+			desc:        "subdfolders-ssh",
+			remote:      "origin-subfolder-ssh",
+			expected:    "zaquestion/sub/folder/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "subdfolders-git",
+			remote:      "origin-subfolder-git",
 			expected:    "zaquestion/sub/folder/test",
 			expectedErr: "",
 		},
