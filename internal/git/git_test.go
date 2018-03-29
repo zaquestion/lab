@@ -97,19 +97,19 @@ func TestPathWithNameSpace(t *testing.T) {
 		},
 		{
 			desc:        "https://token@gitlab.com/org/repo",
-			remote:      "origin-https",
+			remote:      "origin-https-token",
 			expected:    "zaquestion/test",
 			expectedErr: "",
 		},
 		{
 			desc:        "git://",
-			remote:      "origin-https",
+			remote:      "origin-git",
 			expected:    "zaquestion/test",
 			expectedErr: "",
 		},
 		{
 			desc:        "ssh://",
-			remote:      "origin-https",
+			remote:      "origin-ssh-alt",
 			expected:    "zaquestion/test",
 			expectedErr: "",
 		},
@@ -117,6 +117,18 @@ func TestPathWithNameSpace(t *testing.T) {
 			desc:        "no .git suffix",
 			remote:      "origin-no_dot_git",
 			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "subdfolders-ssh",
+			remote:      "origin-subfolder-ssh",
+			expected:    "zaquestion/sub/folder/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "subdfolders-git",
+			remote:      "origin-subfolder-git",
+			expected:    "zaquestion/sub/folder/test",
 			expectedErr: "",
 		},
 		{

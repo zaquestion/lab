@@ -20,7 +20,7 @@
 	url = https://gitlab.com/zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "origin-https-token"]
-	url = https://gitlab.com/zaquestion/test.git
+	url = https://token@gitlab.com/zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "origin-git"]
 	url = git://gitlab.com/zaquestion/test.git
@@ -34,3 +34,9 @@
 [remote "garbage"]
 	url = garbageurl
 	fetch = +refs/heads/*:refs/remotes/garbage/*
+[remote "origin-subfolder-ssh"]
+	url = ssh://gitlab.com/zaquestion/sub/folder/test.git
+	fetch = +refs/heads/*:refs/remotes/origin-subfolder-ssh/*
+[remote "origin-subfolder-git"]
+	url = git@gitlab.com:zaquestion/sub/folder/test.git
+	fetch = +refs/heads/*:refs/remotes/origin-subfolder-git/*
