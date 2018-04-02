@@ -6,6 +6,7 @@ package gitlab
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -358,4 +360,58 @@ func ProjectDelete(pid interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func CIJobs(pid interface{}, sha string) ([]gitlab.Job, error) {
+	pipelines, _, err := lab.Pipelines.ListProjectPipelines(pid)
+	if err != nil {
+		return nil, err
+	}
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(pipelines)
+	}
+	var target int
+	for _, p := range pipelines {
+		if p.Sha != sha {
+			continue
+		}
+		target = p.ID
+		break
+	}
+	jobs, _, err := lab.Jobs.ListPipelineJobs(pid, target, &gitlab.ListJobsOptions{})
+	if err != nil {
+		return nil, err
+	}
+	if os.Getenv("DEBUG") != "" {
+		spew.Dump(jobs)
+	}
+	// The jobs seem to be returned in reverse order
+	// NOTE: more recent testing seems to suggest jobs are returned in last modified order
+	//for i, j := 0, len(jobs)-1; i < j; i, j = i+1, j-1 {
+	//	jobs[i], jobs[j] = jobs[j], jobs[i]
+	//}
+	return jobs, nil
+}
+
+func CITrace(pid interface{}, sha, name string) (io.Reader, string, error) {
+	jobs, err := CIJobs(pid, sha)
+	if err != nil {
+		return nil, "", err
+	}
+	var job gitlab.Job
+	for _, j := range jobs {
+		if j.Name == name {
+			job = j
+			break
+		}
+	}
+	if os.Getenv("DEBUG") != "" {
+		log.Printf("found job: %d status: %s\n", job.ID, job.Status)
+	}
+	r, _, err := lab.Jobs.GetTraceFile(pid, job.ID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return r, job.Status, err
 }

@@ -219,3 +219,14 @@ func InsideGitRepo() bool {
 	out, _ := cmd.CombinedOutput()
 	return bytes.Contains(out, []byte("true\n"))
 }
+
+// Sha returns the git sha for a given ref
+func Sha(ref string) (string, error) {
+	cmd := New("rev-parse", ref)
+	cmd.Stdout = nil
+	sha, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(sha)), nil
+}
