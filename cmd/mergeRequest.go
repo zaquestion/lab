@@ -6,7 +6,7 @@ import (
 
 // mrCmd represents the mr command
 var mergeRequestCmd = &cobra.Command{
-	Use:   "merge-request [remote]",
+	Use:   "merge-request [remote [branch]]",
 	Short: mrCreateCmd.Short,
 	Long:  mrCreateCmd.Long,
 	Args:  mrCreateCmd.Args,

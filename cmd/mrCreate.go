@@ -23,13 +23,14 @@ import (
 var mrCreateCmd = &cobra.Command{
 	Use:   "create [remote [branch]]",
 	Short: "Open a merge request on GitLab",
-	Long:  `Currently only supports MRs into master`,
+	Long:  `Creates a merge request (MR created on origin master by default)`,
 	Args:  cobra.MaximumNArgs(2),
 	Run:   runMRCreate,
 }
 
 func init() {
 	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 	mrCmd.AddCommand(mrCreateCmd)
 }
 
