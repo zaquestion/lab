@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/avast/retry-go"
+  packages = ["."]
+  revision = "5469272a8171235352a56af37e5f7facf814423f"
+  version = "1.0.1"
+
+[[projects]]
   name = "github.com/cpuguy83/go-md2man"
   packages = ["md2man"]
   revision = "1d903dcb749992f3741d744c0f8376b4bd7eb3e1"
@@ -28,7 +34,18 @@
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
-  packages = [".","hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
   revision = "23c074d0eceb2b8a5bfdbb271ab780cde70f05a8"
 
 [[projects]]
@@ -81,7 +98,10 @@
 
 [[projects]]
   name = "github.com/spf13/afero"
-  packages = [".","mem"]
+  packages = [
+    ".",
+    "mem"
+  ]
   revision = "8d919cbe7e2627e417f3e45c3c0e489a5b7e2536"
   version = "v1.0.0"
 
@@ -94,7 +114,10 @@
 [[projects]]
   branch = "master"
   name = "github.com/spf13/cobra"
-  packages = [".","doc"]
+  packages = [
+    ".",
+    "doc"
+  ]
   revision = "fd32f09af19efc9b1279c54e0d8ed23f66232a15"
 
 [[projects]]
@@ -117,7 +140,10 @@
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert","require"]
+  packages = [
+    "assert",
+    "require"
+  ]
   revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
   version = "v1.1.4"
 
@@ -141,13 +167,23 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "0dd5e194bbf5eb84a39666eb4c98a4d007e4203a"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm"
+  ]
   revision = "be25de41fadfae372d6470bda81ca6beb55ef551"
 
 [[projects]]
@@ -159,6 +195,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1bf9d1f6c3b6b3bd13691352d53ed885bb52bc710768ed20ad56a3502341fb1e"
+  inputs-digest = "f902c44fdfda24711d2fc77ec47941bc42dc0a0f1aad18922657e7ef5b1542f0"
   solver-name = "gps-cdcl"
   solver-version = 1

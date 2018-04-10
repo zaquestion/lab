@@ -8,7 +8,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	retry "github.com/avast/retry-go"
 	"github.com/pkg/errors"
 	"github.com/tcnksm/go-gitconfig"
 )
@@ -183,9 +185,13 @@ func RemoteAdd(name, url, dir string) error {
 		return err
 	}
 	fmt.Println("Updating", name)
-	cmd = New("fetch", name)
-	cmd.Dir = dir
-	if err := cmd.Run(); err != nil {
+
+	err := retry.Do(func() error {
+		cmd = New("fetch", name)
+		cmd.Dir = dir
+		return cmd.Run()
+	}, retry.Attempts(3), retry.Delay(time.Second), retry.Units(time.Nanosecond))
+	if err != nil {
 		return err
 	}
 	fmt.Println("new remote:", name)
