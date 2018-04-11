@@ -3,7 +3,9 @@ package cmd
 import (
 	"log"
 	"strings"
+	"time"
 
+	retry "github.com/avast/retry-go"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
 	"github.com/zaquestion/lab/internal/gitlab"
@@ -29,7 +31,11 @@ var cloneCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		path := project.SSHURLToRepo
-		err = git.New(append([]string{"clone", path}, args[1:]...)...).Run()
+		// #116 retry on the cases where we found a project but clone
+		// failed over ssh
+		err = retry.Do(func() error {
+			return git.New(append([]string{"clone", path}, args[1:]...)...).Run()
+		}, retry.Attempts(3), retry.Delay(time.Second), retry.Units(time.Nanosecond))
 		if err != nil {
 			log.Fatal(err)
 		}
