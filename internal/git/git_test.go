@@ -132,6 +132,18 @@ func TestPathWithNameSpace(t *testing.T) {
 			expectedErr: "",
 		},
 		{
+			desc:        "ssh-custom-port",
+			remote:      "origin-custom-port",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
+			desc:        "ssh-subfolder-custom-port",
+			remote:      "origin-subfolder-custom-port",
+			expected:    "zaquestion/sub/folder/test",
+			expectedErr: "",
+		},
+		{
 			desc:        "remote doesn't exist",
 			remote:      "phoney",
 			expected:    "",

@@ -9,7 +9,6 @@ import (
 )
 
 func Test_issueCreate(t *testing.T) {
-	t.Parallel()
 	repo := copyTestRepo(t)
 	cmd := exec.Command("../lab_bin", "issue", "create", "lab-testing",
 		"-m", "issue title")
