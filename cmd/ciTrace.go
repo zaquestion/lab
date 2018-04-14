@@ -6,8 +6,11 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"strings"
+	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -15,10 +18,10 @@ import (
 
 // ciLintCmd represents the lint command
 var ciTraceCmd = &cobra.Command{
-	Use:     "trace [remote [job]]",
+	Use:     "trace [remote [[<tree-ish>:]job]]",
 	Aliases: []string{"logs"},
 	Short:   "Trace the output of a ci job",
-	Long:    ``,
+	Long:    `If a job is not specified the latest running job or last job in the pipeline is used`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			remote  string
@@ -31,15 +34,10 @@ var ciTraceCmd = &cobra.Command{
 			}
 			remote = args[0]
 		}
-		if len(args) > 1 {
-			jobName = args[1]
-		}
 		if remote == "" {
 			remote = forkedFromRemote
 		}
 
-		// See if we're in a git repo or if global is set to determine
-		// if this should be a personal snippet
 		rn, err := git.PathWithNameSpace(remote)
 		if err != nil {
 			log.Fatal(err)
@@ -48,28 +46,42 @@ var ciTraceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		sha, err := git.Sha("HEAD")
+		var ref = "HEAD"
+		if len(args) > 1 {
+			jobName = args[1]
+			if strings.Contains(args[1], ":") {
+				ps := strings.Split(args[1], ":")
+				ref, jobName = ps[0], ps[1]
+			}
+		}
+		sha, err := git.Sha(ref)
 		if err != nil {
 			log.Fatal(err)
 		}
 		var (
+			once   sync.Once
 			offset int64
-			tick   = time.Second * 3
 		)
 	FOR:
-		for range time.NewTicker(tick).C {
-			trace, status, err := lab.CITrace(project.ID, sha, jobName)
-			switch status {
+		for range time.NewTicker(time.Second * 3).C {
+			trace, job, err := lab.CITrace(project.ID, sha, jobName)
+			if job == nil {
+				log.Fatal(errors.Wrap(err, "failed to find job"))
+			}
+			switch job.Status {
 			case "pending":
-				fmt.Println(err)
+				fmt.Printf("%s is pending...\n", job.Name)
 				continue
 			case "manual":
-				fmt.Println(err)
+				fmt.Printf("Manual job %s not started\n", job.Name)
 				break FOR
 			}
-			if err != nil {
-				log.Fatal(err)
-			}
+			once.Do(func() {
+				if jobName == "" {
+					jobName = job.Name
+				}
+				fmt.Printf("Showing logs for %s job #%d\n", job.Name, job.ID)
+			})
 			buf, err := ioutil.ReadAll(trace)
 			if err != nil {
 				log.Fatal(err)
@@ -80,7 +92,9 @@ var ciTraceCmd = &cobra.Command{
 
 			offset += int64(len(new))
 			fmt.Print(string(new))
-			if status == "success" || status == "failed" {
+			if job.Status == "success" ||
+				job.Status == "failed" ||
+				job.Status == "cancelled" {
 				break
 			}
 		}

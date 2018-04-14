@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -362,13 +362,12 @@ func ProjectDelete(pid interface{}) error {
 	return nil
 }
 
+// CIJobs returns a list of jobs in a pipeline for a given sha. The jobs are
+// returned sorted by their CreatedAt time
 func CIJobs(pid interface{}, sha string) ([]gitlab.Job, error) {
 	pipelines, _, err := lab.Pipelines.ListProjectPipelines(pid)
 	if err != nil {
 		return nil, err
-	}
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(pipelines)
 	}
 	var target int
 	for _, p := range pipelines {
@@ -382,36 +381,48 @@ func CIJobs(pid interface{}, sha string) ([]gitlab.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	if os.Getenv("DEBUG") != "" {
-		spew.Dump(jobs)
-	}
-	// The jobs seem to be returned in reverse order
-	// NOTE: more recent testing seems to suggest jobs are returned in last modified order
-	//for i, j := 0, len(jobs)-1; i < j; i, j = i+1, j-1 {
-	//	jobs[i], jobs[j] = jobs[j], jobs[i]
-	//}
+	sort.Sort(ciJobs(jobs))
 	return jobs, nil
 }
 
-func CITrace(pid interface{}, sha, name string) (io.Reader, string, error) {
+type ciJobs []gitlab.Job
+
+func (js ciJobs) Len() int {
+	return len(js)
+}
+
+func (js ciJobs) Less(i, j int) bool {
+	return js[i].CreatedAt.Before(*js[j].CreatedAt)
+}
+
+func (js ciJobs) Swap(i, j int) {
+	js[i], js[j] = js[j], js[i]
+}
+
+// CITrace searches by name for a job and returns its trace file. The trace is
+// static so may only be a portion of the logs if the job is till running. If
+// no name is provided the most recent running job
+func CITrace(pid interface{}, sha, name string) (io.Reader, *gitlab.Job, error) {
 	jobs, err := CIJobs(pid, sha)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
-	var job gitlab.Job
+	var (
+		job = jobs[len(jobs)-1]
+	)
 	for _, j := range jobs {
+		if j.Status == "running" {
+			job = j
+		}
 		if j.Name == name {
 			job = j
 			break
 		}
 	}
-	if os.Getenv("DEBUG") != "" {
-		log.Printf("found job: %d status: %s\n", job.ID, job.Status)
-	}
 	r, _, err := lab.Jobs.GetTraceFile(pid, job.ID)
 	if err != nil {
-		return nil, "", err
+		return nil, &job, err
 	}
 
-	return r, job.Status, err
+	return r, &job, err
 }
