@@ -50,6 +50,7 @@ deploy:
 # docs have to be built and deployed after goreleaser or the release shas won't
 # match
 after_deploy:
+  - sed -i "s|lab version.\+$|lab version $(echo ${TRAVIS_TAG} | tr -d 'v')|" README.md
   - DEPLOY=1 docs/build.sh
 
 notifications:

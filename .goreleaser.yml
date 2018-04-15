@@ -59,7 +59,7 @@ changelog:
     # Default is empty
     exclude:
       - '^\(docs\)'
-      - '^\(ci\)'
+      - '^\(travis\)'
       - '^\(coverage\)'
       - '^\(tests?'
       - '^Merge pull request'
