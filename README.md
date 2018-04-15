@@ -60,7 +60,6 @@ go install -ldflags "-X \"main.version=$(git  rev-parse --short=10 HEAD)\""  git
 or
 
 ```
-make dep
 make install
 ```
 
