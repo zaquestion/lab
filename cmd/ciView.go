@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/pkg/errors"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 
@@ -26,6 +27,13 @@ logs.
 
 Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 	Run: func(cmd *cobra.Command, args []string) {
+		a := tview.NewApplication()
+		defer func() {
+			if r := recover(); r != nil {
+				a.Stop()
+				log.Fatal(r)
+			}
+		}()
 		remote, _, err := parseArgsRemote(args)
 		if err != nil {
 			log.Fatal(err)
@@ -49,19 +57,19 @@ Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 			log.Fatal(err)
 		}
 		root := tview.NewPages()
-		root.SetBorderPadding(1, 1, 2, 14)
+		root.SetBorderPadding(1, 1, 2, 2)
 
 		boxes = make(map[string]*tview.TextView)
 		jobsCh := make(chan []gitlab.Job)
-		a := tview.NewApplication()
 		go updateJobs(a, jobsCh, project.ID, sha)
-		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(jobsCh, root)).SetAfterDrawFunc(connectJobs).Run(); err != nil {
+		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
 var (
+	jobs  []gitlab.Job
 	boxes map[string]*tview.TextView
 )
 
@@ -208,36 +216,65 @@ func updateJobs(app *tview.Application, jobsCh chan []gitlab.Job, pid interface{
 	}
 }
 
-var jobs []gitlab.Job
-
-func connectJobs(screen tcell.Screen) {
-	for i, k := 0, 1; k < len(jobs); i, k = i+1, k+1 {
-		v1, ok := boxes["jobs-"+jobs[i].Name]
-		if !ok {
-			log.Fatal("not okay")
+func connectJobsView(app *tview.Application) func(screen tcell.Screen) {
+	return func(screen tcell.Screen) {
+		err := connectJobs(screen, jobs, boxes)
+		if err != nil {
+			app.Stop()
+			log.Fatal(err)
 		}
-		v2, ok := boxes["jobs-"+jobs[k].Name]
-		if !ok {
-			log.Fatal("not okay")
-		}
-		connect(screen, v1.Box, v2.Box, jobs[i].Stage == jobs[0].Stage, jobs[i].Stage == jobs[len(jobs)-1].Stage)
 	}
 }
 
-func connect(screen tcell.Screen, v1 *tview.Box, v2 *tview.Box, firstStage, lastStage bool) {
+func connectJobs(screen tcell.Screen, jobs []gitlab.Job, boxes map[string]*tview.TextView) error {
+	for i, j := range jobs {
+		if _, ok := boxes["jobs-"+j.Name]; !ok {
+			return errors.Errorf("jobs-%s not found at index: %d", jobs[i].Name, i)
+		}
+	}
+	var padding int
+	// find the abount of space between two jobs is adjacent stages
+	for i, k := 0, 1; k < len(jobs); i, k = i+1, k+1 {
+		if jobs[i].Stage == jobs[k].Stage {
+			continue
+		}
+		x1, _, w, _ := boxes["jobs-"+jobs[i].Name].GetRect()
+		x2, _, _, _ := boxes["jobs-"+jobs[k].Name].GetRect()
+		stageWidth := x2 - x1 - w
+		switch {
+		case stageWidth <= 3:
+			padding = 1
+		case stageWidth <= 6:
+			padding = 2
+		case stageWidth > 6:
+			padding = 3
+		}
+	}
+	for i, k := 0, 1; k < len(jobs); i, k = i+1, k+1 {
+		v1 := boxes["jobs-"+jobs[i].Name]
+		v2 := boxes["jobs-"+jobs[k].Name]
+		connect(screen, v1.Box, v2.Box, padding,
+			jobs[i].Stage == jobs[0].Stage,           // is first stage?
+			jobs[i].Stage == jobs[len(jobs)-1].Stage) // is last stage?
+	}
+	return nil
+}
+
+func connect(screen tcell.Screen, v1 *tview.Box, v2 *tview.Box, padding int, firstStage, lastStage bool) {
 	x1, y1, w, h := v1.GetRect()
 	x2, y2, _, _ := v2.GetRect()
 
 	dx, dy := x2-x1, y2-y1
 
-	// dy != 0 means the last stage had multple jobs
-	if dy != 0 && dx != 0 {
+	p := padding
+
+	// drawing stages
+	if dx != 0 {
 		hline(screen, x1+w, y2+h/2, dx-w)
-		screen.SetContent(x1+w+2, y2+h/2, '┳', nil, tcell.StyleDefault)
-		return
-	}
-	if dy == 0 {
-		hline(screen, x1+w, y1+h/2, dx-w)
+		if dy != 0 {
+			// dy != 0 means the last stage had multple jobs
+			screen.SetContent(x1+w+p-1, y2+h/2, '┳', nil, tcell.StyleDefault)
+		}
 		return
 	}
 
@@ -245,36 +282,34 @@ func connect(screen tcell.Screen, v1 *tview.Box, v2 *tview.Box, firstStage, last
 	// tw, _ := screen.Size()
 
 	// '┣' '┫'
-	// TODO: fix drawing the last stage (don't draw right side of box)
-	// TODO: fix drawing the first stage (don't draw left side of box)
 
 	// Drawing a job in the same stage
 	// left of view
 	if !firstStage {
-		if r, _, _, _ := screen.GetContent(x2-3, y1+h/2); r == '┗' {
-			screen.SetContent(x2-3, y1+h/2, '┣', nil, tcell.StyleDefault)
+		if r, _, _, _ := screen.GetContent(x2-p, y1+h/2); r == '┗' {
+			screen.SetContent(x2-p, y1+h/2, '┣', nil, tcell.StyleDefault)
 		} else {
-			screen.SetContent(x2-3, y1+h/2, '┳', nil, tcell.StyleDefault)
+			screen.SetContent(x2-p, y1+h/2, '┳', nil, tcell.StyleDefault)
 		}
 
-		screen.SetContent(x2-1, y2+h/2, '━', nil, tcell.StyleDefault)
-		screen.SetContent(x2-2, y2+h/2, '━', nil, tcell.StyleDefault)
-		screen.SetContent(x2-3, y2+h/2, '┗', nil, tcell.StyleDefault)
+		for i := 1; i < p; i++ {
+			screen.SetContent(x2-i, y2+h/2, '━', nil, tcell.StyleDefault)
+		}
+		screen.SetContent(x2-p, y2+h/2, '┗', nil, tcell.StyleDefault)
 
-		// NOTE: unsure what the 2nd arg (y), "-1" is needed for. Maybe due to
-		// padding? This showed up after migrating from termbox
-		vline(screen, x2-3, y1+h-1, dy-1)
+		vline(screen, x2-p, y1+h-1, dy-1)
 	}
 	// right of view
 	if !lastStage {
-		vline(screen, x2+w+2, y1+h-1, dy-1)
-
-		if r, _, _, _ := screen.GetContent(x2+w+2, y1+h/2); r == '┛' {
-			screen.SetContent(x2+w+2, y1+h/2, '┫', nil, tcell.StyleDefault)
+		if r, _, _, _ := screen.GetContent(x2+w+p-1, y1+h/2); r == '┛' {
+			screen.SetContent(x2+w+p-1, y1+h/2, '┫', nil, tcell.StyleDefault)
 		}
-		screen.SetContent(x2+w, y2+h/2, '━', nil, tcell.StyleDefault)
-		screen.SetContent(x2+w+1, y2+h/2, '━', nil, tcell.StyleDefault)
-		screen.SetContent(x2+w+2, y2+h/2, '┛', nil, tcell.StyleDefault)
+		for i := 0; i < p-1; i++ {
+			screen.SetContent(x2+w+i, y2+h/2, '━', nil, tcell.StyleDefault)
+		}
+		screen.SetContent(x2+w+p-1, y2+h/2, '┛', nil, tcell.StyleDefault)
+
+		vline(screen, x2+w+p-1, y1+h-1, dy-1)
 	}
 
 }
