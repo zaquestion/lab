@@ -15,9 +15,9 @@ func Test_mrText(t *testing.T) {
 		t.Log(text)
 		t.Fatal(err)
 	}
-	require.Contains(t, text, `Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)
+	require.Contains(t, text, `(ci) jobs with interleaved sleeps and prints
 
-I am the mr tmpl
+I am the default merge request template for lab
 # Requesting a merge into origin:master from lab-testing:mrtest
 #
 # Write a message for this merge request. The first block

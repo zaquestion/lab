@@ -1,8 +1,5 @@
-testdata
+Test
 ==
 
-Holds a git repo for use in `internal/git/test_git.go'
-
-* Test Cases
- - Log
- - LastCommitMessage
+Repo for testing [lab](https://github.com/zaquestion/lab)
+- open issues and merge requests are for supporting integration tests

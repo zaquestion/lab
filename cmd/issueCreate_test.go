@@ -39,7 +39,7 @@ func Test_issueMsg(t *testing.T) {
 		{
 			Name:          "From Editor",
 			Msgs:          nil,
-			ExpectedTitle: "I am the issue tmpl",
+			ExpectedTitle: "This is the default issue template for lab",
 			ExpectedBody:  "",
 		},
 	}
@@ -65,7 +65,7 @@ func Test_issueText(t *testing.T) {
 	}
 	require.Equal(t, `
 
-I am the issue tmpl
+This is the default issue template for lab
 # Write a message for this issue. The first block
 # of text is the title and the rest is the description.`, text)
 

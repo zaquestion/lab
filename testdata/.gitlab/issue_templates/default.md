@@ -1,1 +1,1 @@
-I am the issue tmpl
+This is the default issue template for lab
