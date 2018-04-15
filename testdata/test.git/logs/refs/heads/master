@@ -1,2 +1,1 @@
-0000000000000000000000000000000000000000 d0e1cc068b44c9622f9046faf24f53b57980e53c Zaq? Wiedmann <zaquestion@gmail.com> 1504410153 -0700	commit (initial): Add test readme for testing gitlog
-d0e1cc068b44c9622f9046faf24f53b57980e53c cd64a7caea4f3ee5696a190379aff1a7f636e598 Zaq? Wiedmann <zaquestion@gmail.com> 1504411119 -0700	commit: Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)
+0000000000000000000000000000000000000000 09b519cba018b707c98fc56e37df15806d89d866 Zaq? Wiedmann <zaquestion@gmail.com> 1523752116 -0700	branch: Created from HEAD

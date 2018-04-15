@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os/exec"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,6 +23,6 @@ func Test_clone(t *testing.T) {
 	t.Log(out)
 
 	assert.Contains(t, out, "Cloning into 'test'...")
-	assert.Contains(t, out, " * [new branch]      master       -> upstream/master")
+	assert.Regexp(t, regexp.MustCompile(` \* \[new branch\]\s+master\s+-> upstream/master`), out)
 	assert.Contains(t, out, "new remote: upstream")
 }

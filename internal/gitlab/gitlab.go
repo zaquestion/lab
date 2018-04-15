@@ -74,7 +74,7 @@ func LoadGitLabTmpl(tmplName string) string {
 		log.Fatal(err)
 	}
 
-	return string(tmpl[:len(tmpl)-1])
+	return strings.TrimSpace(string(tmpl))
 }
 
 var (

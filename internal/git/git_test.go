@@ -44,7 +44,7 @@ func TestLastCommitMessage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedLCM := "Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)"
+	expectedLCM := "(ci) jobs with interleaved sleeps and prints"
 	require.Equal(t, expectedLCM, lcm)
 }
 
@@ -53,12 +53,12 @@ func TestLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedSHA := "cd64a7c"
+	expectedSHA := "09b519c"
 	expectedAuthor := "Zaq? Wiedmann"
-	expectedMessage := "Added additional commit for LastCommitMessage and meeting requirements for\n   Log test (>1 commit)\n\n"
-	require.Contains(t, log, expectedSHA)
-	require.Contains(t, log, expectedAuthor)
-	require.Contains(t, log, expectedMessage)
+	expectedMessage := "(ci) jobs with interleaved sleeps and prints"
+	assert.Contains(t, log, expectedSHA)
+	assert.Contains(t, log, expectedAuthor)
+	assert.Contains(t, log, expectedMessage)
 }
 
 func TestCurrentBranch(t *testing.T) {

@@ -34,12 +34,12 @@ func TestMain(m *testing.M) {
 
 func TestLoadGitLabTmplMR(t *testing.T) {
 	mrTmpl := LoadGitLabTmpl(TmplMR)
-	require.Equal(t, mrTmpl, "I am the mr tmpl")
+	require.Equal(t, mrTmpl, "I am the default merge request template for lab")
 }
 
 func TestLoadGitLabTmplIssue(t *testing.T) {
 	issueTmpl := LoadGitLabTmpl(TmplIssue)
-	require.Equal(t, issueTmpl, "I am the issue tmpl")
+	require.Equal(t, issueTmpl, "This is the default issue template for lab")
 }
 
 func TestLint(t *testing.T) {

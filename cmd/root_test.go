@@ -87,11 +87,11 @@ func TestRootCloneNoArg(t *testing.T) {
 func TestRootGitCmd(t *testing.T) {
 	cmd := exec.Command("../lab_bin", "log", "-n", "1")
 	b, _ := cmd.CombinedOutput()
-	require.Contains(t, string(b), `commit cd64a7caea4f3ee5696a190379aff1a7f636e598
+	require.Contains(t, string(b), `commit 09b519cba018b707c98fc56e37df15806d89d866
 Author: Zaq? Wiedmann <zaquestion@gmail.com>
-Date:   Sat Sep 2 20:58:39 2017 -0700
+Date:   Sun Apr 1 19:40:47 2018 -0700
 
-    Added additional commit for LastCommitMessage and meeting requirements for Log test (>1 commit)`)
+    (ci) jobs with interleaved sleeps and prints`)
 }
 
 func TestRootNoArg(t *testing.T) {
