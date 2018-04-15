@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -100,10 +101,10 @@ Date:   Sun Apr 1 19:40:47 2018 -0700
 func TestRootNoArg(t *testing.T) {
 	cmd := exec.Command("../lab_bin")
 	b, _ := cmd.CombinedOutput()
-	assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>] [-c name=value]")
+	assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>]")
 	assert.Contains(t, string(b), `These GitLab commands are provided by lab:
 
-  fork          Fork a remote repository on GitLab and add as remote`)
+  ci            Work with the GitLab CI pipeline for your refs`)
 }
 
 func TestRootVersion(t *testing.T) {
@@ -133,28 +134,40 @@ func TestRootVersion(t *testing.T) {
 
 func TestGitHelp(t *testing.T) {
 	cmd := exec.Command("../lab_bin")
-	expected, _ := cmd.CombinedOutput()
+	b, _ := cmd.CombinedOutput()
+	expected := string(b)
+	expected = expected[:strings.LastIndex(strings.TrimSpace(expected), "\n")]
 
 	tests := []struct {
-		Cmd string
+		Cmds []string
 	}{
 		{
-			Cmd: "--help",
+			Cmds: []string{"--", "--help"},
 		},
 		{
-			Cmd: "help",
+			Cmds: []string{"--", "-h"},
+		},
+		{
+			Cmds: []string{"help"},
+		},
+		{
+			Cmds: []string{""},
 		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.Cmd, func(t *testing.T) {
-			cmd := exec.Command("../lab_bin")
+		t.Run(test.Cmds[len(test.Cmds)-1], func(t *testing.T) {
+			cmd := exec.Command("../lab_bin", test.Cmds...)
 			b, _ := cmd.CombinedOutput()
-			assert.Equal(t, expected, b)
-			assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>] [-c name=value]")
-			assert.Contains(t, string(b), `These GitLab commands are provided by lab:
+			res := string(b)
+			res = res[:strings.LastIndex(strings.TrimSpace(res), "\n")]
+			t.Log(expected)
+			t.Log(res)
+			assert.Equal(t, expected, res)
+			assert.Contains(t, res, "usage: git [--version] [--help] [-C <path>]")
+			assert.Contains(t, res, `These GitLab commands are provided by lab:
 
-  fork          Fork a remote repository on GitLab and add as remote`)
+  ci            Work with the GitLab CI pipeline for your refs`)
 		})
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 	"text/template"
 
@@ -57,11 +58,16 @@ func labUsageFormat(c *cobra.Command) string {
 }
 
 func helpFunc(cmd *cobra.Command, args []string) {
+	// When help func is called from the help command args will be
+	// populated. When help is called with cmd.Help(), the args are not
+	// passed through, so we pick them up ourselves here
 	if len(args) == 0 {
 		args = os.Args[1:]
 	}
 	rootCmd := cmd.Root()
-	if cmd, _, err := rootCmd.Find(args); err == nil && cmd != rootCmd {
+	// Show help for sub/commands -- any commands that isn't "lab" or "help"
+	if cmd, _, err := rootCmd.Find(args); err == nil &&
+		cmd != rootCmd && strings.Split(cmd.Use, " ")[0] != "help" {
 		// Cobra will check parent commands for a helpFunc and we only
 		// want the root command to actually use this custom help func.
 		// Here we trick cobra into thinking that there is no help func
@@ -86,7 +92,7 @@ func helpFunc(cmd *cobra.Command, args []string) {
 }
 
 var helpCmd = &cobra.Command{
-	Use:   "help",
+	Use:   "help [command [subcommand...]]",
 	Short: "Show the help for lab",
 	Long:  ``,
 	Run:   helpFunc,
