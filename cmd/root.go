@@ -25,6 +25,10 @@ var RootCmd = &cobra.Command{
 	Short: "A Git Wrapper for GitLab",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ok, err := cmd.Flags().GetBool("version"); err == nil && ok {
+			versionCmd.Run(cmd, args)
+			return
+		}
 		helpCmd.Run(cmd, args)
 	},
 }
@@ -101,6 +105,7 @@ func init() {
 	// arguments are passed through and subcommand help breaks.
 	RootCmd.SetHelpCommand(helpCmd)
 	RootCmd.SetHelpFunc(helpFunc)
+	RootCmd.Flags().Bool("version", false, "Show the lab version")
 }
 
 // parseArgsRemote returns the remote and a number if parsed. Many commands
