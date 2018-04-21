@@ -9,7 +9,7 @@ internal-test:
 	dep ensure
 	rm coverage-* 2>&1 > /dev/null || true
 	mv testdata/test.git testdata/.git
-	go test -coverprofile=coverage-main.out -covermode=count -coverpkg ./... -run=$(run) github.com/zaquestion/lab/cmd
+	go test -coverprofile=coverage-main.out -covermode=count -coverpkg ./... -run=$(run) github.com/zaquestion/lab/cmd github.com/zaquestion/lab/internal/...
 	mv testdata/.git testdata/test.git
 	go get github.com/wadey/gocovmerge
 	gocovmerge coverage-*.out > coverage.txt && rm coverage-*.out
