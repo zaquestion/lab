@@ -34,7 +34,7 @@ func main() {
 	viper.AddConfigPath(confpath)
 	viper.AutomaticEnv()
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		if err := config.New(confpath, os.Stdin); err != nil {
+		if err := config.New(path.Join(confpath, "lab.hcl"), os.Stdin); err != nil {
 			log.Fatal(err)
 		}
 
