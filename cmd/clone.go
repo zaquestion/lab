@@ -15,10 +15,11 @@ import (
 // NOTE: There is special handling for "clone" in cmd/root.go
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
-	Short: "",
+	Short: "GitLab repo aware clone command",
 	Long: `Clone supports these shorthands
 - repo
-- namespace/repo`,
+- namespace/repo
+- namespace/group/repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])
 		if err == gitlab.ErrProjectNotFound {
