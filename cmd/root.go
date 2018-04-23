@@ -41,7 +41,7 @@ var templateFuncs = template.FuncMap{
 	"rpad": rpad,
 }
 
-const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version")))}}
+const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version") (ne .Name "merge-request")))}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}`
 
 func labUsageFormat(c *cobra.Command) string {
