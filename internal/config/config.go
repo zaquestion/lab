@@ -61,6 +61,7 @@ func New(confpath string, r io.Reader) error {
 	if err := viper.WriteConfigAs(confpath); err != nil {
 		return err
 	}
+	fmt.Printf("\nConfig saved to %s\n", confpath)
 	return nil
 }
 
