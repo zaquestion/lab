@@ -32,9 +32,7 @@ var snippetListCmd = &cobra.Command{
 		// if this should be a personal snippet
 		rn, _ := git.PathWithNameSpace(remote)
 		if global || rn == "" {
-			opts := gitlab.ListSnippetsOptions{
-				ListOptions: listOpts,
-			}
+			opts := gitlab.ListSnippetsOptions(listOpts)
 			snips, err := lab.SnippetList(&opts)
 			if err != nil {
 				log.Fatal(err)
@@ -49,9 +47,7 @@ var snippetListCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		opts := gitlab.ListProjectSnippetsOptions{
-			ListOptions: listOpts,
-		}
+		opts := gitlab.ListProjectSnippetsOptions(listOpts)
 		snips, err := lab.ProjectSnippetList(project.ID, &opts)
 		if err != nil {
 			log.Fatal(err)

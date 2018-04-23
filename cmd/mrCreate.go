@@ -126,14 +126,7 @@ func determineSourceRemote(branch string) string {
 		return r
 	}
 
-	// If not, check if the fork is named after the user
-	_, err = gitconfig.Local("remote." + lab.User() + ".url")
-	if err == nil {
-		return lab.User()
-	}
-
-	// If not, default to origin
-	return "origin"
+	return forkRemote
 }
 
 func mrText(base, head, sourceRemote, forkedFromRemote string) (string, error) {

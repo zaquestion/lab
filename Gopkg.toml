@@ -38,5 +38,9 @@
   version = "0.1.2"
 
 [[constraint]]
+  branch = "master"
   name = "github.com/xanzy/go-gitlab"
-  revision = "266c87ba209d842f6c190920a55db959e5b13971"
+
+[[constraint]]
+  name = "github.com/gdamore/tcell"
+  revision = "2f258105ca8ce35819115b49f5ac58197241653e"
