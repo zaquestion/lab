@@ -242,40 +242,40 @@ func Test_connectJobs(t *testing.T) {
 		" └─┘             ",
 		"                 ",
 	}
-	jobs := []gitlab.Job{
-		gitlab.Job{
+	jobs := []*gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage1-job1",
 			Stage: "stage1",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage1-job2",
 			Stage: "stage1",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage1-job3",
 			Stage: "stage1",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage1-job4",
 			Stage: "stage1",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage2-job1",
 			Stage: "stage2",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage2-job2",
 			Stage: "stage2",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage2-job3",
 			Stage: "stage2",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage3-job1",
 			Stage: "stage3",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:  "stage3-job2",
 			Stage: "stage3",
 		},
@@ -318,13 +318,13 @@ func Test_connectJobs(t *testing.T) {
 func Test_connectJobsNegative(t *testing.T) {
 	tests := []struct {
 		desc  string
-		jobs  []gitlab.Job
+		jobs  []*gitlab.Job
 		boxes map[string]*tview.TextView
 	}{
 		{
 			"determinePadding -- first job missing",
-			[]gitlab.Job{
-				gitlab.Job{
+			[]*gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage1-job1",
 					Stage: "stage1",
 				},
@@ -336,16 +336,16 @@ func Test_connectJobsNegative(t *testing.T) {
 		},
 		{
 			"determinePadding -- second job missing",
-			[]gitlab.Job{
-				gitlab.Job{
+			[]*gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage1-job1",
 					Stage: "stage1",
 				},
-				gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage2-job1",
 					Stage: "stage2",
 				},
-				gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage2-job2",
 					Stage: "stage2",
 				},
@@ -357,16 +357,16 @@ func Test_connectJobsNegative(t *testing.T) {
 		},
 		{
 			"connect -- third job missing",
-			[]gitlab.Job{
-				gitlab.Job{
+			[]*gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage1-job1",
 					Stage: "stage1",
 				},
-				gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage2-job1",
 					Stage: "stage2",
 				},
-				gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage2-job2",
 					Stage: "stage2",
 				},
@@ -378,16 +378,16 @@ func Test_connectJobsNegative(t *testing.T) {
 		},
 		{
 			"connect -- third job missing",
-			[]gitlab.Job{
-				gitlab.Job{
+			[]*gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage1-job1",
 					Stage: "stage1",
 				},
-				gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage2-job1",
 					Stage: "stage2",
 				},
-				gitlab.Job{
+				&gitlab.Job{
 					Name:  "stage2-job2",
 					Stage: "stage2",
 				},
@@ -442,50 +442,52 @@ func Test_jobsView(t *testing.T) {
 		"                                                                                        ",
 		"                                                                                        ",
 	}
-	secAgo := time.Now().Add(time.Second * -61)
-	jobs := []gitlab.Job{
-		gitlab.Job{
-			Name:      "stage1-job1-really-long",
-			Stage:     "stage1",
-			Status:    "success",
-			StartedAt: &secAgo, // relies on test running in <1s we'll see how it goes
+	now := time.Now()
+	past := now.Add(time.Second * -61)
+	jobs := []*gitlab.Job{
+		&gitlab.Job{
+			Name:       "stage1-job1-really-long",
+			Stage:      "stage1",
+			Status:     "success",
+			StartedAt:  &past, // relies on test running in <1s we'll see how it goes
+			FinishedAt: &now,
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage1-job2",
 			Stage:  "stage1",
 			Status: "success",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage1-job3",
 			Stage:  "stage1",
 			Status: "success",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage1-job4",
 			Stage:  "stage1",
 			Status: "failed",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage2-job1",
 			Stage:  "stage2",
 			Status: "running",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage2-job2",
 			Stage:  "stage2",
 			Status: "running",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage2-job3",
 			Stage:  "stage2",
 			Status: "pending",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage3-job1",
 			Stage:  "stage3",
 			Status: "manual",
 		},
-		gitlab.Job{
+		&gitlab.Job{
 			Name:   "stage3-job2",
 			Stage:  "stage3",
 			Status: "manual",
@@ -493,7 +495,7 @@ func Test_jobsView(t *testing.T) {
 	}
 
 	boxes = make(map[string]*tview.TextView)
-	jobsCh := make(chan []gitlab.Job)
+	jobsCh := make(chan []*gitlab.Job)
 	root := tview.NewPages()
 	root.SetBorderPadding(1, 1, 2, 2)
 
@@ -510,9 +512,153 @@ func Test_jobsView(t *testing.T) {
 	go func() {
 		jobsCh <- jobs
 	}()
-	jobsView(jobsCh, root)(screen)
+	jobsView(nil, jobsCh, root)(screen)
 	root.Draw(screen)
 	connectJobsView(nil)(screen)
 	screen.Sync()
 	assertScreen(t, screen, expected)
+}
+
+func Test_latestJobs(t *testing.T) {
+	tests := []struct {
+		desc     string
+		jobs     []*gitlab.Job
+		expected []*gitlab.Job
+	}{
+		{
+			desc: "no newer jobs",
+			jobs: []*gitlab.Job{
+				&gitlab.Job{
+					ID:    1,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    2,
+					Name:  "stage1-job2",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    3,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+			},
+			expected: []*gitlab.Job{
+				&gitlab.Job{
+					ID:    1,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    2,
+					Name:  "stage1-job2",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    3,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+			},
+		},
+		{
+			desc: "1 newer",
+			jobs: []*gitlab.Job{
+				&gitlab.Job{
+					ID:    1,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    2,
+					Name:  "stage1-job2",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    3,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    4,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+			},
+			expected: []*gitlab.Job{
+				&gitlab.Job{
+					ID:    4,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    2,
+					Name:  "stage1-job2",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    3,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+			},
+		},
+		{
+			desc: "2 newer",
+			jobs: []*gitlab.Job{
+				&gitlab.Job{
+					ID:    1,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    2,
+					Name:  "stage1-job2",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    3,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    4,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    5,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+			},
+			expected: []*gitlab.Job{
+				&gitlab.Job{
+					ID:    5,
+					Name:  "stage1-job1",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    2,
+					Name:  "stage1-job2",
+					Stage: "stage1",
+				},
+				&gitlab.Job{
+					ID:    4,
+					Name:  "stage1-job3",
+					Stage: "stage1",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			jobs := latestJobs(test.jobs)
+			assert.Equal(t, test.expected, jobs)
+		})
+	}
 }

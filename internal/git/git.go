@@ -82,17 +82,6 @@ func CommentChar() string {
 	return "#"
 }
 
-// Sha returns the git sha for a given ref
-func Sha(ref string) (string, error) {
-	cmd := New("rev-parse", ref)
-	cmd.Stdout = nil
-	sha, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(sha)), nil
-}
-
 // LastCommitMessage returns the last commits message as one line
 func LastCommitMessage() (string, error) {
 	cmd := New("show", "-s", "--format=%s%n%+b", "HEAD")

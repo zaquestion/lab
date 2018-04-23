@@ -18,7 +18,7 @@ import (
 
 // ciLintCmd represents the lint command
 var ciTraceCmd = &cobra.Command{
-	Use:     "trace [remote [[<tree-ish>:]job]]",
+	Use:     "trace [remote [[branch:]job]]",
 	Aliases: []string{"logs"},
 	Short:   "Trace the output of a ci job",
 	Long:    `If a job is not specified the latest running job or last job in the pipeline is used`,
@@ -27,15 +27,25 @@ var ciTraceCmd = &cobra.Command{
 			remote  string
 			jobName string
 		)
+
+		branch, err := git.CurrentBranch()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(args) > 1 {
+			jobName = args[1]
+			if strings.Contains(args[1], ":") {
+				ps := strings.Split(args[1], ":")
+				branch, jobName = ps[0], ps[1]
+			}
+		}
+		remote = determineSourceRemote(branch)
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil || !ok {
 				log.Fatal(args[0], "is not a remote:", err)
 			}
 			remote = args[0]
-		}
-		if remote == "" {
-			remote = forkedFromRemote
 		}
 
 		rn, err := git.PathWithNameSpace(remote)
@@ -46,25 +56,13 @@ var ciTraceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		var ref = "HEAD"
-		if len(args) > 1 {
-			jobName = args[1]
-			if strings.Contains(args[1], ":") {
-				ps := strings.Split(args[1], ":")
-				ref, jobName = ps[0], ps[1]
-			}
-		}
-		sha, err := git.Sha(ref)
-		if err != nil {
-			log.Fatal(err)
-		}
 		var (
 			once   sync.Once
 			offset int64
 		)
 	FOR:
 		for range time.NewTicker(time.Second * 3).C {
-			trace, job, err := lab.CITrace(project.ID, sha, jobName)
+			trace, job, err := lab.CITrace(project.ID, branch, jobName)
 			if job == nil {
 				log.Fatal(errors.Wrap(err, "failed to find job"))
 			}

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -28,18 +29,23 @@ logs.
 Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()
-		defer func() {
-			if r := recover(); r != nil {
-				a.Stop()
-				log.Fatal(r)
-			}
-		}()
-		remote, _, err := parseArgsRemote(args)
+		defer recoverPanic(a)
+		var (
+			remote string
+		)
+
+		branch, err := git.CurrentBranch()
 		if err != nil {
 			log.Fatal(err)
 		}
-		if remote == "" {
-			remote = forkedFromRemote
+
+		remote = determineSourceRemote(branch)
+		if len(args) > 0 {
+			ok, err := git.IsRemote(args[0])
+			if err != nil || !ok {
+				log.Fatal(args[0], "is not a remote:", err)
+			}
+			remote = args[0]
 		}
 
 		// See if we're in a git repo or if global is set to determine
@@ -52,29 +58,28 @@ Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		sha, err := git.Sha("HEAD")
-		if err != nil {
-			log.Fatal(err)
-		}
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 
 		boxes = make(map[string]*tview.TextView)
-		jobsCh := make(chan []gitlab.Job)
-		go updateJobs(a, jobsCh, project.ID, sha)
-		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
+		jobsCh := make(chan []*gitlab.Job)
+
+		go updateJobs(a, jobsCh, project.ID, branch)
+		go refreshScreen(a)
+		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(a, jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
 var (
-	jobs  []gitlab.Job
+	jobs  []*gitlab.Job
 	boxes map[string]*tview.TextView
 )
 
-func jobsView(jobsCh chan []gitlab.Job, root *tview.Pages) func(screen tcell.Screen) bool {
+func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pages) func(screen tcell.Screen) bool {
 	return func(screen tcell.Screen) bool {
+		defer recoverPanic(app)
 		screen.Clear()
 		select {
 		case jobs = <-jobsCh:
@@ -84,8 +89,6 @@ func jobsView(jobsCh chan []gitlab.Job, root *tview.Pages) func(screen tcell.Scr
 			}
 		}
 		px, _, maxX, maxY := root.GetInnerRect()
-		//px, py, maxX, maxY := root.GetInnerRect()
-		//fmt.Printf("root x: %d, y: %d, w: %d, h: %d\n", px, py, maxX, maxY)
 		var (
 			stages    = 0
 			lastStage = ""
@@ -127,7 +130,6 @@ func jobsView(jobsCh chan []gitlab.Job, root *tview.Pages) func(screen tcell.Scr
 				lastStage = j.Stage
 				stageIdx++
 			}
-			//fmt.Printf("\nstage: %s, stageIdx: %d, rowIdx: %d\n", j.Stage, stageIdx, rowIdx)
 			boxX := px + (maxX / stages * stageIdx)
 
 			key := "jobs-" + j.Name
@@ -154,8 +156,7 @@ func jobsView(jobsCh chan []gitlab.Job, root *tview.Pages) func(screen tcell.Scr
 				b.SetBorderColor(tcell.ColorGrey)
 				statChar = '●'
 			}
-			retryChar := '⟳'
-			_ = retryChar
+			// retryChar := '⟳'
 			title := fmt.Sprintf("%c %s", statChar, j.Name)
 			// trim the suffix if it matches the stage, I've seen
 			// the pattern in 2 different places to handle
@@ -203,21 +204,37 @@ func box(root *tview.Pages, key string, x, y, w, h int) *tview.TextView {
 	return b
 }
 
-func updateJobs(app *tview.Application, jobsCh chan []gitlab.Job, pid interface{}, sha string) {
+func recoverPanic(app *tview.Application) {
+	if r := recover(); r != nil {
+		app.Stop()
+		log.Fatalf("%s\n%s\n", r, string(debug.Stack()))
+	}
+}
+
+func refreshScreen(app *tview.Application) {
+	defer recoverPanic(app)
 	for {
-		jobs, err := lab.CIJobs(pid, sha)
-		if err != nil {
+		app.Draw()
+		time.Sleep(time.Second * 1)
+	}
+}
+
+func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job, pid interface{}, branch string) {
+	defer recoverPanic(app)
+	for {
+		jobs, err := lab.CIJobs(pid, branch)
+		if len(jobs) == 0 || err != nil {
 			app.Stop()
-			log.Fatal(err)
+			log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
 		}
-		go app.Draw()
-		jobsCh <- jobs
+		jobsCh <- latestJobs(jobs)
 		time.Sleep(time.Second * 5)
 	}
 }
 
 func connectJobsView(app *tview.Application) func(screen tcell.Screen) {
 	return func(screen tcell.Screen) {
+		defer recoverPanic(app)
 		err := connectJobs(screen, jobs, boxes)
 		if err != nil {
 			app.Stop()
@@ -226,7 +243,7 @@ func connectJobsView(app *tview.Application) func(screen tcell.Screen) {
 	}
 }
 
-func connectJobs(screen tcell.Screen, jobs []gitlab.Job, boxes map[string]*tview.TextView) error {
+func connectJobs(screen tcell.Screen, jobs []*gitlab.Job, boxes map[string]*tview.TextView) error {
 	for i, j := range jobs {
 		if _, ok := boxes["jobs-"+j.Name]; !ok {
 			return errors.Errorf("jobs-%s not found at index: %d", jobs[i].Name, i)
@@ -278,11 +295,6 @@ func connect(screen tcell.Screen, v1 *tview.Box, v2 *tview.Box, padding int, fir
 		return
 	}
 
-	// cells := screen.CellBuffer()
-	// tw, _ := screen.Size()
-
-	// '┣' '┫'
-
 	// Drawing a job in the same stage
 	// left of view
 	if !firstStage {
@@ -311,7 +323,6 @@ func connect(screen tcell.Screen, v1 *tview.Box, v2 *tview.Box, padding int, fir
 
 		vline(screen, x2+w+p-1, y1+h-1, dy-1)
 	}
-
 }
 
 func hline(screen tcell.Screen, x, y, l int) {
@@ -324,6 +335,34 @@ func vline(screen tcell.Screen, x, y, l int) {
 	for i := 0; i < l; i++ {
 		screen.SetContent(x, y+i, '┃', nil, tcell.StyleDefault)
 	}
+}
+
+// latestJobs returns a list of unique jobs favoring the last stage+name
+// version of a job in the provided list
+func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
+	var (
+		lastJob = make(map[string]*gitlab.Job, len(jobs))
+		dupIdx  = -1
+	)
+	for i, j := range jobs {
+		_, ok := lastJob[j.Stage+j.Name]
+		if dupIdx == -1 && ok {
+			dupIdx = i
+		}
+		// always want the latest job
+		lastJob[j.Stage+j.Name] = j
+	}
+	if dupIdx == -1 {
+		dupIdx = len(jobs)
+	}
+	// first duplicate marks where retries begin
+	outJobs := make([]*gitlab.Job, dupIdx)
+	for i := range outJobs {
+		j := jobs[i]
+		outJobs[i] = lastJob[j.Stage+j.Name]
+	}
+
+	return outJobs
 }
 
 func init() {

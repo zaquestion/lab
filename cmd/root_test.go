@@ -104,7 +104,7 @@ func TestRootNoArg(t *testing.T) {
 	assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>]")
 	assert.Contains(t, string(b), `These GitLab commands are provided by lab:
 
-  ci            Work with the GitLab CI pipeline for your refs`)
+  ci            Work with GitLab CI pipelines and jobs`)
 }
 
 func TestRootVersion(t *testing.T) {
@@ -167,7 +167,7 @@ func TestGitHelp(t *testing.T) {
 			assert.Contains(t, res, "usage: git [--version] [--help] [-C <path>]")
 			assert.Contains(t, res, `These GitLab commands are provided by lab:
 
-  ci            Work with the GitLab CI pipeline for your refs`)
+  ci            Work with GitLab CI pipelines and jobs`)
 		})
 	}
 }

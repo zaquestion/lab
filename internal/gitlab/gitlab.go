@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -364,65 +363,67 @@ func ProjectDelete(pid interface{}) error {
 
 // CIJobs returns a list of jobs in a pipeline for a given sha. The jobs are
 // returned sorted by their CreatedAt time
-func CIJobs(pid interface{}, sha string) ([]gitlab.Job, error) {
-	pipelines, _, err := lab.Pipelines.ListProjectPipelines(pid)
+func CIJobs(pid interface{}, branch string) ([]*gitlab.Job, error) {
+	pipelines, _, err := lab.Pipelines.ListProjectPipelines(pid, &gitlab.ListProjectPipelinesOptions{
+		Ref: gitlab.String(branch),
+	})
+	if len(pipelines) == 0 || err != nil {
+		return nil, err
+	}
+	target := pipelines[0].ID
+	jobs, _, err := lab.Jobs.ListPipelineJobs(pid, target, &gitlab.ListJobsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 500,
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
-	var target int
-	for _, p := range pipelines {
-		if p.Sha != sha {
-			continue
-		}
-		target = p.ID
-		break
-	}
-	jobs, _, err := lab.Jobs.ListPipelineJobs(pid, target, &gitlab.ListJobsOptions{})
-	if err != nil {
-		return nil, err
-	}
-	sort.Sort(ciJobs(jobs))
 	return jobs, nil
-}
-
-type ciJobs []gitlab.Job
-
-func (js ciJobs) Len() int {
-	return len(js)
-}
-
-func (js ciJobs) Less(i, j int) bool {
-	return js[i].CreatedAt.Before(*js[j].CreatedAt)
-}
-
-func (js ciJobs) Swap(i, j int) {
-	js[i], js[j] = js[j], js[i]
 }
 
 // CITrace searches by name for a job and returns its trace file. The trace is
 // static so may only be a portion of the logs if the job is till running. If
-// no name is provided the most recent running job
-func CITrace(pid interface{}, sha, name string) (io.Reader, *gitlab.Job, error) {
-	jobs, err := CIJobs(pid, sha)
-	if err != nil {
+// no name is provided job is picked using the first available:
+// 1. Last Running Job
+// 2. First Pending Job
+// 3. Last Job in Pipeline
+func CITrace(pid interface{}, branch, name string) (io.Reader, *gitlab.Job, error) {
+	jobs, err := CIJobs(pid, branch)
+	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
 	}
 	var (
-		job = jobs[len(jobs)-1]
+		job          *gitlab.Job
+		lastRunning  *gitlab.Job
+		firstPending *gitlab.Job
 	)
+
 	for _, j := range jobs {
 		if j.Status == "running" {
-			job = j
+			lastRunning = j
+		}
+		if j.Status == "pending" && firstPending == nil {
+			firstPending = j
 		}
 		if j.Name == name {
 			job = j
-			break
+			// don't break because there may be a newer version of the job
 		}
+	}
+	if job == nil {
+		job = lastRunning
+	}
+	if job == nil {
+		job = firstPending
+	}
+	if job == nil {
+		job = jobs[len(jobs)-1]
 	}
 	r, _, err := lab.Jobs.GetTraceFile(pid, job.ID)
 	if err != nil {
-		return nil, &job, err
+		return nil, job, err
 	}
 
-	return r, &job, err
+	return r, job, err
 }

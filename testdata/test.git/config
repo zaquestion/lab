@@ -46,3 +46,6 @@
 [remote "origin-subfolder-custom-port"]
 	url = ssh://git@git.mydomain.net:12345/zaquestion/sub/folder/test.git
 	fetch = +refs/heads/*:refs/remotes/origin-subfolder-custom-port/*
+[branch "ci_test_pipeline"]
+	remote = origin
+	merge = refs/heads/ci_test_pipeline
