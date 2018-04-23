@@ -64,6 +64,13 @@ Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 		boxes = make(map[string]*tview.TextView)
 		jobsCh := make(chan []*gitlab.Job)
 
+		a.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			if event.Key() == tcell.KeyEscape || event.Rune() == 'q' {
+				a.Stop()
+				return nil
+			}
+			return event
+		})
 		go updateJobs(a, jobsCh, project.ID, branch)
 		go refreshScreen(a)
 		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(a, jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
