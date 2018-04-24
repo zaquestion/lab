@@ -437,6 +437,38 @@ func CITrace(pid interface{}, branch, name string) (io.Reader, *gitlab.Job, erro
 	return r, job, err
 }
 
+// CIPlayOrRetry runs a job either by playing it for the first time or by
+// retrying it based on the currently known job state
+func CIPlayOrRetry(pid interface{}, jobID int, status string) (*gitlab.Job, error) {
+	switch status {
+	case "pending", "running":
+		return nil, nil
+	case "manual":
+		j, _, err := lab.Jobs.PlayJob(pid, jobID)
+		if err != nil {
+			return nil, err
+		}
+		return j, nil
+	default:
+
+		j, _, err := lab.Jobs.RetryJob(pid, jobID)
+		if err != nil {
+			return nil, err
+		}
+
+		return j, nil
+	}
+}
+
+// CICancel cancels a job for a given project by its ID.
+func CICancel(pid interface{}, jobID int) (*gitlab.Job, error) {
+	j, _, err := lab.Jobs.CancelJob(pid, jobID)
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
+}
+
 // UserIDFromUsername returns the associated Users ID in GitLab. This is useful
 // for API calls that allow you to reference a user, but only by ID.
 func UserIDFromUsername(username string) (int, error) {

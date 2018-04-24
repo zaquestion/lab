@@ -75,6 +75,12 @@
   revision = "231272389856c976b7500c4fffcc52ddf06ff4eb"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/lunixbochs/vtclean"
+  packages = ["."]
+  revision = "2d01aacdc34a083dca635ba869909f5fc0cd4f41"
+
+[[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
   revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
@@ -224,6 +230,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "98963baaaafad6ea2388aa7a45a7d683a478aa8cf131ec28ab010fe9dc0546a4"
+  inputs-digest = "0de0b1b88b9da365d331df14db84591a6b3d8c29ead463ebb79bf65e49c9bda4"
   solver-name = "gps-cdcl"
   solver-version = 1

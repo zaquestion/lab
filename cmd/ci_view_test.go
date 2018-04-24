@@ -662,3 +662,181 @@ func Test_latestJobs(t *testing.T) {
 		})
 	}
 }
+
+func Test_adjacentStages(t *testing.T) {
+	tests := []struct {
+		desc                       string
+		stage                      string
+		jobs                       []*gitlab.Job
+		expectedPrev, expectedNext string
+	}{
+		{
+			"first stage",
+			"1",
+			[]*gitlab.Job{
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+			},
+			"1", "2",
+		},
+		{
+			"mid stage",
+			"2",
+			[]*gitlab.Job{
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "3",
+				},
+			},
+			"1", "3",
+		},
+		{
+			"last stage",
+			"3",
+			[]*gitlab.Job{
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "3",
+				},
+			},
+			"2", "3",
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			prev, next := adjacentStages(test.jobs, test.stage)
+			assert.Equal(t, test.expectedPrev, prev)
+			assert.Equal(t, test.expectedNext, next)
+		})
+	}
+}
+
+func Test_stageBounds(t *testing.T) {
+	tests := []struct {
+		desc                         string
+		stage                        string
+		jobs                         []*gitlab.Job
+		expectedLower, expectedUpper int
+	}{
+		{
+			"first stage",
+			"1",
+			[]*gitlab.Job{
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+			},
+			0, 2,
+		},
+		{
+			"mid stage",
+			"2",
+			[]*gitlab.Job{
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "3",
+				},
+			},
+			3, 4,
+		},
+		{
+			"last stage",
+			"3",
+			[]*gitlab.Job{
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "1",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "2",
+				},
+				&gitlab.Job{
+					Stage: "3",
+				},
+			},
+			5, 5,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			lower, upper := stageBounds(test.jobs, test.stage)
+			assert.Equal(t, test.expectedLower, lower)
+			assert.Equal(t, test.expectedUpper, upper)
+		})
+	}
+}

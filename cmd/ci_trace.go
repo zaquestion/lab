@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -43,7 +44,7 @@ var ciTraceCmd = &cobra.Command{
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil || !ok {
-				log.Fatal(args[0], "is not a remote:", err)
+				log.Fatal(args[0], " is not a remote:", err)
 			}
 			remote = args[0]
 		}
@@ -56,47 +57,52 @@ var ciTraceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		var (
-			once   sync.Once
-			offset int64
-		)
-	FOR:
-		for range time.NewTicker(time.Second * 3).C {
-			trace, job, err := lab.CITrace(project.ID, branch, jobName)
-			if job == nil {
-				log.Fatal(errors.Wrap(err, "failed to find job"))
-			}
-			switch job.Status {
-			case "pending":
-				fmt.Printf("%s is pending...\n", job.Name)
-				continue
-			case "manual":
-				fmt.Printf("Manual job %s not started\n", job.Name)
-				break FOR
-			}
-			once.Do(func() {
-				if jobName == "" {
-					jobName = job.Name
-				}
-				fmt.Printf("Showing logs for %s job #%d\n", job.Name, job.ID)
-			})
-			buf, err := ioutil.ReadAll(trace)
-			if err != nil {
-				log.Fatal(err)
-			}
-			r := bytes.NewReader(buf)
-			r.Seek(offset, io.SeekStart)
-			new, err := ioutil.ReadAll(r)
-
-			offset += int64(len(new))
-			fmt.Print(string(new))
-			if job.Status == "success" ||
-				job.Status == "failed" ||
-				job.Status == "cancelled" {
-				break
-			}
-		}
+		doTrace(os.Stdout, project.ID, branch, jobName)
 	},
+}
+
+func doTrace(w io.Writer, pid interface{}, branch, name string) error {
+	var (
+		once   sync.Once
+		offset int64
+	)
+	for range time.NewTicker(time.Second * 3).C {
+		trace, job, err := lab.CITrace(pid, branch, name)
+		if job == nil {
+			log.Fatal(errors.Wrap(err, "failed to find job"))
+		}
+		switch job.Status {
+		case "pending":
+			fmt.Fprintf(w, "%s is pending... waiting for job to start\n", job.Name)
+			continue
+		case "manual":
+			fmt.Fprintf(w, "Manual job %s not started, waiting for job to start\n", job.Name)
+			continue
+		}
+		once.Do(func() {
+			if name == "" {
+				name = job.Name
+			}
+			fmt.Fprintf(w, "Showing logs for %s job #%d\n", job.Name, job.ID)
+		})
+		// TODO: can trace be passed directly to the readseaker?
+		buf, err := ioutil.ReadAll(trace)
+		if err != nil {
+			log.Fatal(err)
+		}
+		r := bytes.NewReader(buf)
+		r.Seek(offset, io.SeekStart)
+		new, err := ioutil.ReadAll(r)
+
+		offset += int64(len(new))
+		fmt.Fprint(w, string(new))
+		if job.Status == "success" ||
+			job.Status == "failed" ||
+			job.Status == "cancelled" {
+			return nil
+		}
+	}
+	return nil
 }
 
 func init() {
