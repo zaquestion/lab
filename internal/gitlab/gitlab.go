@@ -245,7 +245,38 @@ func MRMerge(pid interface{}, id int) error {
 	return nil
 }
 
-// IssueCreate opens a new issue on a GitLab Project
+// MRApprove approves an mr on a GitLab project
+func MRApprove(pid interface{}, id int) error {
+	_, _, err := lab.MergeRequestApprovals.ApproveMergeRequest(pid, id, &gitlab.ApproveMergeRequestOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MRThumbUp places a thumb up/down on a merge request
+func MRThumbUp(pid interface{}, id int) error {
+	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(pid, id, &gitlab.CreateAwardEmojiOptions{
+		Name: "thumbsup",
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MRThumbDown places a thumb up/down on a merge request
+func MRThumbDown(pid interface{}, id int) error {
+	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(pid, id, &gitlab.CreateAwardEmojiOptions{
+		Name: "thumbsdown",
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// IssueCreate opens a new issue on a GitLab project
 func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
