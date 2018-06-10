@@ -12,6 +12,7 @@ import (
 
 	retry "github.com/avast/retry-go"
 	"github.com/pkg/errors"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 // IsHub is true when using "hub" as the git binary
