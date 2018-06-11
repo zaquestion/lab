@@ -12,7 +12,7 @@ import (
 
 	retry "github.com/avast/retry-go"
 	"github.com/pkg/errors"
-	"github.com/tcnksm/go-gitconfig"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 // IsHub is true when using "hub" as the git binary
@@ -93,7 +93,7 @@ func LastCommitMessage() (string, error) {
 	return strings.TrimSpace(string(msg)), nil
 }
 
-// Log produces a a formatted gitlog between 2 git shas
+// Log produces a formatted gitlog between 2 git shas
 func Log(sha1, sha2 string) (string, error) {
 	cmd := New("-c", "log.showSignature=false",
 		"log",

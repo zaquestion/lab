@@ -3,9 +3,10 @@ package main
 import (
 	"log"
 	"os"
+	"os/user"
 	"path"
+	"runtime"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/cmd"
 	"github.com/zaquestion/lab/internal/config"
@@ -19,10 +20,20 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
 
-	home, err := homedir.Dir()
-	if err != nil {
-		log.Fatal(err)
+	var home string
+	switch runtime.GOOS {
+	case "windows":
+		// userprofile works for roaming AD profiles
+		home = os.Getenv("USERPROFILE")
+	default:
+		// Assume linux or osx
+		u, err := user.Current()
+		if err != nil {
+			log.Fatalf("cannot retrieve current user: %v \n", err)
+		}
+		home = u.HomeDir
 	}
+
 	confpath := path.Join(home, ".config")
 	if _, err := os.Stat(confpath); os.IsNotExist(err) {
 		os.Mkdir(confpath, 0700)
