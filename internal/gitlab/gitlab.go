@@ -361,6 +361,15 @@ func ProjectDelete(pid interface{}) error {
 	return nil
 }
 
+// ProjectList gets a list of projects on GitLab
+func ProjectList(opts *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
+	list, _, err := lab.Projects.ListProjects(opts)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
 // CIJobs returns a list of jobs in a pipeline for a given sha. The jobs are
 // returned sorted by their CreatedAt time
 func CIJobs(pid interface{}, branch string) ([]*gitlab.Job, error) {
