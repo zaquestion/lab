@@ -107,43 +107,41 @@ func init() {
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 }
 
-// parseArgsRemote returns the remote and a number if parsed. Many commands
-// accept a remote to operate on and number such as a page id
-func parseArgsRemote(args []string) (string, int64, error) {
+// parseArgsStr returns a string and a number if parsed. Many commands accept a
+// string to operate on (remote or search) and number such as a page id
+func parseArgsStr(args []string) (string, int64, error) {
 	if len(args) == 2 {
 		n, err := strconv.ParseInt(args[1], 0, 64)
 		if err != nil {
-			return "", 0, err
-		}
-		ok, err := git.IsRemote(args[0])
-		if err != nil {
-			return "", 0, err
-		} else if !ok {
-			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
+			return args[0], 0, err
 		}
 		return args[0], n, nil
 	}
 	if len(args) == 1 {
-		ok, err := git.IsRemote(args[0])
+		n, err := strconv.ParseInt(args[0], 0, 64)
 		if err != nil {
-			return "", 0, err
-		}
-		if ok {
 			return args[0], 0, nil
 		}
-		n, err := strconv.ParseInt(args[0], 0, 64)
-		if err == nil {
-			return "", n, nil
-		}
-		return "", 0, errors.Errorf("%s is not a valid remote or number", args[0])
+		return "", n, nil
 	}
 	return "", 0, nil
 }
 
 func parseArgs(args []string) (string, int64, error) {
-	remote, num, err := parseArgsRemote(args)
+	remote, num, err := parseArgsStr(args)
 	if err != nil {
 		return "", 0, err
+	}
+	ok, err := git.IsRemote(remote)
+	if err != nil {
+		return "", 0, err
+	} else if !ok && remote != "" {
+		switch len(args) {
+		case 1:
+			return "", 0, errors.Errorf("%s is not a valid remote or number", args[0])
+		default:
+			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
+		}
 	}
 	if remote == "" {
 		remote = forkedFromRemote

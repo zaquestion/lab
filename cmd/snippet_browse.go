@@ -8,7 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/zaquestion/lab/internal/git"
 )
 
 var snippetBrowseCmd = &cobra.Command{
@@ -16,12 +15,9 @@ var snippetBrowseCmd = &cobra.Command{
 	Short: "View personal or project snippet in a browser",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, id, err := parseArgsRemote(args)
+		rn, id, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
 		}
 
 		c := viper.AllSettings()["core"]
@@ -34,7 +30,6 @@ var snippetBrowseCmd = &cobra.Command{
 
 		// See if we're in a git repo or if global is set to determine
 		// if this should be a personal snippet
-		rn, _ := git.PathWithNameSpace(remote)
 		if global || rn == "" {
 			hostURL.Path = path.Join(hostURL.Path, "dashboard", "snippets")
 		} else {

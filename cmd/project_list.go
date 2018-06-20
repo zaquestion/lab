@@ -3,35 +3,35 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"strconv"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var projectListCmd = &cobra.Command{
-	Use:     "list [page]",
-	Aliases: []string{"ls"},
-	Short:   "List all projects",
+	Use:     "list [search [page]]",
+	Aliases: []string{"ls", "search"},
+	Short:   "List your projects",
 	Run: func(cmd *cobra.Command, args []string) {
-		page := 0
-		if len(args) == 1 {
-			n, err := strconv.ParseInt(args[0], 0, 64)
-			if err != nil {
-				log.Fatal(errors.Errorf("%s is not a valid page number", args[0]))
-			}
-			page = int(n)
+		search, page, err := parseArgsStr(args)
+		if err != nil {
+			log.Fatal(err)
+		}
+		all, err := cmd.Flags().GetBool("all")
+		if err != nil {
+			log.Fatal(err)
 		}
 		projects, err := lab.ProjectList(&gitlab.ListProjectsOptions{
 			ListOptions: gitlab.ListOptions{
-				Page:    page,
+				Page:    int(page),
 				PerPage: 10,
 			},
 			Simple:  gitlab.Bool(true),
 			OrderBy: gitlab.String("id"),
 			Sort:    gitlab.String("asc"),
+			Owned:   gitlab.Bool(!all),
+			Search:  gitlab.String(search),
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -44,4 +44,5 @@ var projectListCmd = &cobra.Command{
 
 func init() {
 	projectCmd.AddCommand(projectListCmd)
+	projectListCmd.Flags().BoolP("all", "a", false, "list all projects")
 }
