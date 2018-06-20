@@ -195,6 +195,11 @@ func Execute() {
 			}
 		}
 
+		// Lab passthrough for these commands can cause confusion. See #163
+		if os.Args[1] == "create" {
+			log.Fatalf("Please call `hub create` directly for github, the lab equivalent is `lab project create`")
+		}
+
 		// Passthrough to git for any unrecognized commands
 		err = git.New(os.Args[1:]...).Run()
 		if exiterr, ok := err.(*exec.ExitError); ok {
