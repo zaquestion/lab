@@ -15,24 +15,11 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
-// IsHub is true when using "hub" as the git binary
-var IsHub bool
-
-func init() {
-	_, err := exec.LookPath("hub")
-	if err == nil {
-		IsHub = true
-	}
-}
-
 // New looks up the hub or git binary and returns a cmd which outputs to stdout
 func New(args ...string) *exec.Cmd {
-	gitPath, err := exec.LookPath("hub")
+	gitPath, err := exec.LookPath("git")
 	if err != nil {
-		gitPath, err = exec.LookPath("git")
-		if err != nil {
-			log.Fatal(err)
-		}
+		log.Fatal(err)
 	}
 
 	cmd := exec.Command(gitPath, args...)

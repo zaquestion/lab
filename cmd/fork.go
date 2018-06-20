@@ -33,19 +33,6 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 		log.Fatal("remote: upstream already exists")
 	}
 
-	remoteURL, err := gitconfig.Local("remote.origin.url")
-	if err != nil {
-		log.Fatal(err)
-	}
-	if git.IsHub && strings.Contains(remoteURL, "github.com") {
-		git := git.New("fork")
-		git.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
-
 	project, err := git.PathWithNameSpace("origin")
 	if err != nil {
 		log.Fatal(err)
