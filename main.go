@@ -6,6 +6,7 @@ import (
 	"os/user"
 	"path"
 	"runtime"
+	"strings"
 
 	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/cmd"
@@ -16,10 +17,7 @@ import (
 // version gets set on releases during build by goreleaser.
 var version = "master"
 
-func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	cmd.Version = version
-
+func loadConfig() (string, string, string) {
 	var home string
 	switch runtime.GOOS {
 	case "windows":
@@ -33,7 +31,6 @@ func main() {
 		}
 		home = u.HomeDir
 	}
-
 	confpath := path.Join(home, ".config")
 	if _, err := os.Stat(confpath); os.IsNotExist(err) {
 		os.Mkdir(confpath, 0700)
@@ -43,7 +40,11 @@ func main() {
 	viper.SetConfigType("hcl")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath(confpath)
+
+	viper.SetEnvPrefix("LAB")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
 		if err := config.New(path.Join(confpath, "lab.hcl"), os.Stdin); err != nil {
 			log.Fatal(err)
@@ -73,10 +74,26 @@ func main() {
 		}
 	}
 
-	lab.Init(
-		cfg["host"].(string),
-		cfg["user"].(string),
-		cfg["token"].(string))
+	// Set environment overrides
+	// Note: the code below that uses `cfg["host"]` to access these values
+	// is tough to simplify since cfg["host"] is accessing the array "core"
+	// and viper.GetString("core.host") is expecting a non-array so it
+	// doens't match
+	if v := viper.GetString("core.host"); v != "" {
+		cfg["host"] = v
+	}
+	if v := viper.GetString("core.user"); v != "" {
+		cfg["user"] = v
+	}
+	if v := viper.GetString("core.token"); v != "" {
+		cfg["token"] = v
+	}
+	return cfg["host"].(string), cfg["user"].(string), cfg["token"].(string)
+}
 
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	cmd.Version = version
+	lab.Init(loadConfig())
 	cmd.Execute()
 }

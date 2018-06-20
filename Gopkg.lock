@@ -162,7 +162,7 @@
   branch = "master"
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "8dc2790b029dc41e2b8ff772c63c26adbb1db70d"
+  revision = "15738813a09db5c8e5b60a19d67d3f9bd38da3a4"
 
 [[projects]]
   name = "github.com/stretchr/testify"
