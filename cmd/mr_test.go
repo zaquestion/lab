@@ -25,6 +25,7 @@ func Test_mrCmd(t *testing.T) {
 		cmd := exec.Command("../lab_bin", "mr", "create", "lab-testing", "master",
 			"-m", "mr title",
 			"-m", "mr description",
+			"-a", "lab-testing",
 		)
 		cmd.Dir = repo
 
@@ -53,6 +54,7 @@ func Test_mrCmd(t *testing.T) {
 		require.Contains(t, out, "Project: lab-testing/test\n")
 		require.Contains(t, out, "Branches: mrtest->master\n")
 		require.Contains(t, out, "Status: Open\n")
+		require.Contains(t, out, "Assignee: lab-testing\n")
 		require.Contains(t, out, fmt.Sprintf("#%s mr title", mrID))
 		require.Contains(t, out, "===================================\nmr description")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/merge_requests/%s", mrID))

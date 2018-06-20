@@ -17,7 +17,8 @@ func Test_issueCmd(t *testing.T) {
 			"-m", "issue title",
 			"-m", "issue description",
 			"-l", "bug",
-			"-l", "critical")
+			"-l", "critical",
+			"-a", "lab-testing")
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -49,6 +50,7 @@ func Test_issueCmd(t *testing.T) {
 		out := string(b)
 		require.Contains(t, out, "Project: lab-testing/test\n")
 		require.Contains(t, out, "Status: Open\n")
+		require.Contains(t, out, "Assignees: lab-testing\n")
 		require.Contains(t, out, fmt.Sprintf("#%s issue title", issueID))
 		require.Contains(t, out, "===================================\nissue description")
 		require.Contains(t, out, "Labels: bug, critical\n")

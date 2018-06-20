@@ -427,3 +427,15 @@ func CITrace(pid interface{}, branch, name string) (io.Reader, *gitlab.Job, erro
 
 	return r, job, err
 }
+
+// UserIDFromUsername returns the associated Users ID in GitLab. This is useful
+// for API calls that allow you to reference a user, but only by ID.
+func UserIDFromUsername(username string) (int, error) {
+	us, _, err := lab.Users.ListUsers(&gitlab.ListUsersOptions{
+		Username: gitlab.String(username),
+	})
+	if err != nil || len(us) == 0 {
+		return -1, err
+	}
+	return us[0].ID, nil
+}

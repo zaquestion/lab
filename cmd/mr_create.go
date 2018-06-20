@@ -30,12 +30,36 @@ var mrCreateCmd = &cobra.Command{
 
 func init() {
 	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	mrCreateCmd.Flags().StringP("assignee", "a", "", "Set assignee by username")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 	mrCmd.AddCommand(mrCreateCmd)
 }
 
+// getAssignee returns the assigneeID for use with other GitLab API calls.
+// NOTE: It is also used by issue_create.go
+func getAssigneeID(assignee string) *int {
+	if assignee == "" {
+		return nil
+	}
+	if assignee[0] == '@' {
+		assignee = assignee[1:]
+	}
+	assigneeID, err := lab.UserIDFromUsername(assignee)
+	if err != nil {
+		return nil
+	}
+	if assigneeID == -1 {
+		return nil
+	}
+	return gitlab.Int(assigneeID)
+}
+
 func runMRCreate(cmd *cobra.Command, args []string) {
 	msgs, err := cmd.Flags().GetStringSlice("message")
+	if err != nil {
+		log.Fatal(err)
+	}
+	assignee, err := cmd.Flags().GetString("assignee")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -109,6 +133,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		TargetProjectID: &targetProject.ID,
 		Title:           &title,
 		Description:     &body,
+		AssigneeID:      getAssigneeID(assignee),
 	})
 	if err != nil {
 		// FIXME: not exiting fatal here to allow code coverage to

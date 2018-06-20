@@ -25,6 +25,10 @@ var issueCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		assignees, err := cmd.Flags().GetStringSlice("assignees")
+		if err != nil {
+			log.Fatal(err)
+		}
 		labels, err := cmd.Flags().GetStringSlice("label")
 		if err != nil {
 			log.Fatal(err)
@@ -53,10 +57,16 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal("aborting issue due to empty issue msg")
 		}
 
+		assigneeIDs := make([]int, len(assignees))
+		for i, a := range assignees {
+			assigneeIDs[i] = *getAssigneeID(a)
+		}
+
 		issueURL, err := lab.IssueCreate(rn, &gitlab.CreateIssueOptions{
 			Title:       &title,
 			Description: &body,
 			Labels:      gitlab.Labels(labels),
+			AssigneeIDs: assigneeIDs,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -116,5 +126,6 @@ func issueText() (string, error) {
 func init() {
 	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
+	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
 	issueCmd.AddCommand(issueCreateCmd)
 }
