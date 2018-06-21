@@ -58,7 +58,7 @@ var checkoutCmd = &cobra.Command{
 			// Check if remote already exists
 			if _, err := gitconfig.Local("remote." + mr.Author.Username + ".url"); err != nil {
 				// Find and create remote
-				mrProject, err := lab.GetProject(mr.ProjectID)
+				mrProject, err := lab.GetProject(mr.SourceProjectID)
 				if err != nil {
 					log.Fatal(err)
 				}
