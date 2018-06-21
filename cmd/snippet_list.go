@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -16,12 +15,9 @@ var snippetListCmd = &cobra.Command{
 	Short: "List personal or project snippets",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, page, err := parseArgsRemote(args)
+		rn, page, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
 		}
 		listOpts := gitlab.ListOptions{
 			Page:    int(page),
@@ -30,7 +26,6 @@ var snippetListCmd = &cobra.Command{
 
 		// See if we're in a git repo or if global is set to determine
 		// if this should be a personal snippet
-		rn, _ := git.PathWithNameSpace(remote)
 		if global || rn == "" {
 			opts := gitlab.ListSnippetsOptions(listOpts)
 			snips, err := lab.SnippetList(&opts)

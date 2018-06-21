@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -14,20 +13,9 @@ var projectBrowseCmd = &cobra.Command{
 	Short:   "View project in a browser",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, _, err := parseArgsRemote(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if remote == "" {
-			remote = forkedFromRemote
-		}
+		rn, _, err := parseArgs(args)
 
-		name, err := git.PathWithNameSpace(remote)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		p, err := lab.FindProject(name)
+		p, err := lab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}

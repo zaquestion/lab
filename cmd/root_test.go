@@ -172,7 +172,7 @@ func TestGitHelp(t *testing.T) {
 	}
 }
 
-func Test_parseArgsRemote(t *testing.T) {
+func Test_parseArgsStr(t *testing.T) {
 	tests := []struct {
 		Name           string
 		Args           []string
@@ -197,9 +197,9 @@ func Test_parseArgsRemote(t *testing.T) {
 		{
 			Name:           "1 arg non remote",
 			Args:           []string{"foo"},
-			ExpectedString: "",
+			ExpectedString: "foo",
 			ExpectedInt:    0,
-			ExpectedErr:    "foo is not a valid remote or number",
+			ExpectedErr:    "",
 		},
 		{
 			Name:           "1 arg page",
@@ -211,28 +211,28 @@ func Test_parseArgsRemote(t *testing.T) {
 		{
 			Name:           "1 arg invalid page",
 			Args:           []string{"asdf100"},
-			ExpectedString: "",
+			ExpectedString: "asdf100",
 			ExpectedInt:    0,
-			ExpectedErr:    "asdf100 is not a valid remote or number",
+			ExpectedErr:    "",
 		},
 		{
-			Name:           "2 arg remote page",
+			Name:           "2 arg str page",
 			Args:           []string{"origin", "100"},
 			ExpectedString: "origin",
 			ExpectedInt:    100,
 			ExpectedErr:    "",
 		},
 		{
-			Name:           "2 arg invalid remote valid page",
+			Name:           "2 arg valid str valid page",
 			Args:           []string{"foo", "100"},
-			ExpectedString: "",
-			ExpectedInt:    0,
-			ExpectedErr:    "foo is not a valid remote",
+			ExpectedString: "foo",
+			ExpectedInt:    100,
+			ExpectedErr:    "",
 		},
 		{
-			Name:           "2 arg valid remote invalid page",
+			Name:           "2 arg valid str invalid page",
 			Args:           []string{"foo", "asdf100"},
-			ExpectedString: "",
+			ExpectedString: "foo",
 			ExpectedInt:    0,
 			ExpectedErr:    "strconv.ParseInt: parsing \"asdf100\": invalid syntax",
 		},
@@ -241,7 +241,7 @@ func Test_parseArgsRemote(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			s, i, err := parseArgsRemote(test.Args)
+			s, i, err := parseArgsStr(test.Args)
 			if err != nil {
 				assert.EqualError(t, err, test.ExpectedErr)
 			}
@@ -309,7 +309,7 @@ func Test_parseArgs(t *testing.T) {
 			ExpectedErr:    "foo is not a valid remote",
 		},
 		{
-			Name:           "2 arg valid remote invalid page",
+			Name:           "2 arg invalid remote invalid page",
 			Args:           []string{"foo", "asdf100"},
 			ExpectedString: "",
 			ExpectedInt:    0,

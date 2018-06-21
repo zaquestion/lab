@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -16,14 +15,10 @@ var snippetDeleteCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		remote, id, err := parseArgsRemote(args)
+		rn, id, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if remote == "" {
-			remote = forkedFromRemote
-		}
-		rn, _ := git.PathWithNameSpace(remote)
 		if global || rn == "" {
 			err = lab.SnippetDelete(int(id))
 			if err != nil {
