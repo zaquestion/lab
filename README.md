@@ -2,7 +2,7 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/2358914/34196973-420d389a-e519-11e7-92e6-3a1486d6b280.png" align="center" height="350"></p>
 
-Lab wraps Git or [Hub](https://github.com/github/hub), making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
+Lab wraps Git, making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
 
 ```
 $ lab clone gitlab-com/infrastructure
@@ -11,25 +11,15 @@ $ lab clone gitlab-com/infrastructure
 $ git clone git@gitlab.com:gitlab-com/infrastructure
 ```
 
-## hub + lab = hublab??
-
-lab will look for hub and uses that as your git binary when available so you don't have to give up hub to use lab
-```
-$ lab version
-git version 2.11.0
-hub version 2.3.0-pre9
-lab version 0.11.1
-```
-
 # Inspiration
 
-The [hub](https://github.com/github/hub) tool made my life significantly easier and still does! lab is heavily inspired by hub and attempts to provide a similar feel.
+The [hub](https://github.com/github/hub) tool made my life significantly easier and still does! lab is heavily inspired by hub and attempts to provide a similar feel. Be aware, lab and hub differ in that most commands in lab are organized by `lab <NOUN> <verb>`. For instance use `lab mr create` to create a merge request.
 
 # Installation
 
 Dependencies
 
-* `git` or `hub`
+* `git`
 
 ### Homebrew
 ```
@@ -77,5 +67,7 @@ Enter default GitLab token:
 
 Like hub, lab feels best when aliased as `git`. In your `.bashrc` or `.bash_profile`
 ```
-alias git=lab
+if which lab 2>&1 > /dev/null; then
+	alias git=lab
+fi
 ```
