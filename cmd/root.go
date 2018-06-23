@@ -197,6 +197,9 @@ func Execute() {
 		if os.Args[1] == "create" {
 			log.Fatalf("Please call `hub create` directly for github, the lab equivalent is `lab project create`")
 		}
+		if os.Args[1] == "browse" {
+			log.Fatalf("Please call `hub browse` directly for github, the lab equivalent is `lab <object> browse`")
+		}
 
 		// Passthrough to git for any unrecognized commands
 		err = git.New(os.Args[1:]...).Run()
