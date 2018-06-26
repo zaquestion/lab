@@ -76,6 +76,8 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		boxes = make(map[string]*tview.TextView)
 		jobsCh := make(chan []*gitlab.Job)
 
+		var navi navigator
+
 		a.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Rune() == 'q' || event.Key() == tcell.KeyEscape {
 				switch {
@@ -91,7 +93,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 				}
 			}
 			if !modalVisible && !logsVisible {
-				handleNavigation(event, &curJob) // mutates curJob
+				curJob = navi.Navigate(jobs, event)
 			}
 			switch event.Rune() {
 			case 'c':
@@ -149,13 +151,20 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 
 var (
 	logsVisible, modalVisible bool
-	depth, curJob             int
+	curJob                    int
 	jobs                      []*gitlab.Job
 	boxes                     map[string]*tview.TextView
 )
 
-func handleNavigation(event *tcell.EventKey, jobIdx *int) {
-	stage := jobs[*jobIdx].Stage
+// navigator manages the internal state for processing tcell.EventKeys
+type navigator struct {
+	depth, idx int
+}
+
+// Navigate uses the ci stages as boundaries and returns the currently focused
+// job index after processing a *tcell.EventKey
+func (n *navigator) Navigate(jobs []*gitlab.Job, event *tcell.EventKey) int {
+	stage := jobs[n.idx].Stage
 	prev, next := adjacentStages(jobs, stage)
 	switch event.Key() {
 	case tcell.KeyLeft:
@@ -173,34 +182,35 @@ func handleNavigation(event *tcell.EventKey, jobIdx *int) {
 
 	switch event.Key() {
 	case tcell.KeyDown:
-		depth++
-		if depth > u-l {
-			depth = u - l
+		n.depth++
+		if n.depth > u-l {
+			n.depth = u - l
 		}
 	case tcell.KeyUp:
-		depth--
+		n.depth--
 	}
 	switch event.Rune() {
 	case 'j':
-		depth++
-		if depth > u-l {
-			depth = u - l
+		n.depth++
+		if n.depth > u-l {
+			n.depth = u - l
 		}
 	case 'k':
-		depth--
+		n.depth--
 	case 'g':
-		depth = 0
+		n.depth = 0
 	case 'G':
-		depth = u - l
+		n.depth = u - l
 	}
 
-	if depth < 0 {
-		depth = 0
+	if n.depth < 0 {
+		n.depth = 0
 	}
-	*jobIdx = l + depth
-	if *jobIdx > u {
-		*jobIdx = u
+	n.idx = l + n.depth
+	if n.idx > u {
+		n.idx = u
 	}
+	return n.idx
 }
 
 func stageBounds(jobs []*gitlab.Job, s string) (l, u int) {

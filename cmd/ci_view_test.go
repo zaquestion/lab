@@ -671,6 +671,12 @@ func Test_adjacentStages(t *testing.T) {
 		expectedPrev, expectedNext string
 	}{
 		{
+			"no jobs",
+			"1",
+			[]*gitlab.Job{},
+			"", "",
+		},
+		{
 			"first stage",
 			"1",
 			[]*gitlab.Job{
@@ -760,6 +766,12 @@ func Test_stageBounds(t *testing.T) {
 		expectedLower, expectedUpper int
 	}{
 		{
+			"no jobs",
+			"1",
+			[]*gitlab.Job{},
+			0, 0,
+		},
+		{
 			"first stage",
 			"1",
 			[]*gitlab.Job{
@@ -837,6 +849,272 @@ func Test_stageBounds(t *testing.T) {
 			lower, upper := stageBounds(test.jobs, test.stage)
 			assert.Equal(t, test.expectedLower, lower)
 			assert.Equal(t, test.expectedUpper, upper)
+		})
+	}
+}
+
+func Test_handleNavigation(t *testing.T) {
+	jobs := []*gitlab.Job{
+		&gitlab.Job{
+			Name:   "stage1-job1-really-long",
+			Stage:  "stage1",
+			Status: "success",
+		},
+		&gitlab.Job{
+			Name:   "stage1-job2",
+			Stage:  "stage1",
+			Status: "success",
+		},
+		&gitlab.Job{
+			Name:   "stage1-job3",
+			Stage:  "stage1",
+			Status: "success",
+		},
+		&gitlab.Job{
+			Name:   "stage1-job4",
+			Stage:  "stage1",
+			Status: "failed",
+		},
+		&gitlab.Job{
+			Name:   "stage2-job1",
+			Stage:  "stage2",
+			Status: "running",
+		},
+		&gitlab.Job{
+			Name:   "stage2-job2",
+			Stage:  "stage2",
+			Status: "running",
+		},
+		&gitlab.Job{
+			Name:   "stage2-job3",
+			Stage:  "stage2",
+			Status: "pending",
+		},
+		&gitlab.Job{
+			Name:   "stage3-job1",
+			Stage:  "stage3",
+			Status: "manual",
+		},
+		&gitlab.Job{
+			Name:   "stage3-job2",
+			Stage:  "stage3",
+			Status: "manual",
+		},
+	}
+	tests := []struct {
+		desc     string
+		input    []*tcell.EventKey
+		expected int
+	}{
+		{
+			"do nothing",
+			[]*tcell.EventKey{},
+			0,
+		},
+		{
+			"arrows down",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+			},
+			3,
+		},
+		{
+			"arrows down bottom boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+			},
+			3,
+		},
+		{
+			"arrows down bottom middle boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+			},
+			6,
+		},
+		{
+			"arrows down last (3rd) column bottom boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+			},
+			8,
+		},
+		{
+			"arrows down persistent depth bottom boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyLeft, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyLeft, 0, tcell.ModNone),
+			},
+			3,
+		},
+		{
+			"arrows left boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyLeft, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyLeft, 0, tcell.ModNone),
+			},
+			0,
+		},
+		{
+			"arrows up boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyUp, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyUp, 0, tcell.ModNone),
+			},
+			0,
+		},
+		{
+			"arrows right boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone),
+			},
+			7,
+		},
+		{
+			"hjkl down",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+			},
+			3,
+		},
+		{
+			"hjkl down bottom boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+			},
+			3,
+		},
+		{
+			"hjkl down bottom middle boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+			},
+			6,
+		},
+		{
+			"hjkl down last (3rd) column bottom boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+			},
+			8,
+		},
+		{
+			"hjkl down persistent depth bottom boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'j', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'h', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'h', tcell.ModNone),
+			},
+			3,
+		},
+		{
+			"hjkl left boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'h', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'h', tcell.ModNone),
+			},
+			0,
+		},
+		{
+			"hjkl up boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'k', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'k', tcell.ModNone),
+			},
+			0,
+		},
+		{
+			"hjkl right boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'l', tcell.ModNone),
+			},
+			7,
+		},
+		{
+			"G boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'G', tcell.ModNone),
+			},
+			4,
+		},
+		{
+			"Gg boundary",
+			[]*tcell.EventKey{
+				tcell.NewEventKey(tcell.KeyRune, 'G', tcell.ModNone),
+				tcell.NewEventKey(tcell.KeyRune, 'g', tcell.ModNone),
+			},
+			0,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			var navi navigator
+			for _, e := range test.input {
+				navi.Navigate(jobs, e)
+			}
+			assert.Equal(t, test.expected, navi.idx)
 		})
 	}
 }
