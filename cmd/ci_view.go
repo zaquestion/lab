@@ -20,21 +20,21 @@ import (
 )
 
 var (
-	pID    int
-	branch string
+	projectID int
+	branch    string
 )
 
 // ciViewCmd represents the ci command
 var ciViewCmd = &cobra.Command{
 	Use:   "view [remote]",
-	Short: "(beta) View, run, trace, and/or cancel CI jobs current pipeline",
+	Short: "View, run, trace, and/or cancel CI jobs current pipeline",
 	Long: `Supports viewing, running, tracing, and canceling jobs
 
 'r', 'p' to run/retry/play a job -- Tab navigates modal and Enter to confirm
 't' to toggle trace/logs (runs in background, so you can jump in and out)
 'c' to cancel job
 
-Supports vi style (hjkl,Gg) or arrow keys for navigating jobs and logs.
+Supports vi style (hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
 
 Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -42,9 +42,8 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		defer recoverPanic(a)
 		var (
 			remote string
+			err    error
 		)
-
-		var err error
 		branch, err = git.CurrentBranch()
 		if err != nil {
 			log.Fatal(err)
@@ -69,7 +68,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		pID = project.ID
+		projectID = project.ID
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 
@@ -77,70 +76,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		jobsCh := make(chan []*gitlab.Job)
 
 		var navi navigator
-
-		a.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-			if event.Rune() == 'q' || event.Key() == tcell.KeyEscape {
-				switch {
-				case modalVisible:
-					modalVisible = !modalVisible
-				case logsVisible:
-					logsVisible = !logsVisible
-					root.HidePage("logs-" + jobs[curJob].Name)
-					a.Draw()
-				default:
-					a.Stop()
-					return nil
-				}
-			}
-			if !modalVisible && !logsVisible {
-				curJob = navi.Navigate(jobs, event)
-			}
-			switch event.Rune() {
-			case 'c':
-				job, err := lab.CICancel(project.ID, jobs[curJob].ID)
-				if err != nil {
-					a.Stop()
-					log.Fatal(err)
-				}
-				jobs[curJob] = job
-				root.RemovePage("logs-" + jobs[curJob].Name)
-				a.Draw()
-			case 'p', 'r':
-				if modalVisible {
-					break
-				}
-				modalVisible = true
-				modal := tview.NewModal().
-					SetText(fmt.Sprintf("Are you sure you want to run %s", jobs[curJob].Name)).
-					AddButtons([]string{"Yes", "No"}).
-					SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-						root.RemovePage("yesno")
-						root.RemovePage("logs-" + jobs[curJob].Name)
-						a.Draw()
-						modalVisible = false
-						if buttonLabel == "No" {
-							return
-						}
-						job, err := lab.CIPlayOrRetry(project.ID, jobs[curJob].ID, jobs[curJob].Status)
-						if err != nil {
-							a.Stop()
-							log.Fatal(err)
-						}
-						if job != nil {
-							jobs[curJob] = job
-							a.Draw()
-						}
-					})
-				root.AddAndSwitchToPage("yesno", modal, false)
-				a.Draw()
-				return nil
-			case 't':
-				logsVisible = !logsVisible
-				a.Draw()
-				return nil
-			}
-			return event
-		})
+		a.SetInputCapture(inputCapture(a, root, navi))
 		go updateJobs(a, jobsCh, project.ID, branch)
 		go refreshScreen(a, root)
 		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(a, jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
@@ -149,9 +85,81 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 	},
 }
 
+func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(event *tcell.EventKey) *tcell.EventKey {
+	return func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Rune() == 'q' || event.Key() == tcell.KeyEscape {
+			switch {
+			case modalVisible:
+				modalVisible = !modalVisible
+				root.HidePage("yesno")
+			case logsVisible:
+				logsVisible = !logsVisible
+				root.HidePage("logs-" + curJob.Name)
+				a.Draw()
+			default:
+				a.Stop()
+				return nil
+			}
+		}
+		if !modalVisible && !logsVisible {
+			curJob = navi.Navigate(jobs, event)
+		}
+		switch event.Rune() {
+		case 'c':
+			job, err := lab.CICancel(projectID, curJob.ID)
+			if err != nil {
+				a.Stop()
+				log.Fatal(err)
+			}
+			curJob = job
+			root.RemovePage("logs-" + curJob.Name)
+			a.Draw()
+		case 'p', 'r':
+			if modalVisible {
+				break
+			}
+			modalVisible = true
+			modal := tview.NewModal().
+				SetText(fmt.Sprintf("Are you sure you want to run %s", curJob.Name)).
+				AddButtons([]string{"No", "Yes"}).
+				SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					modalVisible = false
+					root.RemovePage("yesno")
+					if buttonLabel == "No" {
+						a.Draw()
+						return
+					}
+					root.RemovePage("logs-" + curJob.Name)
+					a.Draw()
+
+					job, err := lab.CIPlayOrRetry(projectID, curJob.ID, curJob.Status)
+					if err != nil {
+						a.Stop()
+						log.Fatal(err)
+					}
+					if job != nil {
+						curJob = job
+						a.Draw()
+					}
+				})
+			root.AddAndSwitchToPage("yesno", modal, false)
+			a.Draw()
+			return nil
+		case 't':
+			logsVisible = !logsVisible
+			if !logsVisible {
+				root.HidePage("logs-" + curJob.Name)
+			}
+			a.Draw()
+			return nil
+		}
+		return event
+	}
+}
+
 var (
 	logsVisible, modalVisible bool
-	curJob                    int
+	curJob                    *gitlab.Job
 	jobs                      []*gitlab.Job
 	boxes                     map[string]*tview.TextView
 )
@@ -163,7 +171,7 @@ type navigator struct {
 
 // Navigate uses the ci stages as boundaries and returns the currently focused
 // job index after processing a *tcell.EventKey
-func (n *navigator) Navigate(jobs []*gitlab.Job, event *tcell.EventKey) int {
+func (n *navigator) Navigate(jobs []*gitlab.Job, event *tcell.EventKey) *gitlab.Job {
 	stage := jobs[n.idx].Stage
 	prev, next := adjacentStages(jobs, stage)
 	switch event.Key() {
@@ -210,7 +218,7 @@ func (n *navigator) Navigate(jobs []*gitlab.Job, event *tcell.EventKey) int {
 	if n.idx > u {
 		n.idx = u
 	}
-	return n.idx
+	return jobs[n.idx]
 }
 
 func stageBounds(jobs []*gitlab.Job, s string) (l, u int) {
@@ -266,27 +274,27 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 				jobs = <-jobsCh
 			}
 		}
+		if curJob == nil && len(jobs) > 0 {
+			curJob = jobs[0]
+		}
 		if modalVisible {
 			return false
 		}
-		if !logsVisible {
-			root.HidePage("logs-" + jobs[curJob].Name)
-		}
 		if logsVisible {
-			logsKey := "logs-" + jobs[curJob].Name
+			logsKey := "logs-" + curJob.Name
 			if !root.SwitchToPage(logsKey).HasPage(logsKey) {
 				tv := tview.NewTextView()
 				tv.SetDynamicColors(true)
 				tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
 
 				go func() {
-					err := doTrace(vtclean.NewWriter(tview.ANSIIWriter(tv), true), pID, branch, jobs[curJob].Name)
+					err := doTrace(vtclean.NewWriter(tview.ANSIIWriter(tv), true), projectID, branch, curJob.Name)
 					if err != nil {
 						app.Stop()
 						log.Fatal(err)
 					}
 				}()
-				root.AddAndSwitchToPage("logs-"+jobs[curJob].Name, tv, true)
+				root.AddAndSwitchToPage("logs-"+curJob.Name, tv, true)
 			}
 			return false
 		}
@@ -389,7 +397,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 		for _, b := range boxes {
 			b.Blur()
 		}
-		boxes["jobs-"+jobs[curJob].Name].Focus(nil)
+		boxes["jobs-"+curJob.Name].Focus(nil)
 		return false
 	}
 }

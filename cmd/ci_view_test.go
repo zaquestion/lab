@@ -1094,7 +1094,7 @@ func Test_handleNavigation(t *testing.T) {
 			[]*tcell.EventKey{
 				tcell.NewEventKey(tcell.KeyRune, 'G', tcell.ModNone),
 			},
-			4,
+			3,
 		},
 		{
 			"Gg boundary",
