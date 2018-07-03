@@ -11,6 +11,7 @@ import (
 
 var mrLabels []string
 var mrState string
+var mrPerPage int
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
@@ -28,7 +29,7 @@ var listCmd = &cobra.Command{
 		mrs, err := lab.MRList(rn, &gitlab.ListProjectMergeRequestsOptions{
 			ListOptions: gitlab.ListOptions{
 				Page:    int(page),
-				PerPage: 10,
+				PerPage: &mrPerPage,
 			},
 			Labels:  mrLabels,
 			State:   &mrState,
@@ -49,5 +50,8 @@ func init() {
 	listCmd.Flags().StringVarP(
 		&mrState, "state", "s", "opened",
 		"filter merge requests by state (opened/closed/merged)")
+	listCmd.Flags().StringVarP(
+		&mrState, "perPage", "n", 10,
+		"preset number of returned merge requests")
 	mrCmd.AddCommand(listCmd)
 }
