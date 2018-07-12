@@ -75,7 +75,7 @@ func Test_mrListStateClosed(t *testing.T) {
 func Test_mrListFivePerPage(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-n", 5)
+	cmd := exec.Command("../lab_bin", "mr", "list", "-n", "5")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
