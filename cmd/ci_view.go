@@ -12,29 +12,39 @@ import (
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 
+	"github.com/lunixbochs/vtclean"
 	"github.com/xanzy/go-gitlab"
 
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var (
+	projectID int
+	branch    string
+)
+
 // ciViewCmd represents the ci command
 var ciViewCmd = &cobra.Command{
 	Use:   "view [remote]",
-	Short: "(beta) render the CI Pipeline to the terminal",
-	Long: `This feature is currently under development and only supports
-viewing jobs. In the future we hope to support starting jobs and jumping to
-logs.
+	Short: "View, run, trace, and/or cancel CI jobs current pipeline",
+	Long: `Supports viewing, running, tracing, and canceling jobs
 
-Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
+'r', 'p' to run/retry/play a job -- Tab navigates modal and Enter to confirm
+'t' to toggle trace/logs (runs in background, so you can jump in and out)
+'c' to cancel job
+
+Supports vi style (hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
+
+Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()
 		defer recoverPanic(a)
 		var (
 			remote string
+			err    error
 		)
-
-		branch, err := git.CurrentBranch()
+		branch, err = git.CurrentBranch()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -43,7 +53,7 @@ Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil || !ok {
-				log.Fatal(args[0], "is not a remote:", err)
+				log.Fatal(args[0], " is not a remote:", err)
 			}
 			remote = args[0]
 		}
@@ -58,31 +68,200 @@ Feedback Welcome!: https://github.com/zaquestion/lab/issues/74`,
 		if err != nil {
 			log.Fatal(err)
 		}
+		projectID = project.ID
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 
 		boxes = make(map[string]*tview.TextView)
 		jobsCh := make(chan []*gitlab.Job)
 
-		a.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-			if event.Key() == tcell.KeyEscape || event.Rune() == 'q' {
-				a.Stop()
-				return nil
-			}
-			return event
-		})
+		var navi navigator
+		a.SetInputCapture(inputCapture(a, root, navi))
 		go updateJobs(a, jobsCh, project.ID, branch)
-		go refreshScreen(a)
+		go refreshScreen(a, root)
 		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(a, jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
+func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(event *tcell.EventKey) *tcell.EventKey {
+	return func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Rune() == 'q' || event.Key() == tcell.KeyEscape {
+			switch {
+			case modalVisible:
+				modalVisible = !modalVisible
+				root.HidePage("yesno")
+			case logsVisible:
+				logsVisible = !logsVisible
+				root.HidePage("logs-" + curJob.Name)
+				a.Draw()
+			default:
+				a.Stop()
+				return nil
+			}
+		}
+		if !modalVisible && !logsVisible {
+			curJob = navi.Navigate(jobs, event)
+		}
+		switch event.Rune() {
+		case 'c':
+			job, err := lab.CICancel(projectID, curJob.ID)
+			if err != nil {
+				a.Stop()
+				log.Fatal(err)
+			}
+			curJob = job
+			root.RemovePage("logs-" + curJob.Name)
+			a.Draw()
+		case 'p', 'r':
+			if modalVisible {
+				break
+			}
+			modalVisible = true
+			modal := tview.NewModal().
+				SetText(fmt.Sprintf("Are you sure you want to run %s", curJob.Name)).
+				AddButtons([]string{"No", "Yes"}).
+				SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					modalVisible = false
+					root.RemovePage("yesno")
+					if buttonLabel == "No" {
+						a.Draw()
+						return
+					}
+					root.RemovePage("logs-" + curJob.Name)
+					a.Draw()
+
+					job, err := lab.CIPlayOrRetry(projectID, curJob.ID, curJob.Status)
+					if err != nil {
+						a.Stop()
+						log.Fatal(err)
+					}
+					if job != nil {
+						curJob = job
+						a.Draw()
+					}
+				})
+			root.AddAndSwitchToPage("yesno", modal, false)
+			a.Draw()
+			return nil
+		case 't':
+			logsVisible = !logsVisible
+			if !logsVisible {
+				root.HidePage("logs-" + curJob.Name)
+			}
+			a.Draw()
+			return nil
+		}
+		return event
+	}
+}
+
 var (
-	jobs  []*gitlab.Job
-	boxes map[string]*tview.TextView
+	logsVisible, modalVisible bool
+	curJob                    *gitlab.Job
+	jobs                      []*gitlab.Job
+	boxes                     map[string]*tview.TextView
 )
+
+// navigator manages the internal state for processing tcell.EventKeys
+type navigator struct {
+	depth, idx int
+}
+
+// Navigate uses the ci stages as boundaries and returns the currently focused
+// job index after processing a *tcell.EventKey
+func (n *navigator) Navigate(jobs []*gitlab.Job, event *tcell.EventKey) *gitlab.Job {
+	stage := jobs[n.idx].Stage
+	prev, next := adjacentStages(jobs, stage)
+	switch event.Key() {
+	case tcell.KeyLeft:
+		stage = prev
+	case tcell.KeyRight:
+		stage = next
+	}
+	switch event.Rune() {
+	case 'h':
+		stage = prev
+	case 'l':
+		stage = next
+	}
+	l, u := stageBounds(jobs, stage)
+
+	switch event.Key() {
+	case tcell.KeyDown:
+		n.depth++
+		if n.depth > u-l {
+			n.depth = u - l
+		}
+	case tcell.KeyUp:
+		n.depth--
+	}
+	switch event.Rune() {
+	case 'j':
+		n.depth++
+		if n.depth > u-l {
+			n.depth = u - l
+		}
+	case 'k':
+		n.depth--
+	case 'g':
+		n.depth = 0
+	case 'G':
+		n.depth = u - l
+	}
+
+	if n.depth < 0 {
+		n.depth = 0
+	}
+	n.idx = l + n.depth
+	if n.idx > u {
+		n.idx = u
+	}
+	return jobs[n.idx]
+}
+
+func stageBounds(jobs []*gitlab.Job, s string) (l, u int) {
+	if len(jobs) <= 1 {
+		return 0, 0
+	}
+	p := jobs[0].Stage
+	for i, v := range jobs {
+		if v.Stage != s && u != 0 {
+			return
+		}
+		if v.Stage != p {
+			l = i
+			p = v.Stage
+		}
+		if v.Stage == s {
+			u = i
+		}
+	}
+	return
+}
+
+func adjacentStages(jobs []*gitlab.Job, s string) (p, n string) {
+	if len(jobs) == 0 {
+		return "", ""
+	}
+	p = jobs[0].Stage
+
+	for _, v := range jobs {
+		if v.Stage != s && n != "" {
+			n = v.Stage
+			return
+		}
+		if v.Stage == s {
+			n = "cur"
+		}
+		if n == "" {
+			p = v.Stage
+		}
+	}
+	n = jobs[len(jobs)-1].Stage
+	return
+}
 
 func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pages) func(screen tcell.Screen) bool {
 	return func(screen tcell.Screen) bool {
@@ -94,6 +273,30 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 			if len(jobs) == 0 {
 				jobs = <-jobsCh
 			}
+		}
+		if curJob == nil && len(jobs) > 0 {
+			curJob = jobs[0]
+		}
+		if modalVisible {
+			return false
+		}
+		if logsVisible {
+			logsKey := "logs-" + curJob.Name
+			if !root.SwitchToPage(logsKey).HasPage(logsKey) {
+				tv := tview.NewTextView()
+				tv.SetDynamicColors(true)
+				tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
+
+				go func() {
+					err := doTrace(vtclean.NewWriter(tview.ANSIIWriter(tv), true), projectID, branch, curJob.Name)
+					if err != nil {
+						app.Stop()
+						log.Fatal(err)
+					}
+				}()
+				root.AddAndSwitchToPage("logs-"+curJob.Name, tv, true)
+			}
+			return false
 		}
 		px, _, maxX, maxY := root.GetInnerRect()
 		var (
@@ -184,10 +387,17 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 				}
 				b.SetText("\n" + fmtDuration(end.Sub(*j.StartedAt)))
 				b.SetTextAlign(tview.AlignRight)
+			} else {
+				b.SetText("")
 			}
 			rowIdx++
 
 		}
+		// last box keeps getting focus'd some how
+		for _, b := range boxes {
+			b.Blur()
+		}
+		boxes["jobs-"+curJob.Name].Focus(nil)
 		return false
 	}
 }
@@ -199,7 +409,6 @@ func fmtDuration(d time.Duration) string {
 	return fmt.Sprintf("%02dm %02ds", m, s)
 }
 func box(root *tview.Pages, key string, x, y, w, h int) *tview.TextView {
-	//fmt.Printf("key: %s, x: %d, y: %d, w: %d, h: %d\n", key, x, y, w, h)
 	b, ok := boxes[key]
 	if !ok {
 		b = tview.NewTextView()
@@ -207,6 +416,7 @@ func box(root *tview.Pages, key string, x, y, w, h int) *tview.TextView {
 		boxes[key] = b
 	}
 	b.SetRect(x, y, w, h)
+
 	root.AddPage(key, b, false, true)
 	return b
 }
@@ -218,7 +428,7 @@ func recoverPanic(app *tview.Application) {
 	}
 }
 
-func refreshScreen(app *tview.Application) {
+func refreshScreen(app *tview.Application, root *tview.Pages) {
 	defer recoverPanic(app)
 	for {
 		app.Draw()
@@ -229,6 +439,10 @@ func refreshScreen(app *tview.Application) {
 func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job, pid interface{}, branch string) {
 	defer recoverPanic(app)
 	for {
+		if modalVisible {
+			time.Sleep(time.Second * 1)
+			continue
+		}
 		jobs, err := lab.CIJobs(pid, branch)
 		if len(jobs) == 0 || err != nil {
 			app.Stop()
@@ -251,6 +465,9 @@ func connectJobsView(app *tview.Application) func(screen tcell.Screen) {
 }
 
 func connectJobs(screen tcell.Screen, jobs []*gitlab.Job, boxes map[string]*tview.TextView) error {
+	if logsVisible || modalVisible {
+		return nil
+	}
 	for i, j := range jobs {
 		if _, ok := boxes["jobs-"+j.Name]; !ok {
 			return errors.Errorf("jobs-%s not found at index: %d", jobs[i].Name, i)

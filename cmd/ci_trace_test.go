@@ -48,13 +48,6 @@ func Test_ciTrace(t *testing.T) {
 			},
 		},
 		{
-			desc: "manual",
-			args: []string{"origin", "deploy2"},
-			assertContains: func(t *testing.T, out string) {
-				assert.Contains(t, out, "Manual job deploy2 not started\n")
-			},
-		},
-		{
 			desc: "arg job name",
 			args: []string{"origin", "deploy1"},
 			assertContains: func(t *testing.T, out string) {

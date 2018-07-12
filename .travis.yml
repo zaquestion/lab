@@ -7,7 +7,7 @@ go:
   - 1.10.x
 
 # use containers which run faster and have cache
-sudo: false
+sudo: required
 
 cache:
   directories:
