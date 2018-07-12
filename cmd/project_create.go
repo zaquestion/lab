@@ -15,8 +15,10 @@ import (
 var projectCreateCmd = &cobra.Command{
 	Use:   "create [path]",
 	Short: "Create a new project on GitLab",
-	Long:  `If no path or name is provided the name of the git repo working directory`,
-	Args:  cobra.MaximumNArgs(1),
+	Long: `If no path or name is provided the name of the git repo working directory
+
+path refers the path on gitlab including the full group/namespace/project. If no path or name is provided and the directory is a git repo the name of the current working directory will be used.`,
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			name, _ = cmd.Flags().GetString("name")
@@ -27,10 +29,19 @@ var projectCreateCmd = &cobra.Command{
 			log.Fatal("path or name must be set")
 		}
 
+		visibility := gitlab.InternalVisibility
+		switch {
+		case private:
+			visibility = gitlab.PrivateVisibility
+		case public:
+			visibility = gitlab.PublicVisibility
+		}
+
 		opts := gitlab.CreateProjectOptions{
 			Path:        gitlab.String(path),
 			Name:        gitlab.String(name),
 			Description: gitlab.String(desc),
+			Visibility:  &visibility,
 		}
 		p, err := lab.ProjectCreate(&opts)
 		if err != nil {
@@ -65,5 +76,7 @@ func determinePath(args []string, name string) string {
 func init() {
 	projectCreateCmd.Flags().StringP("name", "n", "", "name to use for the new project")
 	projectCreateCmd.Flags().StringP("description", "d", "", "description to use for the new project")
+	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make project private; visible only to project members (default: internal)")
+	projectCreateCmd.Flags().BoolVar(&public, "public", false, "Make project public; can be accessed without any authentication (default: internal)")
 	projectCmd.AddCommand(projectCreateCmd)
 }
