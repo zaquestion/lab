@@ -41,6 +41,9 @@ func User() string {
 
 // Init initializes a gitlab client for use throughout lab.
 func Init(_host, _user, _token string) {
+	if len(_host) > 0 && _host[len(_host)-1 : len(_host)][0] == '/' {
+		_host = _host[0 : len(_host)-1]
+	}
 	host = _host
 	user = _user
 	lab = gitlab.NewClient(nil, _token)
