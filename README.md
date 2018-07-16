@@ -2,7 +2,6 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/2358914/34196973-420d389a-e519-11e7-92e6-3a1486d6b280.png" align="center" height="350"></p>
 
-<p align="center"><img src="https://user-images.githubusercontent.com/1964720/42740177-6478d834-8858-11e8-9667-97f193ecb404.gif" align="center"></p>
 Lab wraps Git or [Hub](https://github.com/github/hub), making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
 
 ```
@@ -11,6 +10,8 @@ $ lab clone gitlab-com/infrastructure
 # expands to:
 $ git clone git@gitlab.com:gitlab-com/infrastructure
 ```
+
+<p align="center"><img src="https://user-images.githubusercontent.com/1964720/42740177-6478d834-8858-11e8-9667-97f193ecb404.gif" align="center"></p>
 
 ## hub + lab = hublab??
 
