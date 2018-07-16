@@ -21,7 +21,7 @@ func Test_issueList(t *testing.T) {
 
 	issues := strings.Split(string(b), "\n")
 	t.Log(issues)
-	require.Equal(t, "#1 test issue for lab list", issues[0])
+	require.Contains(t, issues, "#1 test issue for lab list")
 }
 
 func Test_issueListFlagLabel(t *testing.T) {
@@ -37,7 +37,7 @@ func Test_issueListFlagLabel(t *testing.T) {
 
 	issues := strings.Split(string(b), "\n")
 	t.Log(issues)
-	require.Equal(t, "#3 test filter labels 1", issues[0])
+	require.Contains(t, issues, "#3 test filter labels 1")
 }
 
 func Test_issueListStateClosed(t *testing.T) {
@@ -53,5 +53,5 @@ func Test_issueListStateClosed(t *testing.T) {
 
 	issues := strings.Split(string(b), "\n")
 	t.Log(issues)
-	require.Equal(t, "#4 test closed issue", issues[0])
+	require.Contains(t, issues, "#4 test closed issue")
 }
