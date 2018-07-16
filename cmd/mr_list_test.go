@@ -21,7 +21,7 @@ func Test_mrList(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, "#1 Test MR for lab list", mrs[0])
+	require.Contains(t, mrs, "#1 Test MR for lab list")
 }
 
 func Test_mrListFlagLabel(t *testing.T) {
@@ -37,7 +37,7 @@ func Test_mrListFlagLabel(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, "#3 for testings filtering with labels and lists", mrs[0])
+	require.Contains(t, mrs, "#3 for testings filtering with labels and lists")
 }
 
 func Test_mrListStateMerged(t *testing.T) {
@@ -53,7 +53,7 @@ func Test_mrListStateMerged(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, "#4 merged merge request", mrs[0])
+	require.Contains(t, mrs, "#4 merged merge request")
 }
 
 func Test_mrListStateClosed(t *testing.T) {
@@ -69,7 +69,8 @@ func Test_mrListStateClosed(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, "#5 closed mr", mrs[0])
+	require.Contains(t, mrs, "#5 closed mr")
+
 }
 
 func Test_mrListFivePerPage(t *testing.T) {
@@ -85,5 +86,5 @@ func Test_mrListFivePerPage(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, "#1 Test MR for lab list", mrs[0])
+	require.Contains(t, mrs, "#1 Test MR for lab list")
 }
