@@ -11,6 +11,8 @@ $ lab clone gitlab-com/infrastructure
 $ git clone git@gitlab.com:gitlab-com/infrastructure
 ```
 
+<p align="center"><img src="https://user-images.githubusercontent.com/1964720/42740177-6478d834-8858-11e8-9667-97f193ecb404.gif" align="center"></p>
+
 ## hub + lab = hublab??
 
 lab will look for hub and uses that as your git binary when available so you don't have to give up hub to use lab
