@@ -1,4 +1,4 @@
-VERSION ?= $(shell git rev-parse --short=10 HEAD)
+VERSION ?= $(shell git describe --long --tags)
 GOURL ?= github.com/zaquestion/lab
 
 deps:
