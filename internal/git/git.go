@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,13 +16,32 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
-// IsHub is true when using "hub" as the git binary
-var IsHub bool
+var (
+	// IsHub is true when using "hub" as the git binary
+	IsHub bool
+	// IsAliased is true when git is aliased to lab
+	IsAliased bool
+)
 
 func init() {
 	_, err := exec.LookPath("hub")
 	if err == nil {
 		IsHub = true
+	}
+
+	out, err := exec.Command("ps", "-p", strconv.Itoa(os.Getppid()), "-o", "cmd=").CombinedOutput()
+	sh := strings.TrimSpace(string(out))
+	switch sh {
+	case "bash", "-bash":
+		out, err = exec.Command("bash", "-i", "-c", "type git").CombinedOutput()
+		if strings.HasSuffix(string(out), "git is aliased to `lab'\n") {
+			IsAliased = true
+		}
+	case "zsh", "-zsh":
+		out, err = exec.Command("zsh", "-i", "-c", "whence git").CombinedOutput()
+		if strings.HasSuffix(string(out), "lab\n") {
+			IsAliased = true
+		}
 	}
 }
 

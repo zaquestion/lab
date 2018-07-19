@@ -21,7 +21,7 @@ import (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "lab",
-	Short: "A Git Wrapper for GitLab",
+	Short: "Lab makes it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if ok, err := cmd.Flags().GetBool("version"); err == nil && ok {
@@ -58,6 +58,14 @@ func labUsageFormat(c *cobra.Command) string {
 }
 
 func helpFunc(cmd *cobra.Command, args []string) {
+	if !git.IsAliased {
+		cmd.Root().SetHelpFunc(nil)
+		err := cmd.Help()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	// When help func is called from the help command args will be
 	// populated. When help is called with cmd.Help(), the args are not
 	// passed through, so we pick them up ourselves here
