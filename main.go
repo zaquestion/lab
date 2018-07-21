@@ -45,6 +45,11 @@ func loadConfig() (string, string, string) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
+	host, user, token := viper.GetString("core.host"), viper.GetString("core.user"), viper.GetString("core.token")
+	if host != "" && user != "" && token != "" {
+		return host, user, token
+	}
+
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
 		if err := config.New(path.Join(confpath, "lab.hcl"), os.Stdin); err != nil {
 			log.Fatal(err)
