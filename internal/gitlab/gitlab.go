@@ -472,6 +472,20 @@ func CICancel(pid interface{}, jobID int) (*gitlab.Job, error) {
 	return j, nil
 }
 
+// CICreate creates a pipeline for  given ref
+func CICreate(project string, opts *gitlab.CreatePipelineOptions) (*gitlab.Pipeline, error) {
+	pr, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	p, _, err := lab.Pipelines.CreatePipeline(pr.ID, opts)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
 // UserIDFromUsername returns the associated Users ID in GitLab. This is useful
 // for API calls that allow you to reference a user, but only by ID.
 func UserIDFromUsername(username string) (int, error) {
