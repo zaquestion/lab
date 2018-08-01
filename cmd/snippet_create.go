@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -169,7 +169,7 @@ func init() {
 	snippetCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make snippet private; visible only to project members (default: internal)")
 	snippetCreateCmd.Flags().BoolVar(&public, "public", false, "Make snippet public; can be accessed without any authentication (default: internal)")
 	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) Name snippet to add code highlighting, e.g. potato.go for GoLang")
-	snippetCreateCmd.Flags().StringSliceP("message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	snippetCreateCmd.Flags().StringSliceP("message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	snippetCmd.Flags().AddFlagSet(snippetCreateCmd.Flags())
 	snippetCmd.AddCommand(snippetCreateCmd)
 }

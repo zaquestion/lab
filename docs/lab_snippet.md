@@ -20,7 +20,7 @@ lab snippet [flags]
   -g, --global            create as a personal snippet
   -h, --help              help for snippet
   -l, --list              list snippets
-  -m, --message strings   Use the given <msg>; multiple -m are concatenated as seperate paragraphs (default [-])
+  -m, --message strings   Use the given <msg>; multiple -m are concatenated as separate paragraphs (default [-])
   -n, --name string       (optional) Name snippet to add code highlighting, e.g. potato.go for GoLang
   -p, --private           Make snippet private; visible only to project members (default: internal)
       --public            Make snippet public; can be accessed without any authentication (default: internal)

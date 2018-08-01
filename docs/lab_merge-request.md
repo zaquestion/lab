@@ -15,7 +15,7 @@ lab merge-request [remote [branch]] [flags]
 ```
   -a, --assignee string   Set assignee by username
   -h, --help              help for merge-request
-  -m, --message strings   Use the given <msg>; multiple -m are concatenated as seperate paragraphs
+  -m, --message strings   Use the given <msg>; multiple -m are concatenated as separate paragraphs
 ```
 
 ### SEE ALSO

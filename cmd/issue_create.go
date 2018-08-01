@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -124,7 +124,7 @@ func issueText() (string, error) {
 }
 
 func init() {
-	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
 	issueCmd.AddCommand(issueCreateCmd)

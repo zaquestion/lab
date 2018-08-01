@@ -13,8 +13,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/tcnksm/go-gitconfig"
-	"github.com/xanzy/go-gitlab"
+	gitconfig "github.com/tcnksm/go-gitconfig"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -29,7 +29,7 @@ var mrCreateCmd = &cobra.Command{
 }
 
 func init() {
-	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as seperate paragraphs")
+	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateCmd.Flags().StringP("assignee", "a", "", "Set assignee by username")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 	mrCmd.AddCommand(mrCreateCmd)
