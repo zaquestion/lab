@@ -16,7 +16,7 @@ lab issue create [remote] [flags]
   -a, --assignees strings   Set assignees by username
   -h, --help                help for create
   -l, --label strings       Set the given label(s) on the created issue
-  -m, --message strings     Use the given <msg>; multiple -m are concatenated as seperate paragraphs
+  -m, --message strings     Use the given <msg>; multiple -m are concatenated as separate paragraphs
 ```
 
 ### SEE ALSO

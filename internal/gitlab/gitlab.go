@@ -1,7 +1,7 @@
 // Package gitlab is an internal wrapper for the go-gitlab package
 //
 // Most functions serve to expose debug logging if set and accept a project
-// name string over an ID
+// name string over an ID.
 package gitlab
 
 import (
@@ -15,11 +15,12 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 )
 
 var (
+	// ErrProjectNotFound is returned when a GitLab project cannot be found.
 	ErrProjectNotFound = errors.New("gitlab project not found")
 )
 
