@@ -128,6 +128,9 @@ func parseArgsStr(args []string) (string, int64, error) {
 }
 
 func parseArgs(args []string) (string, int64, error) {
+	if !git.InsideGitRepo() {
+		return "", 0, nil
+	}
 	remote, num, err := parseArgsStr(args)
 	if err != nil {
 		return "", 0, err
