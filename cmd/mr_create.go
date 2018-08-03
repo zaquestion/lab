@@ -31,6 +31,11 @@ var mrCreateCmd = &cobra.Command{
 func init() {
 	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateCmd.Flags().StringP("assignee", "a", "", "Set assignee by username")
+	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Add label <label>; can be specified multiple times for multiple labels")
+	mrCreateCmd.Flags().BoolP("remove-source-branch", "r", false, "Remove source branch after merge")
+	mrCreateCmd.Flags().BoolP("squash", "s", false, "Squash commits when merging")
+	mrCreateCmd.Flags().BoolP("allow-collaboration", "", false, "Allow commits from other members")
+	mrCreateCmd.Flags().IntP("milestone", "", -1, "Set milestone by milestone ID")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 	mrCmd.AddCommand(mrCreateCmd)
 }
@@ -123,17 +128,39 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	removeSourceBranch, _ := cmd.Flags().GetBool("remove_source_branch")
+	squash, _ := cmd.Flags().GetBool("squash")
+	allowCollaboration, _ := cmd.Flags().GetBool("allow_collaboration")
+
+	labels, err := cmd.Flags().GetStringSlice("label")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	milestoneID, _ := cmd.Flags().GetInt("milestone")
+	var milestone *int
+	if(milestoneID < 0) {
+		milestone = nil
+	} else {
+		milestone = &milestoneID
+	}
+
 	if title == "" {
 		log.Fatal("aborting MR due to empty MR msg")
 	}
 
 	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
-		SourceBranch:    &branch,
-		TargetBranch:    gitlab.String(targetBranch),
-		TargetProjectID: &targetProject.ID,
-		Title:           &title,
-		Description:     &body,
-		AssigneeID:      getAssigneeID(assignee),
+		SourceBranch:       &branch,
+		TargetBranch:       gitlab.String(targetBranch),
+		TargetProjectID:    &targetProject.ID,
+		Title:              &title,
+		Description:        &body,
+		AssigneeID:         getAssigneeID(assignee),
+		RemoveSourceBranch: &removeSourceBranch,
+		Squash:             &squash,
+		AllowCollaboration: &allowCollaboration,
+		Labels:             gitlab.Labels(labels),
+		MilestoneID:        milestone,
 	})
 	if err != nil {
 		// FIXME: not exiting fatal here to allow code coverage to
