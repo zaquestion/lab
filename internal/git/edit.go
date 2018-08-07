@@ -85,7 +85,7 @@ func parseTitleBody(message string) (string, string, error) {
 	// Grab all the lines that don't start with the comment char
 	cc := CommentChar()
 	r := regexp.MustCompile(`(?m:^)[^` + cc + `].*(?m:$)`)
-	cr := regexp.MustCompile(`(?m:^)\s*#`)
+	cr := regexp.MustCompile(`(?m:^)\s*` + cc)
 	parts := r.FindAllString(message, -1)
 	noComments := make([]string, 0)
 	for _, p := range parts {
@@ -99,10 +99,14 @@ func parseTitleBody(message string) (string, string, error) {
 	}
 
 	r = regexp.MustCompile(`\n\s*\n`)
+	msg = strings.Replace(msg, "\\#", "#", -1)
 	parts = r.Split(msg, 2)
-	title := strings.Replace(parts[0], "\n", " ", -1)
-	if len(parts) < 2 {
-		return title, "", nil
+
+	if strings.Contains(parts[0], "\n") {
+		return "\n", parts[0], nil
 	}
-	return title, parts[1], nil
+	if len(parts) < 2 {
+		return parts[0], "", nil
+	}
+	return parts[0], parts[1], nil
 }

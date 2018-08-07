@@ -35,15 +35,27 @@ func Test_parseTitleBody(t *testing.T) {
 		},
 		{
 			Name:          "Multiline Title",
-			Message:       "test commit\nand more title",
-			ExpectedTitle: "test commit and more title",
-			ExpectedBody:  "",
+			Message:       "test commit\nand more body",
+			ExpectedTitle: "\n",
+			ExpectedBody:  "test commit\nand more body",
 		},
 		{
 			Name:          "Title includes issue number",
 			Message:       "test commit #100", // # is the commentChar
 			ExpectedTitle: "test commit #100",
 			ExpectedBody:  "",
+		},
+		{
+			Name:          "commented lines",
+			Message:       "# this is a comment\nThe title\n\nThe Body\n# another coment", // # is the commentChar
+			ExpectedTitle: "The title",
+			ExpectedBody:  "The Body",
+		},
+		{
+			Name:          "escaped commented lines",
+			Message:       "# this is a comment\nThe title\n\nThe Body\n\\# markdown title", // # is the commentChar
+			ExpectedTitle: "The title",
+			ExpectedBody:  "The Body\n# markdown title",
 		},
 	}
 
