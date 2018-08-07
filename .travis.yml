@@ -7,15 +7,16 @@ go:
   - 1.10.x
 
 # use containers which run faster and have cache
-sudo: required
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - silversearcher-ag
 
 cache:
   directories:
     - $GOPATH/pkg/dep/sources
-
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y silversearcher-ag
 
 before_script:
   - go get -u github.com/golang/dep/cmd/dep
