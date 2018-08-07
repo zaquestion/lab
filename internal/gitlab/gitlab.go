@@ -25,9 +25,10 @@ var (
 )
 
 var (
-	lab  *gitlab.Client
-	host string
-	user string
+	lab   *gitlab.Client
+	host  string
+	user  string
+	token string
 )
 
 // Host exposes the GitLab scheme://hostname used to interact with the API
@@ -47,6 +48,7 @@ func Init(_host, _user, _token string) {
 	}
 	host = _host
 	user = _user
+	token = _token
 	lab = gitlab.NewClient(nil, _token)
 	lab.SetBaseURL(host + "/api/v4")
 }
@@ -87,7 +89,7 @@ var (
 )
 
 // GetProject looks up a Gitlab project by ID.
-func GetProject(projectID int) (*gitlab.Project, error) {
+func GetProject(projectID interface{}) (*gitlab.Project, error) {
 	target, resp, err := lab.Projects.GetProject(projectID)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
@@ -623,14 +625,18 @@ func CICancel(pid interface{}, jobID int) (*gitlab.Job, error) {
 	return j, nil
 }
 
-// CICreate creates a pipeline for  given ref
-func CICreate(project string, opts *gitlab.CreatePipelineOptions) (*gitlab.Pipeline, error) {
-	pr, err := FindProject(project)
+// CICreate creates a pipeline for given ref
+func CICreate(pid interface{}, opts *gitlab.CreatePipelineOptions) (*gitlab.Pipeline, error) {
+	p, _, err := lab.Pipelines.CreatePipeline(pid, opts)
 	if err != nil {
 		return nil, err
 	}
+	return p, nil
+}
 
-	p, _, err := lab.Pipelines.CreatePipeline(pr.ID, opts)
+// CITrigger triggers a pipeline for given ref
+func CITrigger(pid interface{}, opts gitlab.RunPipelineTriggerOptions) (*gitlab.Pipeline, error) {
+	p, _, err := lab.PipelineTriggers.RunPipelineTrigger(pid, &opts)
 	if err != nil {
 		return nil, err
 	}

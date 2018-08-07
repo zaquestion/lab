@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"strings"
 	"syscall"
 
@@ -71,4 +72,22 @@ var readPassword = func() (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(byteToken)), nil
+}
+
+// CI returns credentials suitable for use within GitLab CI or empty strings if
+// none found.
+func CI() (string, string, string) {
+	ciToken := os.Getenv("CI_JOB_TOKEN")
+	if ciToken == "" {
+		return "", "", ""
+	}
+	ciHost := strings.TrimSuffix(os.Getenv("CI_PROJECT_URL"), os.Getenv("CI_PROJECT_PATH"))
+	if ciHost == "" {
+		return "", "", ""
+	}
+	ciUser := os.Getenv("CI_REGISTRY_USER")
+	if ciUser == "" {
+		ciUser = "gitlab-ci-token"
+	}
+	return ciHost, ciUser, ciToken
 }
