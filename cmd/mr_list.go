@@ -9,32 +9,38 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-var mrLabels []string
-var mrState string
-var mrPerPage int
+var (
+	mrLabels []string
+	mrState  string
+	mrNumRet int
+	mrAll    bool
+)
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:     "list [remote] [page]",
+	Use:     "list [remote]",
 	Aliases: []string{"ls"},
 	Short:   "List merge requests",
 	Long:    ``,
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, page, err := parseArgs(args)
+		rn, _, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		mrs, err := lab.MRList(rn, &gitlab.ListProjectMergeRequestsOptions{
+		num := mrNumRet
+		if mrAll {
+			num = -1
+		}
+		mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
 			ListOptions: gitlab.ListOptions{
-				Page:    int(page),
-				PerPage: mrPerPage,
+				PerPage: mrNumRet,
 			},
 			Labels:  mrLabels,
 			State:   &mrState,
 			OrderBy: gitlab.String("updated_at"),
-		})
+		}, num)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -51,7 +57,8 @@ func init() {
 		&mrState, "state", "s", "opened",
 		"filter merge requests by state (opened/closed/merged)")
 	listCmd.Flags().IntVarP(
-		&mrPerPage, "per-page", "n", 10,
-		"preset number of returned merge requests")
+		&mrNumRet, "number", "n", 10,
+		"number of merge requests to return")
+	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
 	mrCmd.AddCommand(listCmd)
 }

@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -49,6 +50,7 @@ func Test_fork(t *testing.T) {
 		}
 		require.Contains(t, string(b), "lab-testing")
 	})
+	time.Sleep(2 * time.Second)
 
 	// Failing to find the project will fail the test and is a legit
 	// failure case since its the only thing asserting the project exists

@@ -182,15 +182,36 @@ func MRGet(project string, mrNum int) (*gitlab.MergeRequest, error) {
 }
 
 // MRList lists the MRs on a GitLab project
-func MRList(project string, opts *gitlab.ListProjectMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
+	if n == -1 {
+		opts.PerPage = 100
+	}
 	p, err := FindProject(project)
 	if err != nil {
 		return nil, err
 	}
 
-	list, _, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, opts)
+	list, resp, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, &opts)
 	if err != nil {
 		return nil, err
+	}
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, &opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, mrs...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
 	}
 	return list, nil
 }
@@ -254,15 +275,37 @@ func IssueGet(project string, issueNum int) (*gitlab.Issue, error) {
 }
 
 // IssueList gets a list of issues on a GitLab Project
-func IssueList(project string, opts *gitlab.ListProjectIssuesOptions) ([]*gitlab.Issue, error) {
+func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
+	if n == -1 {
+		opts.PerPage = 100
+	}
 	p, err := FindProject(project)
 	if err != nil {
 		return nil, err
 	}
 
-	list, _, err := lab.Issues.ListProjectIssues(p.ID, opts)
+	list, resp, err := lab.Issues.ListProjectIssues(p.ID, &opts)
 	if err != nil {
 		return nil, err
+	}
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		issues, resp, err := lab.Issues.ListProjectIssues(p.ID, &opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, issues...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
 	}
 	return list, nil
 }
@@ -302,12 +345,33 @@ func ProjectSnippetDelete(pid interface{}, id int) error {
 }
 
 // ProjectSnippetList lists snippets on a project
-func ProjectSnippetList(pid interface{}, opts *gitlab.ListProjectSnippetsOptions) ([]*gitlab.Snippet, error) {
-	snips, _, err := lab.ProjectSnippets.ListSnippets(pid, opts)
+func ProjectSnippetList(pid interface{}, opts gitlab.ListProjectSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
+	if n == -1 {
+		opts.PerPage = 100
+	}
+	list, resp, err := lab.ProjectSnippets.ListSnippets(pid, &opts)
 	if err != nil {
 		return nil, err
 	}
-	return snips, nil
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		snips, resp, err := lab.ProjectSnippets.ListSnippets(pid, &opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, snips...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
+	}
+	return list, nil
 }
 
 // SnippetCreate creates a personal snippet
@@ -327,12 +391,33 @@ func SnippetDelete(id int) error {
 }
 
 // SnippetList lists snippets on a project
-func SnippetList(opts *gitlab.ListSnippetsOptions) ([]*gitlab.Snippet, error) {
-	snips, _, err := lab.Snippets.ListSnippets(opts)
+func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
+	if n == -1 {
+		opts.PerPage = 100
+	}
+	list, resp, err := lab.Snippets.ListSnippets(&opts)
 	if err != nil {
 		return nil, err
 	}
-	return snips, nil
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		snips, resp, err := lab.Snippets.ListSnippets(&opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, snips...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
+	}
+	return list, nil
 }
 
 // Lint validates .gitlab-ci.yml contents
@@ -366,10 +451,28 @@ func ProjectDelete(pid interface{}) error {
 }
 
 // ProjectList gets a list of projects on GitLab
-func ProjectList(opts *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
-	list, _, err := lab.Projects.ListProjects(opts)
+func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, error) {
+	list, resp, err := lab.Projects.ListProjects(&opts)
 	if err != nil {
 		return nil, err
+	}
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		projects, resp, err := lab.Projects.ListProjects(&opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, projects...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
 	}
 	return list, nil
 }
@@ -384,15 +487,31 @@ func CIJobs(pid interface{}, branch string) ([]*gitlab.Job, error) {
 		return nil, err
 	}
 	target := pipelines[0].ID
-	jobs, _, err := lab.Jobs.ListPipelineJobs(pid, target, &gitlab.ListJobsOptions{
+	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: 500,
 		},
-	})
+	}
+	list, resp, err := lab.Jobs.ListPipelineJobs(pid, target, opts)
 	if err != nil {
 		return nil, err
 	}
-	return jobs, nil
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for {
+		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, target, opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, jobs...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
+	}
+	return list, nil
 }
 
 // CITrace searches by name for a job and returns its trace file. The trace is

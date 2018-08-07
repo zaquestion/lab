@@ -201,6 +201,7 @@ func RemoteAdd(name, url, dir string) error {
 func IsRemote(remote string) (bool, error) {
 	cmd := New("remote")
 	cmd.Stdout = nil
+	cmd.Stderr = nil
 	remotes, err := cmd.Output()
 	if err != nil {
 		return false, err
