@@ -36,12 +36,22 @@ Dependencies
 brew install zaquestion/tap/lab
 ```
 
+### Scoop
+```
+scoop bucket add zaquestion https://github.com/zaquestion/scoop-bucket.git
+scoop install lab
+```
+
 ### Bash
 
 Installs lab into `/usr/local/bin/`
 ```
 curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | bash
 ```
+
+### PreBuilt Binaries
+
+Head to the [releases](https://github.com/zaquestion/lab/releases) page and download your preferred release
 
 ### Source
 

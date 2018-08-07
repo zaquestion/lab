@@ -5,7 +5,7 @@ release:
     name: lab
   name_template: '{{.Tag}}'
 brew:
-  description: "CLI tool for GitLab, like hub"
+  description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
   homepage: "https://github.com/zaquestion/lab"
   github:
     owner: zaquestion
@@ -23,6 +23,16 @@ brew:
     system "git", "config", "--local", "--add", "gitlab.user", "test"
     system "git", "config", "--local", "--add", "gitlab.token", "test"
     assert_equal "haunted\nhouse", shell_output("#{bin}/lab ls-files").strip
+scoop:
+  bucket:
+    owner: zaquestion
+    name: scoop-bucket
+  commit_author:
+    name: goreleaserbot
+    email: goreleaser@carlosbecker.com
+  homepage: "https://github.com/zaquestion/lab"
+  description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
+  license: Unlicense
 builds:
 - goos:
   - linux
