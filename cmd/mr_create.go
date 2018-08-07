@@ -32,10 +32,10 @@ func init() {
 	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateCmd.Flags().StringP("assignee", "a", "", "Set assignee by username")
 	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Add label <label>; can be specified multiple times for multiple labels")
-	mrCreateCmd.Flags().BoolP("remove-source-branch", "r", false, "Remove source branch after merge")
+	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "Remove source branch from remote after merge")
 	mrCreateCmd.Flags().BoolP("squash", "s", false, "Squash commits when merging")
-	mrCreateCmd.Flags().BoolP("allow-collaboration", "", false, "Allow commits from other members")
-	mrCreateCmd.Flags().IntP("milestone", "", -1, "Set milestone by milestone ID")
+	mrCreateCmd.Flags().Bool("allow-collaboration", false, "Allow commits from other members")
+	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 	mrCmd.AddCommand(mrCreateCmd)
 }
@@ -139,7 +139,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	milestoneID, _ := cmd.Flags().GetInt("milestone")
 	var milestone *int
-	if(milestoneID < 0) {
+	if milestoneID < 0 {
 		milestone = nil
 	} else {
 		milestone = &milestoneID

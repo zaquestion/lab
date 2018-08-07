@@ -12,7 +12,6 @@ sudo: required
 cache:
   directories:
     - $GOPATH/pkg/dep/sources
-    - vendor
 
 before_install:
   - sudo apt-get -qq update
