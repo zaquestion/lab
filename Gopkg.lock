@@ -52,6 +52,14 @@
   revision = "2f258105ca8ce35819115b49f5ac58197241653e"
 
 [[projects]]
+  digest = "1:b1d3041d568e065ab4d76f7477844458e9209c0bb241eaccdc0770bf0a13b120"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  pruneopts = ""
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:9abc49f39e3e23e262594bb4fb70abf74c0c99e94f99153f43b143805e850719"
   name = "github.com/google/go-querystring"
@@ -241,11 +249,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2d97bb23a7d7b13e8933497b246b1289b42b9370ca8322df837ae7348492af3c"
+  digest = "1:3f9051dcff3acee0ffa85e3cb627c31362a56aefa7e137d6f13a45de9fffb94a"
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
   pruneopts = ""
-  revision = "60ef0cdb1b7e433233e0fb28f6cbe397e5c462a4"
+  revision = "af28ecc530599f542dee9a748c4a8e3a22ae4659"
 
 [[projects]]
   branch = "master"
@@ -254,6 +262,28 @@
   packages = ["ssh/terminal"]
   pruneopts = ""
   revision = "e73bf333ef8920dbb52ad18d4bd38ad9d9bc76d7"
+
+[[projects]]
+  branch = "master"
+  digest = "1:55a4820f7c2439376a659edc78142a90f814eaa0ec3da6303c254f22d87b3f88"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "context/ctxhttp",
+  ]
+  pruneopts = ""
+  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
+
+[[projects]]
+  branch = "master"
+  digest = "1:74e084732dda056797a936c46f287c45fef85514506f0b448117be182a5a5979"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = ""
+  revision = "3d292e4d0cdc3a0113e6d207bb137145ef1de42f"
 
 [[projects]]
   branch = "master"
@@ -282,6 +312,22 @@
   pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
+
+[[projects]]
+  digest = "1:eede11c81b63c8f6fd06ef24ba0a640dc077196ec9b7a58ecde03c82eee2f151"
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch",
+  ]
+  pruneopts = ""
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:f0620375dd1f6251d9973b5f2596228cc8042e887cd7f827e4220bc1ce8c30e2"
