@@ -1,19 +1,19 @@
-## lab mr merge
+## lab mr approve
 
-Merge an open merge request
+Approve merge request
 
 ### Synopsis
 
-If the pipeline for the mr is still running, lab sets merge on success
+Approve merge request
 
 ```
-lab mr merge [remote] <id> [flags]
+lab mr approve [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for merge
+  -h, --help   help for approve
 ```
 
 ### SEE ALSO
