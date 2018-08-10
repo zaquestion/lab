@@ -128,9 +128,9 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	removeSourceBranch, _ := cmd.Flags().GetBool("remove_source_branch")
+	removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
 	squash, _ := cmd.Flags().GetBool("squash")
-	allowCollaboration, _ := cmd.Flags().GetBool("allow_collaboration")
+	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
 
 	labels, err := cmd.Flags().GetStringSlice("label")
 	if err != nil {
