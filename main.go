@@ -50,6 +50,12 @@ func loadConfig() (string, string, string) {
 		return host, user, token
 	}
 
+	// Attempt to auto-configure for GitLab CI
+	host, user, token = config.CI()
+	if host != "" && user != "" && token != "" {
+		return host, user, token
+	}
+
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
 		if err := config.New(path.Join(confpath, "lab.hcl"), os.Stdin); err != nil {
 			log.Fatal(err)

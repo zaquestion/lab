@@ -11,6 +11,10 @@
         url = git@gitlab.com:lab-testing/test.git
         fetch = +refs/heads/*:refs/remotes/origin/*
 
+[branch "mrtest"]
+	remote = lab-testing
+	merge = refs/heads/mrtest
+
 # Other formats for testing in internal/git/git_test.go
 # https://git-scm.com/docs/git-clone#_git_urls_a_id_urls_a
 [remote "origin-http"]
