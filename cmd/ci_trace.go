@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -57,19 +58,25 @@ var ciTraceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		doTrace(os.Stdout, project.ID, branch, jobName)
+		err = doTrace(context.Background(), os.Stdout, project.ID, branch, jobName)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
-func doTrace(w io.Writer, pid interface{}, branch, name string) error {
+func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name string) error {
 	var (
 		once   sync.Once
 		offset int64
 	)
 	for range time.NewTicker(time.Second * 3).C {
+		if ctx.Err() == context.Canceled {
+			break
+		}
 		trace, job, err := lab.CITrace(pid, branch, name)
 		if job == nil {
-			log.Fatal(errors.Wrap(err, "failed to find job"))
+			return errors.Wrap(err, "failed to find job")
 		}
 		switch job.Status {
 		case "pending":
@@ -88,11 +95,14 @@ func doTrace(w io.Writer, pid interface{}, branch, name string) error {
 		// TODO: can trace be passed directly to the readseaker?
 		buf, err := ioutil.ReadAll(trace)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		r := bytes.NewReader(buf)
 		r.Seek(offset, io.SeekStart)
 		new, err := ioutil.ReadAll(r)
+		if err != nil {
+			return err
+		}
 
 		offset += int64(len(new))
 		fmt.Fprint(w, string(new))

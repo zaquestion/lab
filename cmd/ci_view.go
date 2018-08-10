@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"bufio"
+	"context"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -32,6 +36,7 @@ var ciViewCmd = &cobra.Command{
 
 'r', 'p' to run/retry/play a job -- Tab navigates modal and Enter to confirm
 't' to toggle trace/logs (runs in background, so you can jump in and out)
+'T' to toggle trace/logs by suspending application (similar to lab ci trace)
 'c' to cancel job
 
 Supports vi style (hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
@@ -151,6 +156,33 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(
 				root.HidePage("logs-" + curJob.Name)
 			}
 			a.Draw()
+			return nil
+		case 'T':
+			a.Suspend(func() {
+				ctx, cancel := context.WithCancel(context.Background())
+				go func() {
+					err := doTrace(ctx, os.Stdout, projectID, branch, curJob.Name)
+					if err != nil {
+						a.Stop()
+						log.Fatal(err)
+					}
+					if ctx.Err() == nil { // not done or cancelled
+						fmt.Println("\nPush <Enter> to resume ci view")
+					}
+				}()
+				reader := bufio.NewReader(os.Stdin)
+				for {
+					r, _, err := reader.ReadRune()
+					if err != io.EOF && err != nil {
+						a.Stop()
+						log.Fatal(err)
+					}
+					if r == '\n' {
+						cancel()
+						break
+					}
+				}
+			})
 			return nil
 		}
 		return event
@@ -288,7 +320,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 				tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
 
 				go func() {
-					err := doTrace(vtclean.NewWriter(tview.ANSIIWriter(tv), true), projectID, branch, curJob.Name)
+					err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIIWriter(tv), true), projectID, branch, curJob.Name)
 					if err != nil {
 						app.Stop()
 						log.Fatal(err)
