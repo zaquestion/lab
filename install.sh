@@ -21,7 +21,7 @@ Darwin) os="darwin";;
 *)      echo "OS not supported" && exit 1;;
 esac
 
-latest=$(curl -sL "https://github.com/zaquestion/lab/tags" | grep tag-name | grep --only '>v[0-9\.]\+<' | head -n1 | cut -c 3- | rev | cut -c 2- | rev)
+latest=$(curl -sL 'https://api.github.com/repos/zaquestion/lab/releases/latest' | grep tag_name | grep --only 'v[0-9\.]\+' | cut -c2-)
 curl -sL "https://github.com/zaquestion/lab/releases/download/v${latest}/lab_${latest}_${os}_${machine}.tar.gz" | tar -C /tmp/ -xzf -
 cp /tmp/lab /usr/local/bin/lab
 echo "Successfully installed lab into /usr/local/bin/"
