@@ -3,10 +3,13 @@ package git
 import (
 	"log"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 func TestMain(m *testing.M) {
@@ -14,10 +17,16 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	repo, err = git.PlainOpenWithOptions(".", &git.PlainOpenOptions{DetectDotGit: true})
+	if err != nil {
+		log.Fatal(err)
+	}
 	os.Exit(m.Run())
 }
 
 func TestGitDir(t *testing.T) {
+	wd, _ := os.Getwd()
+	t.Log(wd)
 	dir, err := GitDir()
 	if err != nil {
 		t.Fatal(err)
@@ -53,12 +62,145 @@ func TestLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedSHA := "09b519c"
-	expectedAuthor := "Zaq? Wiedmann"
-	expectedMessage := "(ci) jobs with interleaved sleeps and prints"
-	assert.Contains(t, log, expectedSHA)
-	assert.Contains(t, log, expectedAuthor)
-	assert.Contains(t, log, expectedMessage)
+	assert.Equal(t, strings.Count(log, "\n"), 3, "Expected only 1 revision to be shown")
+	assert.Regexp(t, `09b519c \(Zaq\? Wiedmann, \d+ (year|month|day)s? ago\)
+   \(ci\) jobs with interleaved sleeps and prints`, log)
+}
+
+func Test_wrap(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc     string
+		input    string
+		expected string
+	}{
+		{
+			desc:     "long line",
+			input:    "foo_12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+			expected: "foo_12345678901234567890123456789012345678901234567890123456789012345678901234\n567890123456789012345678901234567890",
+		},
+		{
+			desc:     "short line",
+			input:    "123456789",
+			expected: "123456789",
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, test.expected, wrap(test.input))
+		})
+	}
+}
+
+func Test_indent(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc     string
+		input    string
+		expected string
+	}{
+		{
+			desc:     "many lines",
+			input:    "foo\nbar\nbiz\nbaz",
+			expected: "   foo\n   bar\n   biz\n   baz",
+		},
+		{
+			desc:     "single line",
+			input:    "foo",
+			expected: "   foo",
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, test.expected, indent(test.input))
+		})
+	}
+}
+
+func Test_ago(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc     string
+		dur      time.Duration
+		expected string
+	}{
+		{
+			desc:     "years ago",
+			dur:      time.Now().Sub(time.Now().Add(-2 * time.Hour * 24 * 31 * 12)),
+			expected: "2 years ago",
+		},
+		{
+			desc:     "year ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Hour * 24 * 31 * 12)),
+			expected: "1 year ago",
+		},
+		{
+			desc:     "months ago",
+			dur:      time.Now().Sub(time.Now().Add(-2 * time.Hour * 24 * 31)),
+			expected: "2 months ago",
+		},
+		{
+			desc:     "month ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Hour * 24 * 31)),
+			expected: "1 month ago",
+		},
+		{
+			desc:     "days ago",
+			dur:      time.Now().Sub(time.Now().Add(-2 * time.Hour * 24)),
+			expected: "2 days ago",
+		},
+		{
+			desc:     "day ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Hour * 24)),
+			expected: "1 day ago",
+		},
+		{
+			desc:     "hours ago",
+			dur:      time.Now().Sub(time.Now().Add(-2 * time.Hour)),
+			expected: "2 hours ago",
+		},
+		{
+			desc:     "hour ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Hour)),
+			expected: "1 hour ago",
+		},
+		{
+			desc:     "minutes ago",
+			dur:      time.Now().Sub(time.Now().Add(-2 * time.Minute)),
+			expected: "2 minutes ago",
+		},
+		{
+			desc:     "minute ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Minute)),
+			expected: "1 minute ago",
+		},
+		{
+			desc:     "seconds ago",
+			dur:      time.Now().Sub(time.Now().Add(-2 * time.Second)),
+			expected: "2 seconds ago",
+		},
+		{
+			desc:     "second ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Second)),
+			expected: "1 second ago",
+		},
+		{
+			desc:     "nanosecond ago",
+			dur:      time.Now().Sub(time.Now().Add(-1 * time.Nanosecond)),
+			expected: "0 seconds ago",
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, test.expected, ago(test.dur))
+		})
+	}
 }
 
 func TestCurrentBranch(t *testing.T) {
@@ -147,7 +289,7 @@ func TestPathWithNameSpace(t *testing.T) {
 			desc:        "remote doesn't exist",
 			remote:      "phoney",
 			expected:    "",
-			expectedErr: "the key `remote.phoney.url` is not found",
+			expectedErr: "remote phoney could not be found",
 		},
 		{
 			desc:        "remote doesn't exist",
