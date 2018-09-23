@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
+	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -43,7 +44,7 @@ var mrBrowseCmd = &cobra.Command{
 				Labels:       mrLabels,
 				State:        &mrState,
 				OrderBy:      gitlab.String("updated_at"),
-				SourceBranch: gitlab.String("browse-current-mr"),
+				SourceBranch: git.CurrentBranch()
 			}, -1)
 			if err != nil {
 				log.Fatal(err)
