@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"path"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/xanzy/go-gitlab"
+	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var mrBrowseCmd = &cobra.Command{
@@ -32,6 +35,22 @@ var mrBrowseCmd = &cobra.Command{
 		hostURL.Path = path.Join(hostURL.Path, rn, "merge_requests")
 		if num > 0 {
 			hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
+		} else {
+			mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
+				ListOptions: gitlab.ListOptions{
+					PerPage: 10,
+				},
+				Labels:       mrLabels,
+				State:        &mrState,
+				OrderBy:      gitlab.String("updated_at"),
+				SourceBranch: gitlab.String("browse-current-mr"),
+			}, -1)
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, mr := range mrs {
+				fmt.Printf("#%d %s\n", mr.IID, mr.Title, mr.SourceBranch)
+			}
 		}
 
 		err = browse(hostURL.String())
