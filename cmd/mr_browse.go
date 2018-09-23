@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"path"
@@ -53,8 +52,9 @@ var mrBrowseCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			for _, mr := range mrs {
-				fmt.Printf("#%d %s\n", mr.IID, mr.Title, mr.SourceBranch)
+			if len(mrs) > 0 {
+				num = int64(mrs[0].IID)
+				hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
 			}
 		}
 
