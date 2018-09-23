@@ -37,6 +37,10 @@ var mrBrowseCmd = &cobra.Command{
 		if num > 0 {
 			hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
 		} else {
+			currentBranch, err := git.CurrentBranch()
+			if err != nil {
+				log.Fatal(err)
+			}
 			mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
 				ListOptions: gitlab.ListOptions{
 					PerPage: 10,
@@ -44,7 +48,7 @@ var mrBrowseCmd = &cobra.Command{
 				Labels:       mrLabels,
 				State:        &mrState,
 				OrderBy:      gitlab.String("updated_at"),
-				SourceBranch: git.CurrentBranch()
+				SourceBranch: gitlab.String(currentBranch),
 			}, -1)
 			if err != nil {
 				log.Fatal(err)
