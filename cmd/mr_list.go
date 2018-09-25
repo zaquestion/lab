@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	mrLabels []string
-	mrState  string
-	mrNumRet int
-	mrAll    bool
+	mrLabels       []string
+	mrState        string
+	mrTargetBranch string
+	mrNumRet       int
+	mrAll          bool
 )
 
 // listCmd represents the list command
@@ -45,6 +46,9 @@ var listCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		for _, mr := range mrs {
+			if mrTargetBranch != "" && mrTargetBranch != mr.TargetBranch {
+				continue
+			}
 			fmt.Printf("#%d %s\n", mr.IID, mr.Title)
 		}
 	},
@@ -59,6 +63,9 @@ func init() {
 	listCmd.Flags().IntVarP(
 		&mrNumRet, "number", "n", 10,
 		"number of merge requests to return")
+	listCmd.Flags().StringVarP(
+		&mrTargetBranch, "target-branch", "t", "",
+		"filter merge requests by target branch")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
 	mrCmd.AddCommand(listCmd)
 }
