@@ -252,6 +252,7 @@
   digest = "1:dd57cf720278da9359135dd12dd30b0b265684bcaaa6ebd22d772bb69747b097"
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
+  pruneopts = ""
   revision = "8d21e61ce4a9b9c7fe645e48672872e9fdb71138"
 
 [[projects]]
