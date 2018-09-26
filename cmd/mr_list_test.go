@@ -101,7 +101,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 	}
 
 	mrs := strings.Split(string(b), "\n")
-	require.Equal(t, "PASS", mrs[0])
+	require.Equal(t, 3, len(mrs))
 }
 
 func Test_mrListByTargetBranch(t *testing.T) {
@@ -116,5 +116,5 @@ func Test_mrListByTargetBranch(t *testing.T) {
 	}
 
 	mrs := strings.Split(string(b), "\n")
-	require.Equal(t, "#107 WIP: Resolve \"issue title\"", mrs[0])
+	require.Equal(t, "#1 Test MR for lab list", mrs[0])
 }

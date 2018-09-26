@@ -38,17 +38,15 @@ var listCmd = &cobra.Command{
 			ListOptions: gitlab.ListOptions{
 				PerPage: mrNumRet,
 			},
-			Labels:  mrLabels,
-			State:   &mrState,
-			OrderBy: gitlab.String("updated_at"),
+			Labels:       mrLabels,
+			State:        &mrState,
+			TargetBranch: &mrTargetBranch,
+			OrderBy:      gitlab.String("updated_at"),
 		}, num)
 		if err != nil {
 			log.Fatal(err)
 		}
 		for _, mr := range mrs {
-			if mrTargetBranch != "" && mrTargetBranch != mr.TargetBranch {
-				continue
-			}
 			fmt.Printf("#%d %s\n", mr.IID, mr.Title)
 		}
 	},
