@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	mrLabels []string
-	mrState  string
-	mrNumRet int
-	mrAll    bool
+	mrLabels       []string
+	mrState        string
+	mrTargetBranch string
+	mrNumRet       int
+	mrAll          bool
 )
 
 // listCmd represents the list command
@@ -37,9 +38,10 @@ var listCmd = &cobra.Command{
 			ListOptions: gitlab.ListOptions{
 				PerPage: mrNumRet,
 			},
-			Labels:  mrLabels,
-			State:   &mrState,
-			OrderBy: gitlab.String("updated_at"),
+			Labels:       mrLabels,
+			State:        &mrState,
+			TargetBranch: &mrTargetBranch,
+			OrderBy:      gitlab.String("updated_at"),
 		}, num)
 		if err != nil {
 			log.Fatal(err)
@@ -59,6 +61,9 @@ func init() {
 	listCmd.Flags().IntVarP(
 		&mrNumRet, "number", "n", 10,
 		"number of merge requests to return")
+	listCmd.Flags().StringVarP(
+		&mrTargetBranch, "target-branch", "t", "",
+		"filter merge requests by target branch")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
 	mrCmd.AddCommand(listCmd)
 }

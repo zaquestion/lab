@@ -38,10 +38,11 @@ path refers the path on gitlab including the full group/namespace/project. If no
 		}
 
 		opts := gitlab.CreateProjectOptions{
-			Path:        gitlab.String(path),
-			Name:        gitlab.String(name),
-			Description: gitlab.String(desc),
-			Visibility:  &visibility,
+			Path:                 gitlab.String(path),
+			Name:                 gitlab.String(name),
+			Description:          gitlab.String(desc),
+			Visibility:           &visibility,
+			ApprovalsBeforeMerge: gitlab.Int(0),
 		}
 		p, err := lab.ProjectCreate(&opts)
 		if err != nil {
