@@ -16,4 +16,18 @@ func Test_mrBrowse(t *testing.T) {
 	}
 
 	mrBrowseCmd.Run(nil, []string{"1"})
+
+	// This code is currently just helping me thinking about how implement a test
+	// for this PR behavior
+	cmd := git.New("branch")
+	cmd.Stdout = nil
+	gBranches, err := cmd.Output()
+	if err != nil {
+		return nil
+	}
+	branches := strings.Split(string(gBranches), "\n")
+	for _, b := range branches {
+		fmt.Println(b)
+	}
+	return nil
 }
