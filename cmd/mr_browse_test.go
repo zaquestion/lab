@@ -32,5 +32,5 @@ func Test_mrBrowseCurrent(t *testing.T) {
 		return nil
 	}
 
-	mrBrowseCmd.Run(nil)
+	mrBrowseCmd.Run(nil, nil)
 }
