@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,6 +24,11 @@ func Test_mrBrowseCurrent(t *testing.T) {
 	repo := copyTestRepo(t)
 	git := exec.Command("git", "checkout", "mrtest")
 	git.Dir = repo
+	b, err := git.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
 
 	oldBrowse := browse
 	defer func() { browse = oldBrowse }()
