@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_mrBrowse(t *testing.T) {
+func Test_mrBrowseWithParameter(t *testing.T) {
 	oldBrowse := browse
 	defer func() { browse = oldBrowse }()
 
@@ -16,18 +16,21 @@ func Test_mrBrowse(t *testing.T) {
 	}
 
 	mrBrowseCmd.Run(nil, []string{"1"})
+}
 
-	// This code is currently just helping me thinking about how implement a test
-	// for this PR behavior
-	cmd := git.New("branch")
-	cmd.Stdout = nil
-	gBranches, err := cmd.Output()
-	if err != nil {
+func Test_mrBrowseCurrent(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	git := exec.Command("git", "checkout", "mrtest")
+	git.Dir = repo
+
+	oldBrowse := browse
+	defer func() { browse = oldBrowse }()
+
+	browse = func(url string) error {
+		require.Equal(t, "https://gitlab.com/zaquestion/test/merge_requests/1", url)
 		return nil
 	}
-	branches := strings.Split(string(gBranches), "\n")
-	for _, b := range branches {
-		fmt.Println(b)
-	}
-	return nil
+
+	mrBrowseCmd.Run(nil)
 }
