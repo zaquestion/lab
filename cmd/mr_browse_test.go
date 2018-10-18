@@ -20,15 +20,20 @@ func Test_mrBrowseWithParameter(t *testing.T) {
 }
 
 func Test_mrBrowseCurrent(t *testing.T) {
-	t.Parallel()
-	repo := copyTestRepo(t)
 	git := exec.Command("git", "checkout", "mrtest")
-	git.Dir = repo
 	b, err := git.CombinedOutput()
 	if err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
+	defer func() {
+		git := exec.Command("git", "checkout", "master")
+		b, err := git.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+	}()
 
 	oldBrowse := browse
 	defer func() { browse = oldBrowse }()
