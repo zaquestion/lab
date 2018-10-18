@@ -253,7 +253,7 @@
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
   pruneopts = ""
-  revision = "c5f12546e975c24b6ec0f64dce80959756950229"
+  revision = "8d21e61ce4a9b9c7fe645e48672872e9fdb71138"
 
 [[projects]]
   branch = "master"
