@@ -180,7 +180,8 @@ func Execute() {
 	}
 	// Check if the user is calling a lab command or if we should passthrough
 	// NOTE: The help command won't be found by Find, which we are counting on
-	if cmd, _, err := RootCmd.Find(os.Args[1:]); err != nil || cmd.Use == "clone" {
+	cmd, _, err := RootCmd.Find(os.Args[1:])
+	if err != nil || cmd.Use == "clone" {
 		// Determine if any undefined flags were passed to "clone"
 		// TODO: Evaluate and support some of these flags
 		// NOTE: `hub help -a` wraps the `git help -a` output
@@ -215,6 +216,21 @@ func Execute() {
 			log.Fatal(err)
 		}
 		return
+	}
+
+	// allow flags to the root cmd to be passed through. Technically we'll drop any exit code info which isn't ideal.
+	// TODO: remove for 1.0 when we stop wrapping git
+	if cmd.Use == RootCmd.Use && len(os.Args) > 1 {
+		var hFlaged bool
+		for _, v := range os.Args {
+			if v == "--help" {
+				hFlaged = true
+			}
+		}
+		if !hFlaged {
+			git.New(os.Args[1:]...).Run()
+			return
+		}
 	}
 	if err := RootCmd.Execute(); err != nil {
 		// Execute has already logged the error

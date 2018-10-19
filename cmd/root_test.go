@@ -139,25 +139,25 @@ func TestGitHelp(t *testing.T) {
 	expected = expected[:strings.LastIndex(strings.TrimSpace(expected), "\n")]
 
 	tests := []struct {
+		desc string
 		Cmds []string
 	}{
 		{
-			Cmds: []string{"--", "--help"},
-		},
-		{
-			Cmds: []string{"--", "-h"},
-		},
-		{
+			desc: "help arg",
 			Cmds: []string{"help"},
 		},
 		{
-			Cmds: []string{""},
+			desc: "no arg",
+			Cmds: []string{},
 		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.Cmds[len(test.Cmds)-1], func(t *testing.T) {
-			cmd := exec.Command("../lab_bin", test.Cmds...)
+		t.Run(test.desc, func(t *testing.T) {
+			cmd := exec.Command("../lab_bin")
+			if len(test.Cmds) >= 1 {
+				cmd = exec.Command("../lab_bin", test.Cmds...)
+			}
 			b, _ := cmd.CombinedOutput()
 			res := string(b)
 			res = res[:strings.LastIndex(strings.TrimSpace(res), "\n")]
