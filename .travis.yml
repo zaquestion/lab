@@ -37,7 +37,7 @@ after_success:
       do sed -i "/$r/d" coverage.txt
     done
   - bash <(curl -s https://codecov.io/bash)
-  - git clean -f
+  - git clean -fd testdata
 
 deploy:
   provider: script
