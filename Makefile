@@ -1,10 +1,7 @@
 VERSION ?= $(shell git describe --long --tags)
 GOURL ?= github.com/zaquestion/lab
 
-deps:
-	dep ensure
-
-build: deps
+build:
 	go build -ldflags "-X \"main.version=$(VERSION)\"" $(GOURL)
 
 install: build
