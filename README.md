@@ -56,15 +56,12 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 ### Source
 
 Required
-* [Go 1.9+](https://golang.org/doc/install)
-* [GOPATH](https://golang.org/doc/code.html#GOPATH)
-* [dep](https://github.com/golang/dep)
+* [Go 1.11+](https://golang.org/doc/install)
 
 ```
-go get -u -d github.com/zaquestion/lab
-cd $GOPATH/src/github.com/zaquestion/lab
-dep ensure
-go install -ldflags "-X \"main.version=$(git  rev-parse --short=10 HEAD)\""  github.com/zaquestion/lab
+git clone git@github.com:zaquestion/lab
+cd lab
+go install -ldflags "-X \"main.version=$(git  rev-parse --short=10 HEAD)\"" .
 ```
 
 or
