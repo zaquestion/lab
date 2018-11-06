@@ -62,7 +62,7 @@ func GitDir() (string, error) {
 	return filepath.Clean(dir), nil
 }
 
-// WorkingDir returns the full pall to the root of the current git repository
+// WorkingDir returns the full path to the root of the current git repository
 func WorkingDir() (string, error) {
 	cmd := New("rev-parse", "--show-toplevel")
 	cmd.Stdout = nil

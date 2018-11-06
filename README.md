@@ -72,7 +72,18 @@ make install
 
 # Configuration
 
-The first time you run lab it will prompt for your GitLab information. lab uses HCL for its config and looks in `~/.config/lab.hcl` and `./lab.hcl`
+`lab` needs your GitLab information in order to interact with to your GitLab
+instance. There are several ways to provide this information to `lab`:
+
+1. Environment variables: `LAB_CORE_HOST`, `LAB_CORE_USER`, `LAB_CORE_TOKEN`
+2. Environment variables: `CI_PROJECT_URL`, `CI_REGISTRY_USER`, `CI_JOB_TOKEN`
+    - Note: these are meant for when `lab` is running within a GitLab CI pipeline
+3. HCL config file: `./lab.hcl`
+4. HCL config file: `~/.config/lab.hcl`
+
+These are checked in order. If no suitable config values are found, `lab` will
+prompt for your GitLab information and save it into `~/.config/lab.hcl`.
+For example:
 ```
 $ lab
 Enter default GitLab host (default: https://gitlab.com):
