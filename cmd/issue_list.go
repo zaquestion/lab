@@ -12,6 +12,7 @@ import (
 var (
 	issueLabels []string
 	issueState  string
+	issueSearch string
 	issueNumRet int
 	issueAll    bool
 )
@@ -35,6 +36,11 @@ var issueListCmd = &cobra.Command{
 			State:   &issueState,
 			OrderBy: gitlab.String("updated_at"),
 		}
+
+		if issueSearch != "" {
+			opts.Search = &issueSearch
+		}
+
 		num := issueNumRet
 		if issueAll {
 			num = -1
@@ -51,13 +57,19 @@ var issueListCmd = &cobra.Command{
 
 func init() {
 	issueListCmd.Flags().StringSliceVarP(
-		&issueLabels, "label", "l", []string{}, "Filter issues by label")
+		&issueLabels, "label", "l", []string{},
+		"Filter issues by label")
 	issueListCmd.Flags().StringVarP(
 		&issueState, "state", "s", "opened",
 		"Filter issues by state (opened/closed)")
+	issueListCmd.Flags().StringVarP(
+		&issueSearch, "search", "", "",
+		"Search project issues against their title and description")
 	issueListCmd.Flags().IntVarP(
 		&issueNumRet, "number", "n", 10,
 		"Number of issues to return")
-	issueListCmd.Flags().BoolVarP(&issueAll, "all", "a", false, "List all issues on the project")
+	issueListCmd.Flags().BoolVarP(
+		&issueAll, "all", "a", false,
+		"List all issues on the project")
 	issueCmd.AddCommand(issueListCmd)
 }

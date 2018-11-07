@@ -55,3 +55,19 @@ func Test_issueListStateClosed(t *testing.T) {
 	t.Log(issues)
 	require.Contains(t, issues, "#4 test closed issue")
 }
+
+func Test_issueListSearch(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command("../lab_bin", "issue", "list", "--search", "filter labels")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.Contains(t, issues, "#3 test filter labels 1")
+}
