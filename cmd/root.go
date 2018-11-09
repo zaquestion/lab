@@ -110,6 +110,11 @@ func init() {
 // parseArgsStr returns a string and a number if parsed. Many commands accept a
 // string to operate on (remote or search) and number such as a page id
 func parseArgsStr(args []string) (string, int64, error) {
+	return parseArgsStringInt(args)
+}
+
+// parseArgsStringInt returns a string and a number if parsed.
+func parseArgsStringInt(args []string) (string, int64, error) {
 	if len(args) == 2 {
 		n, err := strconv.ParseInt(args[1], 0, 64)
 		if err != nil {
@@ -127,7 +132,14 @@ func parseArgsStr(args []string) (string, int64, error) {
 	return "", 0, nil
 }
 
+// parseArgs returns a remote name and a number if parsed
 func parseArgs(args []string) (string, int64, error) {
+	return parseArgsRemoteInt(args)
+}
+
+// parseArgsRemoteInt is similar to parseArgsStringInt except that it uses the
+// string argument as a remote and returns the project name for that remote
+func parseArgsRemoteInt(args []string) (string, int64, error) {
 	if !git.InsideGitRepo() {
 		return "", 0, nil
 	}
@@ -154,6 +166,45 @@ func parseArgs(args []string) (string, int64, error) {
 		return "", 0, err
 	}
 	return rn, num, nil
+}
+
+// returns a remote name and a string if parsed
+// returns two empty strings on error; if no remote is given, return project name
+// for default remote (ie 'origin'); if no second argument is given, returns ""
+func parseArgsRemoteString(args []string) (string, string, error) {
+	if !git.InsideGitRepo() {
+		return "", "", nil
+	}
+
+	remote, str := forkedFromRemote, ""
+
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return "", "", err
+		}
+		if ok {
+			remote = args[0]
+		} else {
+			str = args[0]
+		}
+	} else if len(args) > 1 {
+		remote, str = args[0], args[1]
+	}
+
+	ok, err := git.IsRemote(remote)
+	if err != nil {
+		return "", "", err
+	}
+	if !ok {
+		return "", "", errors.Errorf("%s is not a valid remote", remote)
+	}
+
+	remote, err = git.PathWithNameSpace(remote)
+	if err != nil {
+		return "", "", err
+	}
+	return remote, str, nil
 }
 
 var (
