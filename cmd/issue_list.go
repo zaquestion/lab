@@ -18,12 +18,12 @@ var (
 )
 
 var issueListCmd = &cobra.Command{
-	Use:     "list [remote]",
-	Aliases: []string{"ls"},
+	Use:     "list [remote] [search]",
+	Aliases: []string{"ls", "search"},
 	Short:   "List issues",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, _, err := parseArgs(args)
+		rn, issueSearch, err := parseArgsRemoteString(args)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,9 +62,6 @@ func init() {
 	issueListCmd.Flags().StringVarP(
 		&issueState, "state", "s", "opened",
 		"Filter issues by state (opened/closed)")
-	issueListCmd.Flags().StringVarP(
-		&issueSearch, "search", "", "",
-		"Search project issues against their title and description")
 	issueListCmd.Flags().IntVarP(
 		&issueNumRet, "number", "n", 10,
 		"Number of issues to return")
