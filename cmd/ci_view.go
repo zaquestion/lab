@@ -30,7 +30,7 @@ var (
 
 // ciViewCmd represents the ci command
 var ciViewCmd = &cobra.Command{
-	Use:   "view [remote]",
+	Use:   "view [remote [branch/tag]]",
 	Short: "View, run, trace, and/or cancel CI jobs current pipeline",
 	Long: `Supports viewing, running, tracing, and canceling jobs
 
@@ -54,6 +54,9 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			log.Fatal(err)
 		}
 
+		if len(args) > 1 {
+			branch = args[1]
+		}
 		remote = determineSourceRemote(branch)
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
