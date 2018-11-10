@@ -292,6 +292,23 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 	return mr.WebURL, nil
 }
 
+// IssueCreateNote creates a new note on an issue and returns the note URL
+func IssueCreateNote(project string, issueNum int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	note, _, err := lab.Notes.CreateIssueNote(p.ID, issueNum, opts)
+	if err != nil {
+		return "", err
+	}
+
+	// Unlike Issue, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
 // IssueGet retrieves the issue information from a GitLab project
 func IssueGet(project string, issueNum int) (*gitlab.Issue, error) {
 	p, err := FindProject(project)

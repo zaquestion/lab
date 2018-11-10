@@ -10,10 +10,20 @@ import (
 	"strings"
 )
 
-// Edit opens a file in the users editor and returns the title and body. It
-// store a temporary file in your .git directory or /tmp if accessed outside of
-// a git repo.
+// Edit opens a file in the users editor and returns the title and body.
 func Edit(filePrefix, message string) (string, string, error) {
+	contents, err := EditFile(filePrefix, message)
+	if err != nil {
+		return "", "", err
+	}
+
+	return parseTitleBody(strings.TrimSpace(string(contents)))
+}
+
+// EditFile opens a file in the users editor and returns the contents. It
+// stores a temporary file in your .git directory or /tmp if accessed outside of
+// a git repo.
+func EditFile(filePrefix, message string) (string, error) {
 	var (
 		dir string
 		err error
@@ -21,7 +31,7 @@ func Edit(filePrefix, message string) (string, string, error) {
 	if InsideGitRepo() {
 		dir, err = GitDir()
 		if err != nil {
-			return "", "", err
+			return "", err
 		}
 	} else {
 		dir = "/tmp"
@@ -29,7 +39,7 @@ func Edit(filePrefix, message string) (string, string, error) {
 	filePath := filepath.Join(dir, fmt.Sprintf("%s_EDITMSG", filePrefix))
 	editorPath, err := editorPath()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	defer os.Remove(filePath)
 
@@ -37,22 +47,22 @@ func Edit(filePrefix, message string) (string, string, error) {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) && message != "" {
 		err = ioutil.WriteFile(filePath, []byte(message), 0644)
 		if err != nil {
-			return "", "", err
+			return "", err
 		}
 	}
 
 	cmd := editorCMD(editorPath, filePath)
 	err = cmd.Run()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	contents, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return parseTitleBody(strings.TrimSpace(string(contents)))
+	return removeComments(string(contents))
 }
 
 func editorPath() (string, error) {
@@ -81,7 +91,7 @@ func editorCMD(editorPath, filePath string) *exec.Cmd {
 	return cmd
 }
 
-func parseTitleBody(message string) (string, string, error) {
+func removeComments(message string) (string, error) {
 	// Grab all the lines that don't start with the comment char
 	cc := CommentChar()
 	r := regexp.MustCompile(`(?m:^)[^` + cc + `].*(?m:$)`)
@@ -93,14 +103,22 @@ func parseTitleBody(message string) (string, string, error) {
 			noComments = append(noComments, p)
 		}
 	}
-	msg := strings.Join(noComments, "\n")
-	if strings.TrimSpace(msg) == "" {
+	return strings.TrimSpace(strings.Join(noComments, "\n")), nil
+}
+
+func parseTitleBody(message string) (string, string, error) {
+	msg, err := removeComments(message)
+	if err != nil {
+		return "", "", err
+	}
+
+	if msg == "" {
 		return "", "", nil
 	}
 
-	r = regexp.MustCompile(`\n\s*\n`)
+	r := regexp.MustCompile(`\n\s*\n`)
 	msg = strings.Replace(msg, "\\#", "#", -1)
-	parts = r.Split(msg, 2)
+	parts := r.Split(msg, 2)
 
 	if strings.Contains(parts[0], "\n") {
 		return "\n", parts[0], nil
