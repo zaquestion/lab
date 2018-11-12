@@ -70,6 +70,9 @@ or
 make install
 ```
 
+### Tests
+See the [contribution guide](CONTRIBUTING.md).
+
 # Configuration
 
 `lab` needs your GitLab information in order to interact with to your GitLab
