@@ -4,7 +4,7 @@
 lab is fundamentally a workflow tool; we don't add features just to cover the API.
 Instead, we add them to support and improve our cli workflows, which we want to flow seamlessly and feel intuitive and natural.
 
-## Test Overview
+## Overview of Tests
 
 lab runs integration tests in addition to unit tests. The integration tests run against gitlab.com. We are willing to trade some test autonomy and speed in exchange for 100% guarantees that features work against a live GitLab API. Integration tests are largely identified as tests which execute the `./lab_bin` binary. There are two primary projects used for these integration tests: [zaquestion/test](https://gitlab.com/zaquestion/test) and [lab-testing/test](https://gitlab.com/lab-testing/test).
 
