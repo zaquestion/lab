@@ -6,8 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 // create an issue and return the issue number
@@ -86,50 +88,78 @@ func Test_issueEditLabels(t *testing.T) {
 	require.NotContains(t, issueShowOuput, "bug")
 }
 
-func Test_issueEditMsg(t *testing.T) {
+func Test_issueEditGetTitleAndDescription(t *testing.T) {
 	tests := []struct {
-		Name          string
-		CurrentTitle  string
-		CurrentBody   string
-		Msgs          []string
-		ExpectedTitle string
-		ExpectedBody  string
+		Name                string
+		Issue               *gitlab.Issue
+		Args                []string
+		ExpectedTitle       string
+		ExpectedDescription string
 	}{
 		{
-			Name:          "Using messages",
-			CurrentTitle:  "old title",
-			CurrentBody:   "old body",
-			Msgs:          []string{"new title", "new body 1", "new body 2"},
-			ExpectedTitle: "new title",
-			ExpectedBody:  "new body 1\n\nnew body 2",
+			Name: "Using messages",
+			Issue: &gitlab.Issue{
+				Title:       "old title",
+				Description: "old body",
+			},
+			Args:                []string{"-m", "new title", "-m", "new body 1", "-m", "new body 2"},
+			ExpectedTitle:       "new title",
+			ExpectedDescription: "new body 1\n\nnew body 2",
 		},
 		{
-			Name:          "Using a single message",
-			CurrentTitle:  "old title",
-			CurrentBody:   "old body",
-			Msgs:          []string{"new title"},
-			ExpectedTitle: "new title",
-			ExpectedBody:  "old body",
+			Name: "Using a single message",
+			Issue: &gitlab.Issue{
+				Title:       "old title",
+				Description: "old body",
+			},
+			Args:                []string{"-m", "new title"},
+			ExpectedTitle:       "new title",
+			ExpectedDescription: "old body",
 		},
 		{
-			Name:          "From Editor",
-			CurrentTitle:  "old title",
-			CurrentBody:   "old body",
-			Msgs:          nil,
-			ExpectedTitle: "old title",
-			ExpectedBody:  "old body",
+			Name: "Using a title",
+			Issue: &gitlab.Issue{
+				Title:       "old title",
+				Description: "old body",
+			},
+			Args:                []string{"--title", "new title"},
+			ExpectedTitle:       "new title",
+			ExpectedDescription: "old body",
+		},
+		{
+			Name: "Using a title and message",
+			Issue: &gitlab.Issue{
+				Title:       "old title",
+				Description: "old body",
+			},
+			Args:                []string{"--title", "new title", "-m", "new body"},
+			ExpectedTitle:       "new title",
+			ExpectedDescription: "new body",
+		},
+		{
+			Name: "From Editor",
+			Issue: &gitlab.Issue{
+				Title:       "old title",
+				Description: "old body",
+			},
+			Args:                nil,
+			ExpectedTitle:       "old title",
+			ExpectedDescription: "old body",
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			title, body, err := issueEditMsg(test.CurrentTitle, test.CurrentBody, test.Msgs)
+			flags := issueCmdAddFlags(pflag.NewFlagSet(test.Name, pflag.ContinueOnError))
+			flags.Parse(test.Args)
+
+			title, body, err := issueEditGetTitleDescription(test.Issue, flags)
 			if err != nil {
 				t.Fatal(err)
 			}
 			assert.Equal(t, test.ExpectedTitle, title)
-			assert.Equal(t, test.ExpectedBody, body)
+			assert.Equal(t, test.ExpectedDescription, body)
 		})
 	}
 }

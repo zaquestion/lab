@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -52,45 +53,20 @@ var issueEditCmd = &cobra.Command{
 		// prepare the new list of labels, adding & removing as needed
 		labels = difference(union(issue.Labels, labels), unlabels)
 
-		//
-		// Title & Body
-		//
-		title, body := issue.Title, issue.Description
-
-		// get all of the "message" flags
-		msgs, err := cmd.Flags().GetStringSlice("message")
+		// get the title and description
+		title, body, err := issueEditGetTitleDescription(issue, cmd.Flags())
 		if err != nil {
-			log.Fatal(err)
+			_, f, l, _ := runtime.Caller(0)
+			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+		}
+		if title == "" {
+			log.Fatal("aborting: empty issue title")
 		}
 
-		// if "title" was passed, prepend it to msgs
-		t, err := cmd.Flags().GetString("title")
-		if err != nil {
-			log.Fatal(err)
-		}
-		if t != "" {
-			msgs = append([]string{t}, msgs...)
-		}
+		abortUpdate := title == issue.Title && body == issue.Description && same(issue.Labels, labels)
 
-		openEditor, err := cmd.Flags().GetBool("edit")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if len(msgs) != 0 || cmd.Flags().NFlag() == 0 || openEditor {
-			// given the old title, description and parameters, get the "new" title
-			// and description
-			title, body, err = issueEditMsg(title, body, msgs)
-			if err != nil {
-				_, f, l, _ := runtime.Caller(0)
-				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
-			}
-			if title == "" {
-				log.Fatal("aborting update due to empty issue title")
-			}
-			if title == issue.Title && body == issue.Description {
-				log.Fatal("aborting update because the title and description haven't changed")
-			}
+		if abortUpdate {
+			log.Fatal("aborting: no changes")
 		}
 
 		opts := &gitlab.UpdateIssueOptions{
@@ -111,16 +87,50 @@ var issueEditCmd = &cobra.Command{
 	},
 }
 
-func issueEditMsg(title string, body string, msgs []string) (string, string, error) {
-	// if only 1 arg was given, just update the title
-	// if >1 args given, we have a title and can build a description
-	if len(msgs) == 1 {
-		return msgs[0], body, nil
-	} else if len(msgs) > 1 {
-		return msgs[0], strings.Join(msgs[1:], "\n\n"), nil
+func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (string, string, error) {
+	title, body := issue.Title, issue.Description
+
+	// get all of the "message" flags
+	msgs, err := flags.GetStringSlice("message")
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// no args given, so kick it out to the users editor
+	// if "title" was passed, prepend it to msgs
+	t, err := flags.GetString("title")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if t != "" {
+		msgs = append([]string{t}, msgs...)
+	}
+
+	// should we open the editor regardless
+	forceEdit, err := flags.GetBool("edit")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(msgs) > 0 {
+		title = msgs[0]
+
+		if len(msgs) > 1 {
+			body = strings.Join(msgs[1:], "\n\n")
+		}
+
+		// we have everything we need, unless they explicitly want an editor
+		if !forceEdit {
+			return title, body, nil
+		}
+	}
+
+	// if other flags were given (eg label) and "--edit" was not given, then
+	// skip the editor and return what we already have
+	if flags.NFlag() != 0 && !forceEdit {
+		return title, body, nil
+	}
+
+	// --edit or no args were given, so kick it out to the users editor
 	text, err := issueEditText(title, body)
 	if err != nil {
 		return "", "", err
@@ -209,14 +219,19 @@ func same(a, b []string) bool {
 	return true
 }
 
+func issueCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
+	flags.StringP("title", "t", "", "Set the issue title")
+	flags.StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
+	flags.StringSliceP("unlabel", "L", []string{}, "Remove the given label(s) from the issue")
+	flags.Bool("edit", false, "Open the issue in an editor (default if no other flags given)")
+	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
+	flags.StringSliceP("unassign", "A", []string{}, "Remove an assigne by username")
+	// flags.SortFlags = false
+	return flags
+}
+
 func init() {
-	issueEditCmd.Flags().StringP("title", "t", "", "Set the issue title")
-	issueEditCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	issueEditCmd.Flags().StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
-	issueEditCmd.Flags().StringSliceP("unlabel", "L", []string{}, "Remove the given label(s) from the issue")
-	issueEditCmd.Flags().Bool("edit", false, "Open the issue in an editor (default if no other flags given)")
-	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	issueEditCmd.Flags().StringSliceP("unassign", "A", []string{}, "Remove an assigne by username")
-	// issueEditCmd.Flags().SortFlags = false
+	issueCmdAddFlags(issueEditCmd.Flags())
 	issueCmd.AddCommand(issueEditCmd)
 }
