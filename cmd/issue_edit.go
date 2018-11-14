@@ -21,10 +21,9 @@ var issueEditCmd = &cobra.Command{
 	Aliases: []string{"update"},
 	Short:   "Edit or update an issue",
 	Long:    ``,
-	Example: `
-lab issue edit <id>   							   # update issue via $EDITOR
-lab issue update <id> 							   # same as above
-lab issue edit <id> -m "new title" 				   # update title
+	Example: `lab issue edit <id>                                # update issue via $EDITOR
+lab issue update <id>                              # same as above
+lab issue edit <id> -m "new title"                 # update title
 lab issue edit <id> -m "new title" -m "new desc"   # update title & description
 lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 	Args: cobra.MinimumNArgs(1),
