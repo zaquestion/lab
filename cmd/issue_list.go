@@ -22,6 +22,10 @@ var issueListCmd = &cobra.Command{
 	Aliases: []string{"ls", "search"},
 	Short:   "List issues",
 	Long:    ``,
+	Example: `lab issue list                        # list all open issues
+lab issue list "search terms"         # search issues for "search terms"
+lab issue search "search terms"       # same as above
+lab issue list remote "search terms"  # search "remote" for issues with "search terms"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, issueSearch, err := parseArgsRemoteString(args)
 		if err != nil {

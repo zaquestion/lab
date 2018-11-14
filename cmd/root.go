@@ -168,9 +168,11 @@ func parseArgsRemoteInt(args []string) (string, int64, error) {
 	return rn, num, nil
 }
 
-// returns a remote name and a string if parsed
-// returns two empty strings on error; if no remote is given, return project name
-// for default remote (ie 'origin'); if no second argument is given, returns ""
+// parseArgsRemoteString returns a remote name and a string if parsed.
+// If there is an error, it returns two empty strings.
+// If no remote is given, it returns the project name of the default remote
+// (ie 'origin').
+// If no second argument is given, it returns "" as second return value.
 func parseArgsRemoteString(args []string) (string, string, error) {
 	if !git.InsideGitRepo() {
 		return "", "", nil
