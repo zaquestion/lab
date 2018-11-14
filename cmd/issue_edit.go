@@ -21,7 +21,13 @@ var issueEditCmd = &cobra.Command{
 	Aliases: []string{"update"},
 	Short:   "Edit or update an issue",
 	Long:    ``,
-	Args:    cobra.MinimumNArgs(1),
+	Example: `
+lab issue edit <id>   							   # update issue via $EDITOR
+lab issue update <id> 							   # same as above
+lab issue edit <id> -m "new title" 				   # update title
+lab issue edit <id> -m "new title" -m "new desc"   # update title & description
+lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// get remote and issue from cmd arguments
 		rn, issueNum, err := parseArgs(args)
@@ -87,6 +93,10 @@ var issueEditCmd = &cobra.Command{
 	},
 }
 
+
+// issueEditGetTitleDescription returns a title and description for an issue
+// based on the current issue title and description and various flags from the
+// command line
 func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (string, string, error) {
 	title, body := issue.Title, issue.Description
 
@@ -120,6 +130,8 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (st
 	return git.Edit("ISSUE_EDIT", text)
 }
 
+// issueEditText returns an issue editing template that is suitable for loading
+// into an editor
 func issueEditText(title string, body string) (string, error) {
 	const tmpl = `{{.InitMsg}}
 
@@ -182,7 +194,7 @@ func difference(a, b []string) []string {
 	return ab
 }
 
-// same returns true if a and b contain the same strings
+// same returns true if a and b contain the same strings (regardless of order)
 func same(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
@@ -201,7 +213,8 @@ func same(a, b []string) bool {
 	return true
 }
 
-func issueCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
+// issueEditCmdAddFlags adds various flags to the `lab issue edit` command
+func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
 	flags.StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
 	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
@@ -211,6 +224,6 @@ func issueCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
 }
 
 func init() {
-	issueCmdAddFlags(issueEditCmd.Flags())
+	issueEditCmdAddFlags(issueEditCmd.Flags())
 	issueCmd.AddCommand(issueEditCmd)
 }

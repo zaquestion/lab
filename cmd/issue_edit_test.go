@@ -131,7 +131,7 @@ func Test_issueEditGetTitleAndDescription(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			flags := issueCmdAddFlags(pflag.NewFlagSet(test.Name, pflag.ContinueOnError))
+			flags := issueEditCmdAddFlags(pflag.NewFlagSet(test.Name, pflag.ContinueOnError))
 			flags.Parse(test.Args)
 
 			title, body, err := issueEditGetTitleDescription(test.Issue, flags)
