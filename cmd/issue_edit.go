@@ -41,25 +41,16 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal(err)
 		}
 
-		//
-		// Labels
-		//
-		// get the labels to add
-		labels, err := cmd.Flags().GetStringSlice("label")
+		labels, labelsChanged, err := issueEditGetLabels(issue, cmd.Flags())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// get the labels to remove
-		unlabels, err := cmd.Flags().GetStringSlice("unlabel")
+		assigneeIDs, assigneesChanged, err := issueEditGetAssignees(issue, cmd.Flags())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// prepare the new list of labels, adding & removing as needed
-		labels = difference(union(issue.Labels, labels), unlabels)
-
-		// get the title and description
 		title, body, err := issueEditGetTitleDescription(issue, cmd.Flags())
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
@@ -69,8 +60,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal("aborting: empty issue title")
 		}
 
-		abortUpdate := title == issue.Title && body == issue.Description && same(issue.Labels, labels)
-
+		abortUpdate := title == issue.Title && body == issue.Description && !labelsChanged && !assigneesChanged
 		if abortUpdate {
 			log.Fatal("aborting: no changes")
 		}
@@ -80,11 +70,14 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			Description: &body,
 		}
 
-		if !same(issue.Labels, labels) {
+		if labelsChanged {
 			opts.Labels = gitlab.Labels(labels)
 		}
 
-		// do the update
+		if assigneesChanged {
+			opts.AssigneeIDs = assigneeIDs
+		}
+
 		issueURL, err := lab.IssueUpdate(rn, int(issueNum), opts)
 		if err != nil {
 			log.Fatal(err)
@@ -93,6 +86,70 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 	},
 }
 
+// issueEditGetLabels returns a string slice of issues based on the current
+// issue labels and flags from the command line, and a bool indicating whether
+// the labels have changed
+func issueEditGetLabels(issue *gitlab.Issue, flags *pflag.FlagSet) ([]string, bool, error) {
+	// get the labels to add
+	labels, err := flags.GetStringSlice("label")
+	if err != nil {
+		return []string{}, false, err
+	}
+
+	// get the labels to remove
+	unlabels, err := flags.GetStringSlice("unlabel")
+	if err != nil {
+		return []string{}, false, err
+	}
+
+	// add the new labels to the current labels, then remove the "unlabels"
+	labels = difference(union(issue.Labels, labels), unlabels)
+
+	return labels, !same(issue.Labels, labels), nil
+}
+
+// issueEditGetAssignees returns an int slice of assignee IDs based on the
+// current issue assignees and flags from the command line, and a bool
+// indicating whether the assignees have changed
+func issueEditGetAssignees(issue *gitlab.Issue, flags *pflag.FlagSet) ([]int, bool, error) {
+	currentAssignees := make([]string, len(issue.Assignees))
+	if len(issue.Assignees) > 0 && issue.Assignees[0].Username != "" {
+		for i, a := range issue.Assignees {
+			currentAssignees[i] = a.Username
+		}
+	}
+
+	// get the assignees to add
+	assignees, err := flags.GetStringSlice("assign")
+	if err != nil {
+		return []int{}, false, err
+	}
+
+	// get the assignees to remove
+	unassignees, err := flags.GetStringSlice("unassign")
+	if err != nil {
+		return []int{}, false, err
+	}
+
+	// add the new assignees to the current assignees, then remove the "unassignees"
+	assignees = difference(union(currentAssignees, assignees), unassignees)
+	assigneesChanged := !same(currentAssignees, assignees)
+
+	// turn the new assignee list into a list of assignee IDs
+	var assigneeIDs []int
+	if assigneesChanged && len(assignees) == 0 {
+		// if we're removing all assignees, we have to use []int{0}
+		// see https://github.com/xanzy/go-gitlab/issues/427
+		assigneeIDs = []int{0}
+	} else {
+		assigneeIDs = make([]int, len(assignees))
+		for i, a := range assignees {
+			assigneeIDs[i] = *getAssigneeID(a)
+		}
+	}
+
+	return assigneeIDs, assigneesChanged, nil
+}
 
 // issueEditGetTitleDescription returns a title and description for an issue
 // based on the current issue title and description and various flags from the

@@ -83,9 +83,49 @@ func Test_issueEditLabels(t *testing.T) {
 	// show the updated issue
 	issueShowOuput := issueEditCmdTest_showIssue(repo, issueNum)
 
-	// the output should show the updated title, not the old title
+	// the output should show the updated labels
 	require.Contains(t, issueShowOuput, "critical")
 	require.NotContains(t, issueShowOuput, "bug")
+}
+
+func Test_issueEditAssignees(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	issueNum := issueEditCmdTest_createIssue(repo)
+
+	// add an assignee
+	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
+		"-a", "lab-testing")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+
+	// get the updated issue
+	issueShowOuput := issueEditCmdTest_showIssue(repo, issueNum)
+
+	// the output should show the new assignee
+	require.Contains(t, issueShowOuput, "Assignees: lab-testing")
+
+	// now remove the assignee
+	cmd = exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
+		"--unassign", "lab-testing")
+	cmd.Dir = repo
+
+	b, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+
+	// get the updated issue again
+	issueShowOuput = issueEditCmdTest_showIssue(repo, issueNum)
+
+	// the output should NOT show the assignee
+	require.NotContains(t, issueShowOuput, "Assignees: lab-testing")
 }
 
 func Test_issueEditGetTitleAndDescription(t *testing.T) {
