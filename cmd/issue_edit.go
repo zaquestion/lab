@@ -96,21 +96,6 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (st
 		log.Fatal(err)
 	}
 
-	// if "title" was passed, prepend it to msgs
-	t, err := flags.GetString("title")
-	if err != nil {
-		log.Fatal(err)
-	}
-	if t != "" {
-		msgs = append([]string{t}, msgs...)
-	}
-
-	// should we open the editor regardless
-	forceEdit, err := flags.GetBool("edit")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	if len(msgs) > 0 {
 		title = msgs[0]
 
@@ -118,19 +103,16 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (st
 			body = strings.Join(msgs[1:], "\n\n")
 		}
 
-		// we have everything we need, unless they explicitly want an editor
-		if !forceEdit {
-			return title, body, nil
-		}
-	}
-
-	// if other flags were given (eg label) and "--edit" was not given, then
-	// skip the editor and return what we already have
-	if flags.NFlag() != 0 && !forceEdit {
+		// we have everything we need
 		return title, body, nil
 	}
 
-	// --edit or no args were given, so kick it out to the users editor
+	// if other flags were given (eg label), then skip the editor and return
+	// what we already have
+	if flags.NFlag() != 0 {
+		return title, body, nil
+	}
+
 	text, err := issueEditText(title, body)
 	if err != nil {
 		return "", "", err
@@ -220,14 +202,11 @@ func same(a, b []string) bool {
 }
 
 func issueCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
-	flags.StringP("title", "t", "", "Set the issue title")
 	flags.StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
-	flags.StringSliceP("unlabel", "L", []string{}, "Remove the given label(s) from the issue")
-	flags.Bool("edit", false, "Open the issue in an editor (default if no other flags given)")
+	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
 	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	flags.StringSliceP("unassign", "A", []string{}, "Remove an assigne by username")
-	// flags.SortFlags = false
+	flags.StringSliceP("unassign", "", []string{}, "Remove an assigne by username")
 	return flags
 }
 

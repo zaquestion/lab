@@ -71,7 +71,7 @@ func Test_issueEditLabels(t *testing.T) {
 
 	// update the issue
 	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
-		"-l", "critical", "-L", "bug")
+		"-l", "critical", "--unlabel", "bug")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -115,26 +115,6 @@ func Test_issueEditGetTitleAndDescription(t *testing.T) {
 			Args:                []string{"-m", "new title"},
 			ExpectedTitle:       "new title",
 			ExpectedDescription: "old body",
-		},
-		{
-			Name: "Using a title",
-			Issue: &gitlab.Issue{
-				Title:       "old title",
-				Description: "old body",
-			},
-			Args:                []string{"--title", "new title"},
-			ExpectedTitle:       "new title",
-			ExpectedDescription: "old body",
-		},
-		{
-			Name: "Using a title and message",
-			Issue: &gitlab.Issue{
-				Title:       "old title",
-				Description: "old body",
-			},
-			Args:                []string{"--title", "new title", "-m", "new body"},
-			ExpectedTitle:       "new title",
-			ExpectedDescription: "new body",
 		},
 		{
 			Name: "From Editor",
