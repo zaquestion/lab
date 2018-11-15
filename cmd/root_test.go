@@ -329,3 +329,68 @@ func Test_parseArgs(t *testing.T) {
 		})
 	}
 }
+
+func Test_parseArgsRemoteString(t *testing.T) {
+	tests := []struct {
+		Name           string
+		Args           []string
+		ExpectedRemote string
+		ExpectedString string
+		ExpectedErr    string
+	}{
+		{
+			Name:           "No Args",
+			Args:           nil,
+			ExpectedRemote: "zaquestion/test",
+			ExpectedString: "",
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg remote",
+			Args:           []string{"lab-testing"},
+			ExpectedRemote: "lab-testing/test",
+			ExpectedString: "",
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg non remote",
+			Args:           []string{"foo123"},
+			ExpectedRemote: "zaquestion/test",
+			ExpectedString: "foo123",
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "1 arg page",
+			Args:           []string{"100"},
+			ExpectedRemote: "zaquestion/test",
+			ExpectedString: "100",
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "2 arg remote and string",
+			Args:           []string{"origin", "foo123"},
+			ExpectedRemote: "zaquestion/test",
+			ExpectedString: "foo123",
+			ExpectedErr:    "",
+		},
+		{
+			Name:           "2 arg invalid remote and string",
+			Args:           []string{"foo", "string123"},
+			ExpectedRemote: "",
+			ExpectedString: "",
+			ExpectedErr:    "foo is not a valid remote",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+			r, s, err := parseArgsRemoteString(test.Args)
+			if err != nil {
+				assert.EqualError(t, err, test.ExpectedErr)
+			}
+			assert.Equal(t, test.ExpectedRemote, r)
+			assert.Equal(t, test.ExpectedString, s)
+		})
+	}
+}

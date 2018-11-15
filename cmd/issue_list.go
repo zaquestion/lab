@@ -12,17 +12,22 @@ import (
 var (
 	issueLabels []string
 	issueState  string
+	issueSearch string
 	issueNumRet int
 	issueAll    bool
 )
 
 var issueListCmd = &cobra.Command{
-	Use:     "list [remote]",
-	Aliases: []string{"ls"},
+	Use:     "list [remote] [search]",
+	Aliases: []string{"ls", "search"},
 	Short:   "List issues",
 	Long:    ``,
+	Example: `lab issue list                        # list all open issues
+lab issue list "search terms"         # search issues for "search terms"
+lab issue search "search terms"       # same as above
+lab issue list remote "search terms"  # search "remote" for issues with "search terms"`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, _, err := parseArgs(args)
+		rn, issueSearch, err := parseArgsRemoteString(args)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,6 +40,11 @@ var issueListCmd = &cobra.Command{
 			State:   &issueState,
 			OrderBy: gitlab.String("updated_at"),
 		}
+
+		if issueSearch != "" {
+			opts.Search = &issueSearch
+		}
+
 		num := issueNumRet
 		if issueAll {
 			num = -1
@@ -51,13 +61,16 @@ var issueListCmd = &cobra.Command{
 
 func init() {
 	issueListCmd.Flags().StringSliceVarP(
-		&issueLabels, "label", "l", []string{}, "Filter issues by label")
+		&issueLabels, "label", "l", []string{},
+		"Filter issues by label")
 	issueListCmd.Flags().StringVarP(
 		&issueState, "state", "s", "opened",
 		"Filter issues by state (opened/closed)")
 	issueListCmd.Flags().IntVarP(
 		&issueNumRet, "number", "n", 10,
 		"Number of issues to return")
-	issueListCmd.Flags().BoolVarP(&issueAll, "all", "a", false, "List all issues on the project")
+	issueListCmd.Flags().BoolVarP(
+		&issueAll, "all", "a", false,
+		"List all issues on the project")
 	issueCmd.AddCommand(issueListCmd)
 }
