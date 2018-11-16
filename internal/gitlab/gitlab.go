@@ -383,6 +383,21 @@ func IssueClose(pid interface{}, id int) error {
 	return nil
 }
 
+// IssueListDiscussions retrieves the discussions (aka notes & comments) for an issue
+func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	discussions, _, err := lab.Discussions.ListIssueDiscussions(p.ID, issueNum, &gitlab.ListIssueDiscussionsOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return discussions, nil
+}
+
 // BranchPushed checks if a branch exists on a GitLab project
 func BranchPushed(pid interface{}, branch string) bool {
 	b, _, err := lab.Branches.GetBranch(pid, branch)

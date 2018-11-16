@@ -29,6 +29,16 @@ var issueShowCmd = &cobra.Command{
 		}
 
 		printIssue(issue, rn)
+
+		showComments, _ := cmd.Flags().GetBool("comments")
+		if showComments {
+			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			printDiscussions(discussions)
+		}
 	},
 }
 
@@ -81,9 +91,50 @@ WebURL: %s
 	)
 }
 
+func printDiscussions(discussions []*gitlab.Discussion) {
+	// for available fields, see
+	// https://godoc.org/github.com/xanzy/go-gitlab#Note
+	// https://godoc.org/github.com/xanzy/go-gitlab#Discussion
+	for _, discussion := range discussions {
+		for i, note := range discussion.Notes {
+
+			// skip system notes
+			if note.System {
+				continue
+			}
+
+			indentHeader, indentNote := "", ""
+			commented := "commented"
+
+			if !discussion.IndividualNote {
+				indentNote = "    "
+
+				if i == 0 {
+					commented = "started a discussion"
+				} else {
+					indentHeader = "    "
+				}
+			}
+
+			fmt.Printf(`
+%s-----------------------------------
+%s%s %s at %s
+
+%s%s
+`,
+				indentHeader,
+				indentHeader, note.Author.Username, commented, time.Time(*note.CreatedAt).String(),
+				indentNote, note.Body)
+
+			// fmt.Printf(`%s%+v`, indentNote, note)
+		}
+	}
+}
+
 func init() {
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
+	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
 	issueCmd.AddCommand(issueShowCmd)
 }
