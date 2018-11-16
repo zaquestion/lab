@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"log"
 	"os/exec"
 	"strings"
 	"testing"
@@ -12,15 +11,15 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-// create an issue and return the issue number
-func issueEditCmdTest_createIssue(dir string) string {
+// issueEditCmdTestCreateIssue creates an issue and returns the issue number
+func issueEditCmdTestCreateIssue(t *testing.T, dir string) string {
 	cmd := exec.Command("../lab_bin", "issue", "create", "lab-testing",
 		"-m", "issue title", "-l", "bug")
 	cmd.Dir = dir
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	s := strings.Split(string(b), "\n")
@@ -28,13 +27,14 @@ func issueEditCmdTest_createIssue(dir string) string {
 	return s[len(s)-1]
 }
 
-func issueEditCmdTest_showIssue(dir string, issueNum string) string {
+// issueEditCmdTestShowIssue returns the `lab issue show` output for the given issue
+func issueEditCmdTestShowIssue(t *testing.T, dir string, issueNum string) string {
 	cmd := exec.Command("../lab_bin", "issue", "show", "lab-testing", issueNum)
 	cmd.Dir = dir
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	return string(b)
@@ -43,7 +43,7 @@ func issueEditCmdTest_showIssue(dir string, issueNum string) string {
 func Test_issueEditCmd(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	issueNum := issueEditCmdTest_createIssue(repo)
+	issueNum := issueEditCmdTestCreateIssue(t, repo)
 
 	// update the issue
 	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
@@ -57,7 +57,7 @@ func Test_issueEditCmd(t *testing.T) {
 	}
 
 	// show the updated issue
-	issueShowOuput := issueEditCmdTest_showIssue(repo, issueNum)
+	issueShowOuput := issueEditCmdTestShowIssue(t, repo, issueNum)
 
 	// the output should show the updated title, not the old title
 	require.Contains(t, issueShowOuput, "new title")
@@ -67,7 +67,7 @@ func Test_issueEditCmd(t *testing.T) {
 func Test_issueEditLabels(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	issueNum := issueEditCmdTest_createIssue(repo)
+	issueNum := issueEditCmdTestCreateIssue(t, repo)
 
 	// update the issue
 	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
@@ -81,7 +81,7 @@ func Test_issueEditLabels(t *testing.T) {
 	}
 
 	// show the updated issue
-	issueShowOuput := issueEditCmdTest_showIssue(repo, issueNum)
+	issueShowOuput := issueEditCmdTestShowIssue(t, repo, issueNum)
 
 	// the output should show the updated labels
 	require.Contains(t, issueShowOuput, "critical")
@@ -91,7 +91,7 @@ func Test_issueEditLabels(t *testing.T) {
 func Test_issueEditAssignees(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	issueNum := issueEditCmdTest_createIssue(repo)
+	issueNum := issueEditCmdTestCreateIssue(t, repo)
 
 	// add an assignee
 	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
@@ -105,7 +105,7 @@ func Test_issueEditAssignees(t *testing.T) {
 	}
 
 	// get the updated issue
-	issueShowOuput := issueEditCmdTest_showIssue(repo, issueNum)
+	issueShowOuput := issueEditCmdTestShowIssue(t, repo, issueNum)
 
 	// the output should show the new assignee
 	require.Contains(t, issueShowOuput, "Assignees: lab-testing")
@@ -122,7 +122,7 @@ func Test_issueEditAssignees(t *testing.T) {
 	}
 
 	// get the updated issue again
-	issueShowOuput = issueEditCmdTest_showIssue(repo, issueNum)
+	issueShowOuput = issueEditCmdTestShowIssue(t, repo, issueNum)
 
 	// the output should NOT show the assignee
 	require.NotContains(t, issueShowOuput, "Assignees: lab-testing")
