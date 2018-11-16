@@ -432,6 +432,21 @@ func BranchPushed(pid interface{}, branch string) bool {
 	return b != nil
 }
 
+// LabelList gets a list of labels on a GitLab Project
+func LabelList(project string) ([]*gitlab.Label, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	list, _, err := lab.Labels.ListLabels(p.ID, &gitlab.ListLabelsOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}
+
 // ProjectSnippetCreate creates a snippet in a project
 func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
 	snip, _, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
