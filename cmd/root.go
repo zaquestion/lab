@@ -20,10 +20,10 @@ import (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:                    "lab",
-	Short:                  "A Git Wrapper for GitLab",
-	Long:                   ``,
-	BashCompletionFunction: bashCompletionFunction,
+	Use:                   "lab",
+	Short:                 "A Git Wrapper for GitLab",
+	Long:                  ``,
+	ZshCompletionFunction: zshCompletionFunction,
 	Run: func(cmd *cobra.Command, args []string) {
 		if ok, err := cmd.Flags().GetBool("version"); err == nil && ok {
 			versionCmd.Run(cmd, args)

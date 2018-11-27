@@ -19,8 +19,8 @@
   name = "github.com/rivo/tview"
 
 [[constraint]]
+  branch = "zsh-completion-custom"
   name = "github.com/spf13/cobra"
-  revision = "8705b03f72cac882d2b60e23ad7eb69a8ff936de"
   source = "github.com/rsteube/cobra"
 
 [[constraint]]

@@ -1,6 +1,6 @@
 package cmd
 
-var bashCompletionFunction = `
+var zshCompletionFunction = `
 function __lab_completion_project {
   projects=($(lab project list $1))
   [ -z "$projects" ] || _values 'project' $projects

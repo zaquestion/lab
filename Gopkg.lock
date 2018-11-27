@@ -195,14 +195,15 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:5d1e1e96472467379dd6dc9f7a5b0f81d200ca155f4f0df8ae101735aefafc6e"
+  branch = "zsh-completion-custom"
+  digest = "1:8a630972997d661ef821c918267af5acda934df63433915ccfa044098a899b95"
   name = "github.com/spf13/cobra"
   packages = [
     ".",
     "doc",
   ]
   pruneopts = "UT"
-  revision = "8705b03f72cac882d2b60e23ad7eb69a8ff936de"
+  revision = "9b460264dd0a74c36c825995ce0b6e9bb7bfdad3"
   source = "github.com/rsteube/cobra"
 
 [[projects]]

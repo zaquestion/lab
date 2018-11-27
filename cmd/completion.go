@@ -8,17 +8,20 @@ import (
 
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
-	Use:   "completion",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:       "completion",
+	Short:     "Generates the shell autocompletion",
+	Long:      `'completion bash' generates the bash and 'completion zsh' the zsh autocompletion`,
+	Args:      cobra.ExactArgs(1),
+	ValidArgs: []string{"bash", "zsh"},
 	Run: func(cmd *cobra.Command, args []string) {
-		//RootCmd.GenBashCompletion(os.Stdout)
-		RootCmd.GenZshCompletion(os.Stdout)
+		switch args[0] {
+		case "bash":
+			RootCmd.GenBashCompletion(os.Stdout)
+		case "zsh":
+			RootCmd.GenZshCompletion(os.Stdout)
+		default:
+			println("only 'bash' or 'zsh' allowed")
+		}
 	},
 }
 
