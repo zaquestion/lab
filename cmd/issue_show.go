@@ -82,5 +82,6 @@ WebURL: %s
 }
 
 func init() {
+	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
 	issueCmd.AddCommand(issueShowCmd)
 }

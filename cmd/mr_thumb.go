@@ -65,6 +65,10 @@ var mrThumbDownCmd = &cobra.Command{
 
 func init() {
 	mrCmd.AddCommand(mrThumbCmd)
+
+	mrThumbUpCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
 	mrThumbCmd.AddCommand(mrThumbUpCmd)
+
+	mrThumbDownCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
 	mrThumbCmd.AddCommand(mrThumbDownCmd)
 }

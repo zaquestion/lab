@@ -34,5 +34,6 @@ var issueCloseCmd = &cobra.Command{
 }
 
 func init() {
+	issueCloseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
 	issueCmd.AddCommand(issueCloseCmd)
 }
