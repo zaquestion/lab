@@ -2,7 +2,8 @@ package cmd
 
 var zshCompletionFunction = `
 function __lab_completion_project {
-  projects=($(lab project list $1))
+  searchterm=$(echo $words[2] | sed -r 's_^-*|/$__g')
+  projects=($(lab project list $searchterm))
   [ -z "$projects" ] || _values 'project' $projects
 }
 
