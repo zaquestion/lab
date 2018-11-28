@@ -119,7 +119,7 @@ func issueEditGetAssignees(issue *gitlab.Issue, flags *pflag.FlagSet) ([]int, bo
 	}
 
 	// get the assignees to add
-	assignees, err := flags.GetStringSlice("assignee")
+	assignees, err := flags.GetStringSlice("assign")
 	if err != nil {
 		return []int{}, false, err
 	}
@@ -274,7 +274,7 @@ func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
 	flags.StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
 	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
-	flags.StringSliceP("assignee", "a", []string{}, "Add an assignee by username")
+	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
 	flags.StringSliceP("unassign", "", []string{}, "Remove an assigne by username")
 	return flags
 }
