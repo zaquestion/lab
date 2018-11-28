@@ -34,5 +34,6 @@ var mrApproveCmd = &cobra.Command{
 }
 
 func init() {
+	mrApproveCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
 	mrCmd.AddCommand(mrApproveCmd)
 }

@@ -131,9 +131,11 @@ func parseCIVariables(vars []string) (map[string]string, error) {
 }
 
 func init() {
+	ciCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
 	ciCreateCmd.Flags().StringP("project", "p", "", "Project to create pipeline on")
 	ciCmd.AddCommand(ciCreateCmd)
 
+	ciTriggerCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
 	ciTriggerCmd.Flags().StringP("project", "p", "", "Project to run pipeline trigger on")
 	ciTriggerCmd.Flags().StringP("token", "t", os.Getenv("CI_JOB_TOKEN"), "Pipeline trigger token, optional if run within GitLabCI")
 	ciTriggerCmd.Flags().StringSliceP("variable", "v", []string{}, "Variables to pass to pipeline")
