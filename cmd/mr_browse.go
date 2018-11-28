@@ -66,5 +66,6 @@ var mrBrowseCmd = &cobra.Command{
 }
 
 func init() {
+	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
 	mrCmd.AddCommand(mrBrowseCmd)
 }

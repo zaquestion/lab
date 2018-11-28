@@ -70,5 +70,6 @@ WebURL: %s
 }
 
 func init() {
+	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
 	mrCmd.AddCommand(mrShowCmd)
 }
