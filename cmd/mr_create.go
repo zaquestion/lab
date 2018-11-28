@@ -40,7 +40,7 @@ func init() {
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrCreateCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
+	mrCreateCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	mrCmd.AddCommand(mrCreateCmd)
 }
 
