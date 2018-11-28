@@ -38,3 +38,5 @@ require (
 	google.golang.org/appengine v1.1.0
 	gopkg.in/yaml.v2 v2.2.1
 )
+
+replace github.com/spf13/cobra => github.com/rsteube/cobra v0.0.1-zsh-completion-custom

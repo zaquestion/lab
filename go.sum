@@ -33,6 +33,12 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rivo/tview v0.0.0-20180419193403-f855bee0205c h1:glHTGj2GpdU/IVxB1lptVQaUi48w72qq8GfkaZpBJtY=
 github.com/rivo/tview v0.0.0-20180419193403-f855bee0205c/go.mod h1:J4W+hErFfITUbyFAEXizpmkuxX7ZN56dopxHB4XQhMw=
+github.com/rsteube/cobra v0.0.1-zsh-completion-custom h1:Hqbid4kBOEu78syaZ8hCAIjwLZGqraO0zlyytAVNhkY=
+github.com/rsteube/cobra v0.0.1-zsh-completion-custom/go.mod h1:pAlNXnbm7kUeUgr/8AEn0Lv+VrT1T6obUvI1mC8KlvA=
+github.com/rsteube/cobra v0.0.1 h1:YUhAD8HC4woX0vejyxMxFPVQKcJ2SmWft3B+qcx2w7c=
+github.com/rsteube/cobra v0.0.1/go.mod h1:pAlNXnbm7kUeUgr/8AEn0Lv+VrT1T6obUvI1mC8KlvA=
+github.com/rsteube/cobra v0.0.2 h1:gpU6XXdJqIVR4QKGKjIIaMJ1mM6Y8fB/HTTA3dKZ15I=
+github.com/rsteube/cobra v0.0.2/go.mod h1:pAlNXnbm7kUeUgr/8AEn0Lv+VrT1T6obUvI1mC8KlvA=
 github.com/russross/blackfriday v1.5.1/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/spf13/afero v1.1.0 h1:bopulORc2JeYaxfHLvJa5NzxviA9PoWhpiiJkru7Ji4=
 github.com/spf13/afero v1.1.0/go.mod h1:j4pytiNVoe2o6bmDsKpLACNPDBIoEAkihy7loJ1B0CQ=
