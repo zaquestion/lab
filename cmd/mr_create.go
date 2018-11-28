@@ -38,6 +38,9 @@ func init() {
 	mrCreateCmd.Flags().Bool("allow-collaboration", false, "Allow commits from other members")
 	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
+
+	mrCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	mrCreateCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrCreateCmd)
 }
 

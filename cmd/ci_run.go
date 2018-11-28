@@ -131,7 +131,7 @@ func parseCIVariables(vars []string) (map[string]string, error) {
 }
 
 func init() {
-	ciCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
+	ciCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches origin")
 	ciCreateCmd.Flags().StringP("project", "p", "", "Project to create pipeline on")
 	ciCmd.AddCommand(ciCreateCmd)
 

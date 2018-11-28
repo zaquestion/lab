@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -72,5 +72,8 @@ func init() {
 	issueListCmd.Flags().BoolVarP(
 		&issueAll, "all", "a", false,
 		"List all issues on the project")
+
+	issueListCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	issueListCmd.MarkFlagCustom("state", "(opened closed)")
 	issueCmd.AddCommand(issueListCmd)
 }

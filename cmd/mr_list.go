@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -65,5 +65,7 @@ func init() {
 		&mrTargetBranch, "target-branch", "t", "",
 		"filter merge requests by target branch")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
+
+	listCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	mrCmd.AddCommand(listCmd)
 }

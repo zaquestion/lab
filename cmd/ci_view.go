@@ -625,5 +625,7 @@ func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
 }
 
 func init() {
+	ciViewCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	ciViewCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	ciCmd.AddCommand(ciViewCmd)
 }

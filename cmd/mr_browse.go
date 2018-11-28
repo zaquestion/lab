@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -66,6 +66,7 @@ var mrBrowseCmd = &cobra.Command{
 }
 
 func init() {
-	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
+	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrBrowseCmd)
 }

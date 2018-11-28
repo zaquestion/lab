@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -82,6 +82,8 @@ WebURL: %s
 }
 
 func init() {
+	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	issueShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
 	issueCmd.AddCommand(issueShowCmd)
 }

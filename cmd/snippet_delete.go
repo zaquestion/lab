@@ -40,6 +40,7 @@ var snippetDeleteCmd = &cobra.Command{
 }
 
 func init() {
-	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_snippet")
+	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_snippet $words[2]")
 	snippetCmd.AddCommand(snippetDeleteCmd)
 }
