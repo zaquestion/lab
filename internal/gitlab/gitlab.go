@@ -292,6 +292,20 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 	return mr.WebURL, nil
 }
 
+// IssueUpdate edits an issue on a GitLab project
+func IssueUpdate(project string, issueNum int, opts *gitlab.UpdateIssueOptions) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	issue, _, err := lab.Issues.UpdateIssue(p.ID, issueNum, opts)
+	if err != nil {
+		return "", err
+	}
+	return issue.WebURL, nil
+}
+
 // IssueCreateNote creates a new note on an issue and returns the note URL
 func IssueCreateNote(project string, issueNum int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
 	p, err := FindProject(project)
