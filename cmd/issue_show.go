@@ -125,8 +125,6 @@ func printDiscussions(discussions []*gitlab.Discussion) {
 				indentHeader,
 				indentHeader, note.Author.Username, commented, time.Time(*note.CreatedAt).String(),
 				indentNote, note.Body)
-
-			// fmt.Printf(`%s%+v`, indentNote, note)
 		}
 	}
 }
