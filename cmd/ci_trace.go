@@ -116,5 +116,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 }
 
 func init() {
+	ciTraceCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	ciTraceCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	ciCmd.AddCommand(ciTraceCmd)
 }

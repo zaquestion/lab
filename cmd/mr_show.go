@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -70,6 +70,7 @@ WebURL: %s
 }
 
 func init() {
-	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_merge_request")
+	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	mrShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrShowCmd)
 }

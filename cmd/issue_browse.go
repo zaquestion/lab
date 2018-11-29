@@ -45,6 +45,7 @@ var issueBrowseCmd = &cobra.Command{
 }
 
 func init() {
-	issueBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
+	issueBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	issueBrowseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueCmd.AddCommand(issueBrowseCmd)
 }

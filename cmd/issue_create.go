@@ -128,5 +128,7 @@ func init() {
 	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
+
+	issueCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueCmd.AddCommand(issueCreateCmd)
 }
