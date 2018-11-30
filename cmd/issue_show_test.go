@@ -10,7 +10,7 @@ import (
 func Test_issueShow(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "1")
+	cmd := exec.Command("../lab_bin", "issue", "show", "1", "--comments")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -34,4 +34,6 @@ Time Stats: Estimated 1w, Spent 1d
 Labels: bug
 WebURL: https://gitlab.com/zaquestion/test/issues/1
 `)
+
+	require.Contains(t, string(b), `commented at`)
 }

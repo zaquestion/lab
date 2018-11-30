@@ -74,6 +74,8 @@ github.com/tcnksm/go-gitconfig v0.1.2 h1:iiDhRitByXAEyjgBqsKi9QU4o2TNtv9kPP3RgPg
 github.com/tcnksm/go-gitconfig v0.1.2/go.mod h1:/8EhP4H7oJZdIPyT+/UIsG87kTzrzM4UsLGSItWYCpE=
 github.com/xanzy/go-gitlab v0.0.0-20180921132519-8d21e61ce4a9 h1:gmCeo/bSUp/oLKpsZrICPRTgwsuI3m17l5c2X8y4/0g=
 github.com/xanzy/go-gitlab v0.0.0-20180921132519-8d21e61ce4a9/go.mod h1:CRKHkvFWNU6C3AEfqLWjnCNnAs4nj8Zk95rX2S3X6Mw=
+github.com/xanzy/go-gitlab v0.11.3 h1:gSYcSb+pCx3fco6/O3w784/omQVTcrgxRzyf14SBvUQ=
+github.com/xanzy/go-gitlab v0.11.3/go.mod h1:CRKHkvFWNU6C3AEfqLWjnCNnAs4nj8Zk95rX2S3X6Mw=
 golang.org/x/crypto v0.0.0-20180420171155-e73bf333ef89 h1:YMKUzb2eHV8HdgAr0z9lbGN1Av2h4cgMMsvi+JV60MM=
 golang.org/x/crypto v0.0.0-20180420171155-e73bf333ef89/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/net v0.0.0-20180906233101-161cd47e91fd h1:nTDtHvHSdCn1m6ITfMRqtOd/9+7a3s8RBNOZ3eYZzJA=

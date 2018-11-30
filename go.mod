@@ -33,7 +33,7 @@ require (
 	github.com/spf13/viper v0.0.0-20180507071007-15738813a09d
 	github.com/stretchr/testify v1.2.1
 	github.com/tcnksm/go-gitconfig v0.1.2
-	github.com/xanzy/go-gitlab v0.0.0-20180921132519-8d21e61ce4a9
+	github.com/xanzy/go-gitlab v0.11.3
 	golang.org/x/crypto v0.0.0-20180420171155-e73bf333ef89
 	golang.org/x/oauth2 v0.0.0-20180724155351-3d292e4d0cdc // indirect
 	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
