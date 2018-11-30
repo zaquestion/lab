@@ -281,5 +281,7 @@ func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
 
 func init() {
 	issueEditCmdAddFlags(issueEditCmd.Flags())
+	issueEditCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	issueEditCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueCmd.AddCommand(issueEditCmd)
 }
