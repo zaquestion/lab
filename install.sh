@@ -9,9 +9,21 @@ fi
 : ${PREFIX:=/usr/local}
 BINDIR="$PREFIX/bin"
 
+_can_install() {
+  if [[ ! -d "$BINDIR" ]]; then
+    mkdir -p "$BINDIR" 2> /dev/null
+  fi
+  [[ -d "$BINDIR" && -w "$BINDIR" ]]
+}
+
 if [[ $EUID != 0 ]]; then
     sudo "$0" "$@"
     exit "$?"
+fi
+
+if ! _can_install; then
+  echo "Can't install to $BINDIR"
+  exit 1
 fi
 
 case "$(uname -m)" in
