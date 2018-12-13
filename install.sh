@@ -55,4 +55,5 @@ latest="$(curl -sL 'https://api.github.com/repos/zaquestion/lab/releases/latest'
 
 curl -sL "https://github.com/zaquestion/lab/releases/download/v${latest}/lab_${latest}_${os}_${machine}.tar.gz" | tar -C /tmp/ -xzf -
 cp /tmp/lab $BINDIR/lab
+chmod +x $BINDIR/lab
 echo "Successfully installed lab into $BINDIR/"
