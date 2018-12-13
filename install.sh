@@ -16,7 +16,7 @@ _can_install() {
   [[ -d "$BINDIR" && -w "$BINDIR" ]]
 }
 
-if [[ $EUID != 0 ]]; then
+if ! _can_install && [[ $EUID != 0 ]]; then
     sudo "$0" "$@"
     exit "$?"
 fi
