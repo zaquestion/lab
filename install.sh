@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eu -o pipefail
 
 if [[ ! -z ${DEBUG-} ]]; then
     set -x
