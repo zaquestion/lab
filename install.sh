@@ -9,6 +9,10 @@ fi
 : ${PREFIX:=/usr/local}
 BINDIR="$PREFIX/bin"
 
+if [[ $# -gt 0 ]]; then
+  BINDIR=$1
+fi
+
 _can_install() {
   if [[ ! -d "$BINDIR" ]]; then
     mkdir -p "$BINDIR" 2> /dev/null
