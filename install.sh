@@ -6,6 +6,9 @@ if [[ ! -z $DEBUG ]]; then
     set -x
 fi
 
+: ${PREFIX:=/usr/local}
+BINDIR="$PREFIX/bin"
+
 if [[ $EUID != 0 ]]; then
     sudo "$0" "$@"
     exit "$?"
@@ -39,5 +42,5 @@ esac
 latest="$(curl -sL 'https://api.github.com/repos/zaquestion/lab/releases/latest' | grep 'tag_name' | grep --only 'v[0-9\.]\+' | cut -c 2-)"
 
 curl -sL "https://github.com/zaquestion/lab/releases/download/v${latest}/lab_${latest}_${os}_${machine}.tar.gz" | tar -C /tmp/ -xzf -
-cp /tmp/lab /usr/local/bin/lab
-echo "Successfully installed lab into /usr/local/bin/"
+cp /tmp/lab $BINDIR/lab
+echo "Successfully installed lab into $BINDIR/"
