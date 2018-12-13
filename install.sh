@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
+set -eu
 
-if [[ ! -z $DEBUG ]]; then
+if [[ ! -z ${DEBUG-} ]]; then
     set -x
 fi
 
