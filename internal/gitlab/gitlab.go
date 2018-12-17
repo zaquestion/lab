@@ -390,9 +390,30 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 		return nil, err
 	}
 
-	discussions, _, err := lab.Discussions.ListIssueDiscussions(p.ID, issueNum, &gitlab.ListIssueDiscussionsOptions{})
-	if err != nil {
-		return nil, err
+	discussions := []*gitlab.Discussion{}
+	opt := &gitlab.ListIssueDiscussionsOptions{
+		// 100 is the maximum allowed by the API
+		PerPage: 100,
+		Page:    1,
+	}
+
+	for {
+		// get a page of discussions from the API ...
+		d, resp, err := lab.Discussions.ListIssueDiscussions(p.ID, issueNum, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		// ... and add them to our collection of discussions
+		discussions = append(discussions, d...)
+
+		// if we've seen all the pages, then we can break here
+		if opt.Page >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		opt.Page = resp.NextPage
 	}
 
 	return discussions, nil
