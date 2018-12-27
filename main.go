@@ -17,7 +17,7 @@ import (
 // version gets set on releases during build by goreleaser.
 var version = "master"
 
-func loadConfig() (string, string, string) {
+func loadConfig() (string, string) {
 	var home string
 	switch runtime.GOOS {
 	case "windows":
@@ -45,15 +45,15 @@ func loadConfig() (string, string, string) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	host, user, token := viper.GetString("core.host"), viper.GetString("core.user"), viper.GetString("core.token")
-	if host != "" && user != "" && token != "" {
-		return host, user, token
+	host, token := viper.GetString("core.host"), viper.GetString("core.token")
+	if host != "" && token != "" {
+		return host, token
 	}
 
 	// Attempt to auto-configure for GitLab CI
-	host, user, token = config.CI()
-	if host != "" && user != "" && token != "" {
-		return host, user, token
+	host, token = config.CI()
+	if host != "" && token != "" {
+		return host, token
 	}
 
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
@@ -78,7 +78,7 @@ func loadConfig() (string, string, string) {
 		cfg = v
 	}
 
-	for _, v := range []string{"host", "user", "token"} {
+	for _, v := range []string{"host", "token"} {
 		if cv, ok := cfg[v]; !ok {
 			log.Println(cv)
 			log.Fatalf("missing config value core.%s in %s", v, viper.ConfigFileUsed())
@@ -93,13 +93,10 @@ func loadConfig() (string, string, string) {
 	if v := viper.GetString("core.host"); v != "" {
 		cfg["host"] = v
 	}
-	if v := viper.GetString("core.user"); v != "" {
-		cfg["user"] = v
-	}
 	if v := viper.GetString("core.token"); v != "" {
 		cfg["token"] = v
 	}
-	return cfg["host"].(string), cfg["user"].(string), cfg["token"].(string)
+	return cfg["host"].(string), cfg["token"].(string)
 }
 
 func main() {

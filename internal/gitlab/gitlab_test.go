@@ -27,19 +27,23 @@ func TestMain(m *testing.M) {
 
 	Init(
 		config["host"].(string),
-		config["user"].(string),
 		config["token"].(string))
 	os.Exit(m.Run())
 }
 
+func TestUser(t *testing.T) {
+	// Should get set by Init() after TestMain()
+	require.Equal(t, "lab-testing", User())
+}
+
 func TestLoadGitLabTmplMR(t *testing.T) {
 	mrTmpl := LoadGitLabTmpl(TmplMR)
-	require.Equal(t, mrTmpl, "I am the default merge request template for lab")
+	require.Equal(t, "I am the default merge request template for lab", mrTmpl)
 }
 
 func TestLoadGitLabTmplIssue(t *testing.T) {
 	issueTmpl := LoadGitLabTmpl(TmplIssue)
-	require.Equal(t, issueTmpl, "This is the default issue template for lab")
+	require.Equal(t, "This is the default issue template for lab", issueTmpl)
 }
 
 func TestLint(t *testing.T) {

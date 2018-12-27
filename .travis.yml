@@ -29,7 +29,7 @@ before_script:
   - ssh-add ~/.ssh/id_rsa
 
 script:
-  - GO111MODULE=on make test
+  - make test
 
 after_success:
   - |
