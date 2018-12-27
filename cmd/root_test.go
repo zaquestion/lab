@@ -47,7 +47,6 @@ func TestMain(m *testing.M) {
 	config := c.([]map[string]interface{})[0]
 	lab.Init(
 		config["host"].(string),
-		config["user"].(string),
 		config["token"].(string))
 
 	code := m.Run()

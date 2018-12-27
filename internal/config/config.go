@@ -2,7 +2,6 @@ package config
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -20,9 +19,9 @@ const defaultGitLabHost = "https://gitlab.com"
 // them to the provided confpath (default: ~/.config/lab.hcl)
 func New(confpath string, r io.Reader) error {
 	var (
-		reader            = bufio.NewReader(r)
-		host, user, token string
-		err               error
+		reader      = bufio.NewReader(r)
+		host, token string
+		err         error
 	)
 	fmt.Printf("Enter default GitLab host (default: %s): ", defaultGitLabHost)
 	host, err = reader.ReadString('\n')
@@ -32,16 +31,6 @@ func New(confpath string, r io.Reader) error {
 	}
 	if host == "" {
 		host = defaultGitLabHost
-	}
-
-	fmt.Print("Enter default GitLab user: ")
-	user, err = reader.ReadString('\n')
-	user = strings.TrimSpace(user)
-	if err != nil {
-		return err
-	}
-	if user == "" {
-		return errors.New("lab.hcl config core.user must be set")
 	}
 
 	tokenURL, err := url.Parse(host)
@@ -57,7 +46,6 @@ func New(confpath string, r io.Reader) error {
 	}
 
 	viper.Set("core.host", host)
-	viper.Set("core.user", user)
 	viper.Set("core.token", token)
 	if err := viper.WriteConfigAs(confpath); err != nil {
 		return err
@@ -76,18 +64,14 @@ var readPassword = func() (string, error) {
 
 // CI returns credentials suitable for use within GitLab CI or empty strings if
 // none found.
-func CI() (string, string, string) {
+func CI() (string, string) {
 	ciToken := os.Getenv("CI_JOB_TOKEN")
 	if ciToken == "" {
-		return "", "", ""
+		return "", ""
 	}
 	ciHost := strings.TrimSuffix(os.Getenv("CI_PROJECT_URL"), os.Getenv("CI_PROJECT_PATH"))
 	if ciHost == "" {
-		return "", "", ""
+		return "", ""
 	}
-	ciUser := os.Getenv("CI_REGISTRY_USER")
-	if ciUser == "" {
-		ciUser = "gitlab-ci-token"
-	}
-	return ciHost, ciUser, ciToken
+	return ciHost, ciToken
 }
