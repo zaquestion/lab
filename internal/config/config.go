@@ -23,14 +23,23 @@ func New(confpath string, r io.Reader) error {
 		host, token string
 		err         error
 	)
-	fmt.Printf("Enter default GitLab host (default: %s): ", defaultGitLabHost)
-	host, err = reader.ReadString('\n')
-	host = strings.TrimSpace(host)
-	if err != nil {
-		return err
-	}
-	if host == "" {
-		host = defaultGitLabHost
+	// If core host is set in the environment (LAB_CORE_HOST) we only want
+	// to prompt for the token. We'll use the environments host and place
+	// it in the config. In the event both the host and token are in the
+	// env, this function shouldn't be called in the first place
+	if viper.GetString("core.host") == "" {
+		fmt.Printf("Enter GitLab host (default: %s): ", defaultGitLabHost)
+		host, err = reader.ReadString('\n')
+		host = strings.TrimSpace(host)
+		if err != nil {
+			return err
+		}
+		if host == "" {
+			host = defaultGitLabHost
+		}
+	} else {
+		// Required to correctly write config
+		host = viper.GetString("core.host")
 	}
 
 	tokenURL, err := url.Parse(host)
