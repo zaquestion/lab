@@ -179,7 +179,7 @@ func MRGet(project string, mrNum int) (*gitlab.MergeRequest, error) {
 		return nil, err
 	}
 
-	mr, _, err := lab.MergeRequests.GetMergeRequest(p.ID, mrNum)
+	mr, _, err := lab.MergeRequests.GetMergeRequest(p.ID, mrNum, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) 
 
 // MRClose closes an mr on a GitLab project
 func MRClose(pid interface{}, id int) error {
-	mr, _, err := lab.MergeRequests.GetMergeRequest(pid, id)
+	mr, _, err := lab.MergeRequests.GetMergeRequest(pid, id, nil)
 	if err != nil {
 		return err
 	}
