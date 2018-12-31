@@ -2,15 +2,20 @@ package gitlab
 
 import (
 	"log"
+	"math/rand"
 	"os"
+	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"github.com/zaquestion/lab/internal/copy"
 )
 
 func TestMain(m *testing.M) {
-	err := os.Chdir(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
+	repo := copyTestRepo()
+	err := os.Chdir(repo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,7 +33,16 @@ func TestMain(m *testing.M) {
 	Init(
 		config["host"].(string),
 		config["token"].(string))
-	os.Exit(m.Run())
+
+	code := m.Run()
+
+	if err := os.Chdir("../"); err != nil {
+		log.Fatalf("Error chdir to ../: %s", err)
+	}
+	if err := os.RemoveAll(repo); err != nil {
+		log.Fatalf("Error removing %s: %s", repo, err)
+	}
+	os.Exit(code)
 }
 
 func TestUser(t *testing.T) {
@@ -112,4 +126,23 @@ func TestBranchPushed(t *testing.T) {
 			require.Equal(t, test.expected, ok)
 		})
 	}
+}
+
+func copyTestRepo() string {
+	dst, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + strconv.Itoa(int(rand.Uint64()))))
+	if err != nil {
+		log.Fatal(err)
+	}
+	src, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := copy.Copy(src, dst); err != nil {
+		log.Fatal(err)
+	}
+	// Move the test.git dir into the expected path at .git
+	if err := os.Rename(dst+"/test.git", dst+"/.git"); err != nil {
+		log.Fatal(err)
+	}
+	return dst
 }

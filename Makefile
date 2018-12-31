@@ -12,10 +12,8 @@ test:
 
 internal-test:
 	rm coverage-* 2>&1 > /dev/null || true
-	mv testdata/test.git testdata/.git
 	GO111MODULE=on go test -coverprofile=coverage-main.out -covermode=count -coverpkg ./... -run=$(run) $(GOURL)/cmd $(GOURL)/internal/...
-	mv testdata/.git testdata/test.git
-	go get github.com/wadey/gocovmerge
+	go get -u github.com/wadey/gocovmerge
 	gocovmerge coverage-*.out > coverage.txt && rm coverage-*.out
 
 .PHONY: deps install test internal-test

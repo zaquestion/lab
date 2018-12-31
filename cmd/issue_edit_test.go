@@ -13,7 +13,7 @@ import (
 
 // issueEditCmdTestCreateIssue creates an issue and returns the issue number
 func issueEditCmdTestCreateIssue(t *testing.T, dir string) string {
-	cmd := exec.Command("../lab_bin", "issue", "create", "lab-testing",
+	cmd := exec.Command(labBinaryPath, "issue", "create", "lab-testing",
 		"-m", "issue title", "-l", "bug")
 	cmd.Dir = dir
 
@@ -29,7 +29,7 @@ func issueEditCmdTestCreateIssue(t *testing.T, dir string) string {
 
 // issueEditCmdTestShowIssue returns the `lab issue show` output for the given issue
 func issueEditCmdTestShowIssue(t *testing.T, dir string, issueNum string) string {
-	cmd := exec.Command("../lab_bin", "issue", "show", "lab-testing", issueNum)
+	cmd := exec.Command(labBinaryPath, "issue", "show", "lab-testing", issueNum)
 	cmd.Dir = dir
 
 	b, err := cmd.CombinedOutput()
@@ -46,7 +46,7 @@ func Test_issueEditCmd(t *testing.T) {
 	issueNum := issueEditCmdTestCreateIssue(t, repo)
 
 	// update the issue
-	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
+	cmd := exec.Command(labBinaryPath, "issue", "edit", "lab-testing", issueNum,
 		"-m", "new title")
 	cmd.Dir = repo
 
@@ -70,7 +70,7 @@ func Test_issueEditLabels(t *testing.T) {
 	issueNum := issueEditCmdTestCreateIssue(t, repo)
 
 	// update the issue
-	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
+	cmd := exec.Command(labBinaryPath, "issue", "edit", "lab-testing", issueNum,
 		"-l", "critical", "--unlabel", "bug")
 	cmd.Dir = repo
 
@@ -94,7 +94,7 @@ func Test_issueEditAssignees(t *testing.T) {
 	issueNum := issueEditCmdTestCreateIssue(t, repo)
 
 	// add an assignee
-	cmd := exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
+	cmd := exec.Command(labBinaryPath, "issue", "edit", "lab-testing", issueNum,
 		"-a", "lab-testing")
 	cmd.Dir = repo
 
@@ -111,7 +111,7 @@ func Test_issueEditAssignees(t *testing.T) {
 	require.Contains(t, issueShowOuput, "Assignees: lab-testing")
 
 	// now remove the assignee
-	cmd = exec.Command("../lab_bin", "issue", "edit", "lab-testing", issueNum,
+	cmd = exec.Command(labBinaryPath, "issue", "edit", "lab-testing", issueNum,
 		"--unassign", "lab-testing")
 	cmd.Dir = repo
 

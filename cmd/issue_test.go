@@ -13,7 +13,7 @@ func Test_issueCmd(t *testing.T) {
 	var issueID string
 	t.Run("create", func(t *testing.T) {
 		repo := copyTestRepo(t)
-		cmd := exec.Command("../lab_bin", "issue", "create", "lab-testing",
+		cmd := exec.Command(labBinaryPath, "issue", "create", "lab-testing",
 			"-m", "issue title",
 			"-m", "issue description",
 			"-l", "bug",
@@ -39,7 +39,7 @@ func Test_issueCmd(t *testing.T) {
 			t.Skip("issueID is empty, create likely failed")
 		}
 		repo := copyTestRepo(t)
-		cmd := exec.Command("../lab_bin", "issue", "show", "lab-testing", issueID)
+		cmd := exec.Command(labBinaryPath, "issue", "show", "lab-testing", issueID)
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -61,7 +61,7 @@ func Test_issueCmd(t *testing.T) {
 			t.Skip("issueID is empty, create likely failed")
 		}
 		repo := copyTestRepo(t)
-		cmd := exec.Command("../lab_bin", "issue", "lab-testing", "-d", issueID)
+		cmd := exec.Command(labBinaryPath, "issue", "lab-testing", "-d", issueID)
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -75,7 +75,7 @@ func Test_issueCmd(t *testing.T) {
 
 func Test_issueCmd_noArgs(t *testing.T) {
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue")
+	cmd := exec.Command(labBinaryPath, "issue")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

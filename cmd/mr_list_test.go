@@ -5,13 +5,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_mrList(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list")
+	cmd := exec.Command(labBinaryPath, "mr", "list")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -27,7 +28,7 @@ func Test_mrList(t *testing.T) {
 func Test_mrListFlagLabel(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-l", "confirmed")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-l", "confirmed")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -43,7 +44,7 @@ func Test_mrListFlagLabel(t *testing.T) {
 func Test_mrListStateMerged(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-s", "merged")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-s", "merged")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -59,7 +60,7 @@ func Test_mrListStateMerged(t *testing.T) {
 func Test_mrListStateClosed(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-s", "closed")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-s", "closed")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -76,7 +77,7 @@ func Test_mrListStateClosed(t *testing.T) {
 func Test_mrListFivePerPage(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-n", "5")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-n", "5")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -92,7 +93,7 @@ func Test_mrListFivePerPage(t *testing.T) {
 func Test_mrFilterByTargetBranch(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-t", "non-existing")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-t", "non-existing")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -101,13 +102,14 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 	}
 
 	mrs := strings.Split(string(b), "\n")
-	require.Equal(t, 3, len(mrs))
+	mrs = truncAppOutput(mrs)
+	assert.Empty(t, mrs, "Expected to find no MRs for non-existent branch")
 }
 
 func Test_mrListByTargetBranch(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr", "list", "-t", "master")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-t", "master")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

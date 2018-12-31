@@ -10,21 +10,21 @@ import (
 func Test_ciTrace(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "fetch", "origin")
+	cmd := exec.Command(labBinaryPath, "fetch", "origin")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command("../lab_bin", "checkout", "origin/ci_test_pipeline")
+	cmd = exec.Command(labBinaryPath, "checkout", "origin/ci_test_pipeline")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command("../lab_bin", "checkout", "-b", "ci_test_pipeline")
+	cmd = exec.Command(labBinaryPath, "checkout", "-b", "ci_test_pipeline")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
@@ -74,7 +74,7 @@ func Test_ciTrace(t *testing.T) {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
-			cmd = exec.Command("../lab_bin", append([]string{"ci", "trace"}, test.args...)...)
+			cmd = exec.Command(labBinaryPath, append([]string{"ci", "trace"}, test.args...)...)
 			cmd.Dir = repo
 
 			b, err := cmd.CombinedOutput()

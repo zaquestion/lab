@@ -11,7 +11,7 @@ import (
 func Test_ciRun(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "ci", "run")
+	cmd := exec.Command(labBinaryPath, "ci", "run")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

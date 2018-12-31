@@ -5,13 +5,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_projectList(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "project", "list", "-m")
+	cmd := exec.Command(labBinaryPath, "project", "list", "-m")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -26,7 +27,7 @@ func Test_projectList(t *testing.T) {
 func Test_projectList_many(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "project", "list", "-n", "101")
+	cmd := exec.Command(labBinaryPath, "project", "list", "-n", "101")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -34,8 +35,21 @@ func Test_projectList_many(t *testing.T) {
 		t.Fatal(err)
 	}
 	projects := strings.Split(string(b), "\n")
-	t.Log(projects[:len(projects)-3])
-	require.Equal(t, "PASS", projects[len(projects)-3 : len(projects)-1][0])
-	require.Contains(t, projects[len(projects)-2 : len(projects)][0], "of statements in ./...")
-	require.Equal(t, 101, len(projects[:len(projects)-3]))
+	t.Log(projects)
+
+	projects = truncAppOutput(projects)
+	assert.Equal(t, 101, len(projects), "Expected 101 projects listed")
+	assert.NotContains(t, projects, "PASS")
+}
+
+// truncAppOutput truncates the list of strings returned from the "lab" test
+// app to remove the test-specific output. It use "PASS" as a marker for the end
+// of the app output and the beginning of the test output.
+func truncAppOutput(output []string) []string {
+	for i, line := range output {
+		if line == "PASS" {
+			return output[:i]
+		}
+	}
+	return output
 }

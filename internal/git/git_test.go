@@ -2,37 +2,58 @@ package git
 
 import (
 	"log"
+	"math/rand"
 	"os"
+	"path/filepath"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/zaquestion/lab/internal/copy"
 )
 
 func TestMain(m *testing.M) {
-	err := os.Chdir(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
-	if err != nil {
+	rand.Seed(time.Now().UnixNano())
+	repo := copyTestRepo()
+	if err := os.Chdir(repo); err != nil {
 		log.Fatal(err)
 	}
-	os.Exit(m.Run())
+
+	code := m.Run()
+
+	if err := os.Chdir("../"); err != nil {
+		log.Fatalf("Error chdir to ../: %s", err)
+	}
+	if err := os.RemoveAll(repo); err != nil {
+		log.Fatalf("Error removing %s: %s", repo, err)
+	}
+	os.Exit(code)
 }
 
 func TestGitDir(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
 	dir, err := GitDir()
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedDir := os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata/.git")
-	require.Equal(t, expectedDir, dir)
+	require.Equal(t, filepath.Clean(wd+"/.git"), filepath.Clean(dir))
 }
 
 func TestWorkingDir(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
 	dir, err := WorkingDir()
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedDir := os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata")
-	require.Equal(t, expectedDir, dir)
+	require.Equal(t, filepath.Clean(wd), filepath.Clean(dir))
 }
 
 func TestCommentChar(t *testing.T) {
@@ -191,4 +212,23 @@ func TestIsRemote(t *testing.T) {
 
 func TestInsideGitRepo(t *testing.T) {
 	require.True(t, InsideGitRepo())
+}
+
+func copyTestRepo() string {
+	dst, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + strconv.Itoa(int(rand.Uint64()))))
+	if err != nil {
+		log.Fatal(err)
+	}
+	src, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := copy.Copy(src, dst); err != nil {
+		log.Fatal(err)
+	}
+	// Move the test.git dir into the expected path at .git
+	if err := os.Rename(dst+"/test.git", dst+"/.git"); err != nil {
+		log.Fatal(err)
+	}
+	return dst
 }

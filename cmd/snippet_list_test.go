@@ -13,7 +13,7 @@ import (
 func Test_snippetList(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "snippet", "list", "lab-testing")
+	cmd := exec.Command(labBinaryPath, "snippet", "list", "lab-testing")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

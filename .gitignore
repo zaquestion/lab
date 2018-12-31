@@ -13,3 +13,4 @@ _test
 
 coverage*
 vendor
+testdata-*
