@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"net/url"
 	"os/exec"
+	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,11 +18,21 @@ func Test_issueCreate(t *testing.T) {
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Log(string(b))
-		t.Fatal(err)
+		t.Fatalf("Error creating issue: %s (%s)", string(b), err)
 	}
+	out := getAppOutput(b)[0]
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/issues/")
+	require.Contains(t, out, "https://gitlab.com/lab-testing/test/issues/")
+
+	// Get the issue ID from the returned URL and close the issue.
+	u, err := url.Parse(out)
+	require.NoError(t, err, "Error parsing URL")
+	id := path.Base(u.Path)
+
+	cmd = exec.Command(labBinaryPath, "issue", "close", "lab-testing", id)
+	cmd.Dir = repo
+	b, err = cmd.CombinedOutput()
+	require.NoError(t, err, "Error closing issue %s: %s", id, string(b))
 }
 
 func Test_issueMsg(t *testing.T) {

@@ -34,22 +34,8 @@ func Test_projectList_many(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	projects := strings.Split(string(b), "\n")
-	t.Log(projects)
 
-	projects = truncAppOutput(projects)
+	projects := getAppOutput(b)
 	assert.Equal(t, 101, len(projects), "Expected 101 projects listed")
 	assert.NotContains(t, projects, "PASS")
-}
-
-// truncAppOutput truncates the list of strings returned from the "lab" test
-// app to remove the test-specific output. It use "PASS" as a marker for the end
-// of the app output and the beginning of the test output.
-func truncAppOutput(output []string) []string {
-	for i, line := range output {
-		if line == "PASS" {
-			return output[:i]
-		}
-	}
-	return output
 }

@@ -22,9 +22,6 @@ func Copy(src, dest string) error {
 // Because this "copy" could be called recursively,
 // "info" MUST be given here, NOT nil.
 func copy(src, dest string, info os.FileInfo) error {
-	if info.Mode()&os.ModeSymlink != 0 {
-		return lcopy(src, dest, info)
-	}
 	if info.IsDir() {
 		return dcopy(src, dest, info)
 	}
@@ -82,14 +79,4 @@ func dcopy(srcdir, destdir string, info os.FileInfo) error {
 		}
 	}
 	return nil
-}
-
-// lcopy is for a symlink,
-// with just creating a new symlink by replicating src symlink.
-func lcopy(src, dest string, info os.FileInfo) error {
-	src, err := os.Readlink(src)
-	if err != nil {
-		return err
-	}
-	return os.Symlink(src, dest)
 }

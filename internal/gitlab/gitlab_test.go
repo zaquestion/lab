@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zaquestion/lab/internal/copy"
 )
@@ -43,6 +44,12 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Error removing %s: %s", repo, err)
 	}
 	os.Exit(code)
+}
+
+func TestGetProject(t *testing.T) {
+	project, err := GetProject("lab-testing/test")
+	require.NoError(t, err)
+	assert.Equal(t, 5694926, project.ID, "Expected 'lab-testing/test' to be project 5694926")
 }
 
 func TestUser(t *testing.T) {

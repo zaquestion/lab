@@ -421,3 +421,16 @@ func copyTestRepo(log fatalLogger) string {
 	}
 	return dst
 }
+
+// getAppOutput splits and truncates the list of strings returned from the "lab"
+// test binary to remove the test-specific output. It use "PASS" as a marker for
+// the end of the app output and the beginning of the test output.
+func getAppOutput(output []byte) []string {
+	lines := strings.Split(string(output), "\n")
+	for i, line := range lines {
+		if line == "PASS" {
+			return lines[:i]
+		}
+	}
+	return lines
+}

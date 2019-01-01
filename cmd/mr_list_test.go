@@ -101,8 +101,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mrs := strings.Split(string(b), "\n")
-	mrs = truncAppOutput(mrs)
+	mrs := getAppOutput(b)
 	assert.Empty(t, mrs, "Expected to find no MRs for non-existent branch")
 }
 
