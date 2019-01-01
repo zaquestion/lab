@@ -24,6 +24,7 @@ import (
 var labBinaryPath string
 
 func TestMain(m *testing.M) {
+	rand.Seed(time.Now().UnixNano())
 	// Build a lab binary with test symbols. If the parent test binary was run
 	// with coverage enabled, enable coverage on the child binary, too.
 	var err error
@@ -38,7 +39,6 @@ func TestMain(m *testing.M) {
 	if out, err := exec.Command("go", testCmd...).CombinedOutput(); err != nil {
 		log.Fatalf("Error building lab test binary: %s (%s)", string(out), err)
 	}
-	rand.Seed(time.Now().UnixNano())
 
 	originalWd, err := os.Getwd()
 	if err != nil {
@@ -403,6 +403,11 @@ type fatalLogger interface {
 	Fatal(...interface{})
 }
 
+// copyTestRepo creates a copy of the testdata directory (contains a Git repo) in
+// the project root with a random dir name. It returns the absolute path of the
+// new testdata dir.
+// Note: testdata-* must be in the .gitignore or the copies will create write
+// errors as Git attempts to add the Git repo to the the project repo's index.
 func copyTestRepo(log fatalLogger) string {
 	dst, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + strconv.Itoa(int(rand.Uint64()))))
 	if err != nil {

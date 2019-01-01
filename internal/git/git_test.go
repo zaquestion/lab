@@ -214,6 +214,11 @@ func TestInsideGitRepo(t *testing.T) {
 	require.True(t, InsideGitRepo())
 }
 
+// copyTestRepo creates a copy of the testdata directory (contains a Git repo) in
+// the project root with a random dir name. It returns the absolute path of the
+// new testdata dir.
+// Note: testdata-* must be in the .gitignore or the copies will create write
+// errors as Git attempts to add the Git repo to the the project repo's index.
 func copyTestRepo() string {
 	dst, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + strconv.Itoa(int(rand.Uint64()))))
 	if err != nil {
