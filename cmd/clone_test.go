@@ -11,7 +11,7 @@ import (
 func Test_clone(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "clone", "test")
+	cmd := exec.Command(labBinaryPath, "clone", "test")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

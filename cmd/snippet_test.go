@@ -14,7 +14,7 @@ func Test_snippetCmd_personal(t *testing.T) {
 	repo := copyTestRepo(t)
 	var snipID string
 	t.Run("create_personal", func(t *testing.T) {
-		cmd := exec.Command("../lab_bin", "snippet", "-g",
+		cmd := exec.Command(labBinaryPath, "snippet", "-g",
 			"-m", "personal snippet title",
 			"-m", "personal snippet description")
 		cmd.Dir = repo
@@ -52,7 +52,7 @@ func Test_snippetCmd_personal(t *testing.T) {
 		if snipID == "" {
 			t.Skip("snipID is empty, create likely failed")
 		}
-		cmd := exec.Command("../lab_bin", "snippet", "-l", "-g")
+		cmd := exec.Command(labBinaryPath, "snippet", "-l", "-g")
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -69,7 +69,7 @@ func Test_snippetCmd_personal(t *testing.T) {
 		if snipID == "" {
 			t.Skip("snipID is empty, create likely failed")
 		}
-		cmd := exec.Command("../lab_bin", "snippet", "-g", "-d", snipID)
+		cmd := exec.Command(labBinaryPath, "snippet", "-g", "-d", snipID)
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -83,7 +83,7 @@ func Test_snippetCmd_personal(t *testing.T) {
 
 func Test_snippetCmd_noArgs(t *testing.T) {
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "snippet")
+	cmd := exec.Command(labBinaryPath, "snippet")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

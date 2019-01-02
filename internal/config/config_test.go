@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -19,9 +16,10 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-	testconf := "/tmp/testconf-" + strconv.Itoa(int(rand.Uint64()))
-	os.Mkdir(testconf, os.FileMode(0700))
+	testconf, err := ioutil.TempDir("", "testconf-")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	t.Run("create config", func(t *testing.T) {
 		old := os.Stdout // keep backup of the real stdout
@@ -80,9 +78,10 @@ func TestNewConfig(t *testing.T) {
 }
 
 func TestNewConfigHostOverride(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-	testconf := "/tmp/testconf-" + strconv.Itoa(int(rand.Uint64()))
-	os.Mkdir(testconf, os.FileMode(0700))
+	testconf, err := ioutil.TempDir("", "testconf-")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	os.Setenv("LAB_CORE_HOST", "https://gitlab2.zaquestion.io")
 

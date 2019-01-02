@@ -3,8 +3,7 @@ package cmd
 import (
 	"os"
 	"os/exec"
-	"path"
-	"strings"
+	"path/filepath"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -16,14 +15,13 @@ import (
 func Test_projectCreateCmd(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	parts := strings.Split(repo, "/")
-	expectedPath := parts[len(parts)-1]
+	expectedPath := filepath.Base(repo)
 
 	// remove the .git/config so no remotes exist
-	os.Remove(path.Join(repo, ".git/config"))
+	os.Remove(filepath.Join(repo, ".git/config"))
 
 	t.Run("create", func(t *testing.T) {
-		cmd := exec.Command("../lab_bin", "project", "create")
+		cmd := exec.Command(labBinaryPath, "project", "create")
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -57,14 +55,17 @@ func Test_projectCreateCmd(t *testing.T) {
 
 func Test_determinePath(t *testing.T) {
 	t.Parallel()
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
 	tests := []struct {
 		desc     string
 		args     []string
 		expected string
 	}{
 		{"arguemnt", []string{"new_project"}, "new_project"},
-		// All cmd package tests run in the lab/testdata directory
-		{"git working dir", []string{}, "testdata"},
+		{"git working dir", []string{}, filepath.Base(wd)},
 	}
 
 	for _, test := range tests {

@@ -11,7 +11,7 @@ import (
 func Test_issueList(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "list")
+	cmd := exec.Command(labBinaryPath, "issue", "list")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -27,7 +27,7 @@ func Test_issueList(t *testing.T) {
 func Test_issueListFlagLabel(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "list", "-l", "enhancement")
+	cmd := exec.Command(labBinaryPath, "issue", "list", "-l", "enhancement")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -43,7 +43,7 @@ func Test_issueListFlagLabel(t *testing.T) {
 func Test_issueListStateClosed(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "list", "-s", "closed")
+	cmd := exec.Command(labBinaryPath, "issue", "list", "-s", "closed")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -59,7 +59,7 @@ func Test_issueListStateClosed(t *testing.T) {
 func Test_issueListSearch(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "list", "filter labels")
+	cmd := exec.Command(labBinaryPath, "issue", "list", "filter labels")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

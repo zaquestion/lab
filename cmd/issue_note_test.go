@@ -10,7 +10,7 @@ import (
 
 func Test_issueCreateNote(t *testing.T) {
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "note", "lab-testing", "1",
+	cmd := exec.Command(labBinaryPath, "issue", "note", "lab-testing", "1",
 		"-m", "note text")
 	cmd.Dir = repo
 

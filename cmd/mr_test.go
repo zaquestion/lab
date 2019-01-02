@@ -22,7 +22,7 @@ func Test_mrCmd(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		cmd := exec.Command("../lab_bin", "mr", "create", "lab-testing", "master",
+		cmd := exec.Command(labBinaryPath, "mr", "create", "lab-testing", "master",
 			"-m", "mr title",
 			"-m", "mr description",
 			"-a", "lab-testing",
@@ -42,7 +42,7 @@ func Test_mrCmd(t *testing.T) {
 		if mrID == "" {
 			t.Skip("mrID is empty, create likely failed")
 		}
-		cmd := exec.Command("../lab_bin", "mr", "show", "lab-testing", mrID)
+		cmd := exec.Command(labBinaryPath, "mr", "show", "lab-testing", mrID)
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -63,7 +63,7 @@ func Test_mrCmd(t *testing.T) {
 		if mrID == "" {
 			t.Skip("mrID is empty, create likely failed")
 		}
-		cmd := exec.Command("../lab_bin", "mr", "lab-testing", "-d", mrID)
+		cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "-d", mrID)
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -77,7 +77,7 @@ func Test_mrCmd(t *testing.T) {
 
 func Test_mrCmd_noArgs(t *testing.T) {
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "mr")
+	cmd := exec.Command(labBinaryPath, "mr")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

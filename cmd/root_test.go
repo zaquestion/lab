@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,24 +17,39 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zaquestion/lab/internal/git"
+	"github.com/zaquestion/lab/internal/copy"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-func TestMain(m *testing.M) {
-	wd, err := git.WorkingDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	os.Chdir(wd)
-	err = exec.Command("go", "test", "-c", "-coverpkg", "./...", "-covermode", "count", "-o", "lab_bin").Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-	rand.Seed(time.Now().UnixNano())
+var labBinaryPath string
 
+func TestMain(m *testing.M) {
+	rand.Seed(time.Now().UnixNano())
+	// Build a lab binary with test symbols. If the parent test binary was run
+	// with coverage enabled, enable coverage on the child binary, too.
+	var err error
+	labBinaryPath, err = filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata/" + labBinary))
+	if err != nil {
+		log.Fatal(err)
+	}
+	testCmd := []string{"test", "-c", "-o", labBinaryPath, "github.com/zaquestion/lab"}
+	if coverMode := testing.CoverMode(); coverMode != "" {
+		testCmd = append(testCmd, "-covermode", coverMode, "-coverpkg", "./...")
+	}
+	if out, err := exec.Command("go", testCmd...).CombinedOutput(); err != nil {
+		log.Fatalf("Error building lab test binary: %s (%s)", string(out), err)
+	}
+
+	originalWd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Make a copy of the testdata Git test project and chdir to it.
+	repo := copyTestRepo(log.New(os.Stderr, "", log.LstdFlags))
+	if err := os.Chdir(repo); err != nil {
+		log.Fatalf("Error chdir to testdata: %s", err)
+	}
 	// Load config for non-testbinary based tests
-	os.Chdir(path.Join(wd, "testdata"))
 	viper.SetConfigName("lab")
 	viper.SetConfigType("hcl")
 	viper.AddConfigPath(".")
@@ -50,45 +64,33 @@ func TestMain(m *testing.M) {
 		config["token"].(string))
 
 	code := m.Run()
-	os.Chdir(wd)
-	os.Remove("lab_bin")
-	testdirs, err := filepath.Glob("testdata-*")
+
+	if err := os.Chdir(originalWd); err != nil {
+		log.Fatalf("Error chdir to original working dir: %s", err)
+	}
+	os.Remove(labBinaryPath)
+	testdirs, err := filepath.Glob(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-*"))
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error listing glob testdata-*: %s", err)
 	}
 	for _, dir := range testdirs {
 		err := os.RemoveAll(dir)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("Error removing dir %s: %s", dir, err)
 		}
 	}
 
 	os.Exit(code)
 }
 
-func copyTestRepo(t *testing.T) string {
-	dir := "../testdata-" + strconv.Itoa(int(rand.Uint64()))
-	t.Log(dir)
-	err := exec.Command("cp", "-r", "../testdata", dir).Run()
-	if err != nil {
-		t.Fatal(err)
-	}
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	dir = path.Join(wd, dir)
-	return dir
-}
-
 func TestRootCloneNoArg(t *testing.T) {
-	cmd := exec.Command("../lab_bin", "clone")
+	cmd := exec.Command(labBinaryPath, "clone")
 	b, _ := cmd.CombinedOutput()
 	require.Contains(t, string(b), "You must specify a repository to clone.")
 }
 
 func TestRootGitCmd(t *testing.T) {
-	cmd := exec.Command("../lab_bin", "log", "-n", "1")
+	cmd := exec.Command(labBinaryPath, "log", "-n", "1")
 	b, _ := cmd.CombinedOutput()
 	require.Contains(t, string(b), `commit 09b519cba018b707c98fc56e37df15806d89d866
 Author: Zaq? Wiedmann <zaquestion@gmail.com>
@@ -98,7 +100,7 @@ Date:   Sun Apr 1 19:40:47 2018 -0700
 }
 
 func TestRootNoArg(t *testing.T) {
-	cmd := exec.Command("../lab_bin")
+	cmd := exec.Command(labBinaryPath)
 	b, _ := cmd.CombinedOutput()
 	assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>]")
 	assert.Contains(t, string(b), `These GitLab commands are provided by lab:
@@ -132,8 +134,11 @@ func TestRootVersion(t *testing.T) {
 }
 
 func TestGitHelp(t *testing.T) {
-	cmd := exec.Command("../lab_bin")
-	b, _ := cmd.CombinedOutput()
+	cmd := exec.Command(labBinaryPath)
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
 	expected := string(b)
 	expected = expected[:strings.LastIndex(strings.TrimSpace(expected), "\n")]
 
@@ -153,9 +158,9 @@ func TestGitHelp(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			cmd := exec.Command("../lab_bin")
+			cmd := exec.Command(labBinaryPath)
 			if len(test.Cmds) >= 1 {
-				cmd = exec.Command("../lab_bin", test.Cmds...)
+				cmd = exec.Command(labBinaryPath, test.Cmds...)
 			}
 			b, _ := cmd.CombinedOutput()
 			res := string(b)
@@ -392,4 +397,45 @@ func Test_parseArgsRemoteString(t *testing.T) {
 			assert.Equal(t, test.ExpectedString, s)
 		})
 	}
+}
+
+type fatalLogger interface {
+	Fatal(...interface{})
+}
+
+// copyTestRepo creates a copy of the testdata directory (contains a Git repo) in
+// the project root with a random dir name. It returns the absolute path of the
+// new testdata dir.
+// Note: testdata-* must be in the .gitignore or the copies will create write
+// errors as Git attempts to add the Git repo to the the project repo's index.
+func copyTestRepo(log fatalLogger) string {
+	dst, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + strconv.Itoa(int(rand.Uint64()))))
+	if err != nil {
+		log.Fatal(err)
+	}
+	src, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := copy.Copy(src, dst); err != nil {
+		log.Fatal(err)
+	}
+	// Move the test.git dir into the expected path at .git
+	if err := os.Rename(dst+"/test.git", dst+"/.git"); err != nil {
+		log.Fatal(err)
+	}
+	return dst
+}
+
+// getAppOutput splits and truncates the list of strings returned from the "lab"
+// test binary to remove the test-specific output. It use "PASS" as a marker for
+// the end of the app output and the beginning of the test output.
+func getAppOutput(output []byte) []string {
+	lines := strings.Split(string(output), "\n")
+	for i, line := range lines {
+		if line == "PASS" {
+			return lines[:i]
+		}
+	}
+	return lines
 }

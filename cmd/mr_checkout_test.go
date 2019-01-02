@@ -11,7 +11,7 @@ func Test_mrCheckoutCmdRun(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command("../lab_bin", "mr", "checkout", "1")
+	cmd := exec.Command(labBinaryPath, "mr", "checkout", "1")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -44,7 +44,7 @@ func Test_mrCheckoutCmd_track(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command("../lab_bin", "mr", "checkout", "1", "-t", "-b", "mrtest_track")
+	cmd := exec.Command(labBinaryPath, "mr", "checkout", "1", "-t", "-b", "mrtest_track")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -86,7 +86,7 @@ func Test_mrCheckoutCmdRunWithDifferentName(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command("../lab_bin", "mr", "checkout", "1", "-b", "mrtest_custom_name")
+	cmd := exec.Command(labBinaryPath, "mr", "checkout", "1", "-b", "mrtest_custom_name")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {

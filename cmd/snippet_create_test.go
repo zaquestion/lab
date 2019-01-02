@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -14,7 +13,7 @@ import (
 func Test_snippetCreate(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "snippet", "create", "lab-testing",
+	cmd := exec.Command(labBinaryPath, "snippet", "create", "lab-testing",
 		"-m", "snippet title",
 		"-m", "snippet description")
 	cmd.Dir = repo
@@ -51,7 +50,7 @@ func Test_snippetCreate_file(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd := exec.Command("../lab_bin", "snippet", "lab-testing", "testfile",
+	cmd := exec.Command(labBinaryPath, "snippet", "lab-testing", "testfile",
 		"-m", "snippet title",
 		"-m", "snippet description")
 	cmd.Dir = repo
@@ -69,7 +68,7 @@ func Test_snippetCreate_Global(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command("../lab_bin", "snippet", "create", "-g",
+	cmd := exec.Command(labBinaryPath, "snippet", "create", "-g",
 		"-m", "personal snippet title",
 		"-m", "personal snippet description")
 
@@ -87,55 +86,6 @@ func Test_snippetCreate_Global(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Log(string(b))
-		t.Fatal(err)
-	}
-
-	require.Contains(t, string(b), "https://gitlab.com/snippets/")
-}
-
-// This test is a little ridiculus, if we find it doesn't work well on other
-// envionments, we can just remove it. Its sole purpose is to test that a
-// personal snippet can be created (with the users git editor) outside of a git
-// repo. issue #98
-func Test_snippetCreate_Global_Editor(t *testing.T) {
-	t.Parallel()
-	repo := copyTestRepo(t)
-
-	err := exec.Command("cp", "-rf", repo, "/tmp/testdata-6810350901254661225").Run()
-	if err != nil {
-		t.Fatal(err)
-	}
-	repo = "/tmp/testdata-6810350901254661225"
-	defer func() {
-		coveragePath, _ := filepath.Glob("/tmp/coverage-*")
-		exec.Command("cp", coveragePath[0], "../coverage-6810350901254661225.out").Run()
-		os.Remove(coveragePath[0])
-		os.RemoveAll(repo)
-	}()
-
-	// Write the editor file here, since its tricky to get a file with
-	// contents in it otherwise. We need a file with contents to
-	// successfully create the snippet
-	err = ioutil.WriteFile("/tmp/SNIPCODE_EDITMSG", []byte("personal snippet title outside repo"), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Remove .git dir forcing the cmd to exec outside of a git repo
-	cmd := exec.Command("rm", "-rf", ".git")
-	cmd.Dir = repo
-	err = cmd.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cmd = exec.Command(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/lab_bin"), "snippet", "create", "-g")
-	cmd.Env = []string{"PATH=/usr/local/bin:/usr/bin:/bin", "EDITOR=test -f"}
-	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

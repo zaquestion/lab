@@ -10,7 +10,7 @@ import (
 func Test_issueShow(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command("../lab_bin", "issue", "show", "1", "--comments")
+	cmd := exec.Command(labBinaryPath, "issue", "show", "1", "--comments")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()

@@ -29,7 +29,7 @@ func Test_fork(t *testing.T) {
 	}
 
 	t.Run("do_fork", func(t *testing.T) {
-		cmd = exec.Command("../lab_bin", "fork")
+		cmd = exec.Command(labBinaryPath, "fork")
 		cmd.Dir = repo
 		b, err := cmd.CombinedOutput()
 		if err != nil {
