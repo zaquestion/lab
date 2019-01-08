@@ -7,7 +7,6 @@ require (
 	github.com/derekparker/delve v1.1.0
 	github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635 // indirect
 	github.com/gdamore/tcell v0.0.0-20180416163743-2f258105ca8c
-	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -33,12 +32,11 @@ require (
 	github.com/spf13/viper v0.0.0-20180507071007-15738813a09d
 	github.com/stretchr/testify v1.2.2
 	github.com/tcnksm/go-gitconfig v0.1.2
-	github.com/xanzy/go-gitlab v0.11.3
+	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad // indirect
+	github.com/xanzy/go-gitlab v0.12.3-0.20181228114601-7bc4155e8bf8
 	golang.org/x/arch v0.0.0-20181203225421-5a4828bb7045 // indirect
 	golang.org/x/crypto v0.0.0-20180904163835-0709b304e793
-	golang.org/x/oauth2 v0.0.0-20180724155351-3d292e4d0cdc // indirect
-	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
-	google.golang.org/appengine v1.1.0 // indirect
+	golang.org/x/tools v0.0.0-20190107155254-e063def13b29 // indirect
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0 // indirect
 )
 
