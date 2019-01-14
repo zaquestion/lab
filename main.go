@@ -25,11 +25,14 @@ func loadConfig() (string, string) {
 		home = os.Getenv("USERPROFILE")
 	default:
 		// Assume linux or osx
-		u, err := user.Current()
-		if err != nil {
-			log.Fatalf("cannot retrieve current user: %v \n", err)
+		home = os.Getenv("HOME")
+		if home == "" {
+			u, err := user.Current()
+			if err != nil {
+				log.Fatalf("cannot retrieve current user: %v \n", err)
+			}
+			home = u.HomeDir
 		}
-		home = u.HomeDir
 	}
 	confpath := path.Join(home, ".config")
 	if _, err := os.Stat(confpath); os.IsNotExist(err) {
