@@ -36,6 +36,11 @@ Dependencies
 brew install zaquestion/tap/lab
 ```
 
+### MacPorts
+```
+port install lab
+```
+
 ### Scoop
 ```
 scoop bucket add zaquestion https://github.com/zaquestion/scoop-bucket.git
