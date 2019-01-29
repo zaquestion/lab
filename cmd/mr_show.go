@@ -7,7 +7,13 @@ import (
 
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+)
+
+var (
+	mrShowPatch        bool
+	mrShowPatchReverse bool
 )
 
 var mrShowCmd = &cobra.Command{
@@ -27,7 +33,16 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		printMR(mr, rn)
+		if mrShowPatch {
+			remote := args[0]
+			err := git.Fetch(remote, mr.SHA)
+			if err != nil {
+				log.Fatal(err)
+			}
+			git.Show(remote+"/"+mr.TargetBranch, mr.SHA, mrShowPatchReverse)
+		} else {
+			printMR(mr, rn)
+		}
 	},
 }
 
@@ -70,6 +85,8 @@ WebURL: %s
 }
 
 func init() {
+	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "Show MR patches")
+	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "Reverse order when showing MR patches (chronological instead of anti-chronological)")
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrShowCmd)
