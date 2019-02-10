@@ -38,7 +38,7 @@ lab ci create -p engineering/integration_tests master`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%s/pipelines/%d", project.WebURL, pipeline.ID)
+		fmt.Printf("%s/pipelines/%d\n", project.WebURL, pipeline.ID)
 	},
 }
 
@@ -82,7 +82,7 @@ lab ci trigger -p engineering/integration_tests -v foo=bar master`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%s/pipelines/%d", project.WebURL, pipeline.ID)
+		fmt.Printf("%s/pipelines/%d\n", project.WebURL, pipeline.ID)
 	},
 }
 
