@@ -56,7 +56,7 @@ func Test_issueCmd(t *testing.T) {
 		require.Contains(t, out, "Labels: bug, critical\n")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/issues/%s", issueID))
 	})
-	t.Run("delete", func(t *testing.T) {
+	t.Run("close", func(t *testing.T) {
 		if issueID == "" {
 			t.Skip("issueID is empty, create likely failed")
 		}
