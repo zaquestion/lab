@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/copy"
 )
 
@@ -33,8 +34,16 @@ func TestMain(m *testing.M) {
 	c := viper.AllSettings()["core"]
 	config := c.([]map[string]interface{})[0]
 
+	lab := gitlab.NewClient(nil, config["token"].(string))
+	lab.SetBaseURL(config["host"].(string) + "/api/v4")
+	u, _, err := lab.Users.CurrentUser()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	Init(
 		config["host"].(string),
+		u.Username,
 		config["token"].(string))
 
 	code := m.Run()

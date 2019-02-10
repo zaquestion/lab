@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/cmd"
 	"github.com/zaquestion/lab/internal/config"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -17,7 +18,7 @@ import (
 // version gets set on releases during build by goreleaser.
 var version = "master"
 
-func loadConfig() (string, string) {
+func loadConfig() (string, string, string) {
 	var home string
 	switch runtime.GOOS {
 	case "windows":
@@ -48,15 +49,18 @@ func loadConfig() (string, string) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	host, token := viper.GetString("core.host"), viper.GetString("core.token")
-	if host != "" && token != "" {
-		return host, token
+	host, user, token := viper.GetString("core.host"), viper.GetString("core.user"), viper.GetString("core.token")
+	if host != "" && user != "" && token != "" {
+		return host, user, token
+	} else if host != "" && token != "" {
+		user = getUser(host, token)
+		return host, user, token
 	}
 
 	// Attempt to auto-configure for GitLab CI
-	host, token = config.CI()
-	if host != "" && token != "" {
-		return host, token
+	host, user, token = config.CI()
+	if host != "" && user != "" && token != "" {
+		return host, user, token
 	}
 
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
@@ -99,7 +103,21 @@ func loadConfig() (string, string) {
 	if v := viper.GetString("core.token"); v != "" {
 		cfg["token"] = v
 	}
-	return cfg["host"].(string), cfg["token"].(string)
+	host = cfg["host"].(string)
+	token = cfg["token"].(string)
+	user = getUser(host, token)
+	viper.Set("core.user", user)
+	return host, user, token
+}
+
+func getUser(host, token string) string {
+	lab := gitlab.NewClient(nil, token)
+	lab.SetBaseURL(host + "/api/v4")
+	u, _, err := lab.Users.CurrentUser()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return u.Username
 }
 
 func main() {

@@ -73,14 +73,16 @@ var readPassword = func() (string, error) {
 
 // CI returns credentials suitable for use within GitLab CI or empty strings if
 // none found.
-func CI() (string, string) {
+func CI() (string, string, string) {
 	ciToken := os.Getenv("CI_JOB_TOKEN")
 	if ciToken == "" {
-		return "", ""
+		return "", "", ""
 	}
 	ciHost := strings.TrimSuffix(os.Getenv("CI_PROJECT_URL"), os.Getenv("CI_PROJECT_PATH"))
 	if ciHost == "" {
-		return "", ""
+		return "", "", ""
 	}
-	return ciHost, ciToken
+	ciUser := os.Getenv("GITLAB_USER_LOGIN")
+
+	return ciHost, ciUser, ciToken
 }
