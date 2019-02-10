@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -75,7 +74,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 			break
 		}
 		trace, job, err := lab.CITrace(pid, branch, name)
-		if job == nil {
+		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}
 		switch job.Status {
@@ -92,20 +91,13 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 			}
 			fmt.Fprintf(w, "Showing logs for %s job #%d\n", job.Name, job.ID)
 		})
-		// TODO: can trace be passed directly to the readseaker?
-		buf, err := ioutil.ReadAll(trace)
+		_, err = io.CopyN(ioutil.Discard, trace, offset)
+		lenT, err := io.Copy(os.Stdout, trace)
 		if err != nil {
 			return err
 		}
-		r := bytes.NewReader(buf)
-		r.Seek(offset, io.SeekStart)
-		new, err := ioutil.ReadAll(r)
-		if err != nil {
-			return err
-		}
+		offset += int64(lenT)
 
-		offset += int64(len(new))
-		fmt.Fprint(w, string(new))
 		if job.Status == "success" ||
 			job.Status == "failed" ||
 			job.Status == "cancelled" {
