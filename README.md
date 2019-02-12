@@ -93,6 +93,25 @@ Enter default GitLab host (default: https://gitlab.com):
 Enter default GitLab user: zaq
 Enter default GitLab token:
 ```
+# Completions
+
+`lab` provides completions for bash and zsh.
+
+### Bash
+
+`lab completion bash` will generate a bash completion script. Save this script and source it in your `.bashrc`:
+
+```bash
+source "/path/to/lab-completions.bash"
+```
+
+### Zsh
+
+`lab completion zsh` will generate a zsh completion script. zsh completions are denoted with the syntax `_command-name`, so save the output of `lab completion` to a file name `_lab`. Place the file in your `$FPATH`, or create an new directory and add it to your `$FPATH`.
+
+```zsh
+fpath=(/path/to/script_directory $fpath)
+```
 
 # Aliasing
 
