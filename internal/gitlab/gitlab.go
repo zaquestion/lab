@@ -236,6 +236,15 @@ func MRClose(pid interface{}, id int) error {
 	return nil
 }
 
+// MRRebase merges an mr on a GitLab project
+func MRRebase(pid interface{}, id int) error {
+	_, err := lab.MergeRequests.RebaseMergeRequest(pid, int(id))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MRMerge merges an mr on a GitLab project
 func MRMerge(pid interface{}, id int) error {
 	_, _, err := lab.MergeRequests.AcceptMergeRequest(pid, int(id), &gitlab.AcceptMergeRequestOptions{
