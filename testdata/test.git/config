@@ -11,6 +11,9 @@
         url = git@gitlab.com:lab-testing/test.git
         fetch = +refs/heads/*:refs/remotes/origin/*
 
+[branch "origin"]
+	remote = zaquestion
+	merge = refs/heads/master
 [branch "mrtest"]
 	remote = lab-testing
 	merge = refs/heads/mrtest

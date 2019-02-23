@@ -108,6 +108,8 @@ func init() {
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 }
 
+// TODO: this parseArgs thing has gotten way THE FUCK out of hand. Please fix.
+
 // parseArgsStr returns a string and a number if parsed. Many commands accept a
 // string to operate on (remote or search) and number such as a page id
 func parseArgsStr(args []string) (string, int64, error) {
@@ -159,7 +161,7 @@ func parseArgsRemoteInt(args []string) (string, int64, error) {
 			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
 		}
 	}
-	if remote == "" {
+	if err != nil || remote == "" {
 		remote = forkedFromRemote
 	}
 	rn, err := git.PathWithNameSpace(remote)
@@ -223,6 +225,13 @@ func Execute() {
 	_, err := gitconfig.Local("remote.upstream.url")
 	if err == nil {
 		forkedFromRemote = "upstream"
+	}
+	if forkedFromRemote == "" {
+		// use the remote tracked by the branch if set
+		masterRemote, err := gitconfig.Local("branch.master.remote")
+		if err == nil {
+			forkedFromRemote = masterRemote
+		}
 	}
 
 	if forkedFromRemote == "origin" {
