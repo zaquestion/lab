@@ -323,7 +323,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 				tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
 
 				go func() {
-					err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIIWriter(tv), true), projectID, branch, curJob.Name)
+					err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, branch, curJob.Name)
 					if err != nil {
 						app.Stop()
 						log.Fatal(err)
