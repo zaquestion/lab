@@ -45,7 +45,7 @@ lab ci create -p engineering/integration_tests master`,
 var ciTriggerCmd = &cobra.Command{
 	Use:   "trigger [branch]",
 	Short: "Trigger a CI pipeline",
-	Long: `Runs a trigger for a CI pipeline on the given or current branch if none provided. This API supports vaiables and must be called with a trigger token or from within GitLab CI.
+	Long: `Runs a trigger for a CI pipeline on the given or current branch if none provided. This API supports variables and must be called with a trigger token or from within GitLab CI.
 
 Project will be inferred from branch if not provided
 
