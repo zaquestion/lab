@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -24,10 +23,7 @@ var mrBrowseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		c := viper.AllSettings()["core"]
-		config := c.([]map[string]interface{})[0]
-		host := config["host"].(string)
-
+		host := lab.Host()
 		hostURL, err := url.Parse(host)
 		if err != nil {
 			log.Fatal(err)
