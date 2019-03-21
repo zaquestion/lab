@@ -267,6 +267,9 @@ func Execute() {
 		if os.Args[1] == "browse" {
 			log.Fatalf("Please call `hub browse` directly for github, the lab equivalent is `lab <object> browse`")
 		}
+		if os.Args[1] == "alias" {
+			log.Fatalf("Please call `hub alias` directly for github, there is no lab equivalent`")
+		}
 
 		// Passthrough to git for any unrecognized commands
 		err = git.New(os.Args[1:]...).Run()
