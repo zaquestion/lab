@@ -10,7 +10,7 @@ import (
 
 func Test_mrCreateNote(t *testing.T) {
         repo := copyTestRepo(t)
-        cmd := exec.Command(labBinaryPath, "issue", "note", "lab-testing", "1",
+        cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1",
                 "-m", "note text")
         cmd.Dir = repo
 
@@ -61,6 +61,6 @@ func Test_mrNoteMsg(t *testing.T) {
                 }
                 require.Equal(t, `
 
-                        # Write a message for this note. Commented lines are discarded.`, text)
+# Write a message for this note. Commented lines are discarded.`, text)
 
         }

@@ -66,7 +66,7 @@ func mrNoteMsg(msgs []string) (string, error) {
 
 func mrNoteText() (string, error) {
         const tmpl = `{{.InitMsg}}
-        {{.CommentChar}} Write a message for this note. Commented lines are discarded.`
+{{.CommentChar}} Write a message for this note. Commented lines are discarded.`
 
         initMsg := "\n"
         commentChar := git.CommentChar()
