@@ -24,5 +24,3 @@ require (
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0 // indirect
 )
-
-replace github.com/rsteube/cobra-zsh-gen => ../cobra-zsh-gen
