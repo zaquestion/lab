@@ -17,6 +17,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 // mrCmd represents the mr command
@@ -39,8 +40,8 @@ func init() {
 	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
-	mrCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrCreateCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
+	zsh.Wrap(mrCreateCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(mrCreateCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	mrCmd.AddCommand(mrCreateCmd)
 }
 

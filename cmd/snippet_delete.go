@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 // snippetDeleteCmd represents the snippetDelete command
@@ -40,7 +41,7 @@ var snippetDeleteCmd = &cobra.Command{
 }
 
 func init() {
-	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_snippet $words[2]")
+	zsh.Wrap(snippetDeleteCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(snippetDeleteCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_snippet $words[2]")
 	snippetCmd.AddCommand(snippetDeleteCmd)
 }

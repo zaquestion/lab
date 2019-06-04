@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var snippetBrowseCmd = &cobra.Command{
@@ -48,7 +49,7 @@ var snippetBrowseCmd = &cobra.Command{
 }
 
 func init() {
-	snippetBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	snippetBrowseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_snippet $words[2]")
+	zsh.Wrap(snippetBrowseCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(snippetBrowseCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_snippet $words[2]")
 	snippetCmd.AddCommand(snippetBrowseCmd)
 }

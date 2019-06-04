@@ -13,6 +13,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var issueCreateCmd = &cobra.Command{
@@ -129,6 +130,6 @@ func init() {
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
 
-	issueCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(issueCreateCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueCmd.AddCommand(issueCreateCmd)
 }

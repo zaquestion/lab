@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var mrApproveCmd = &cobra.Command{
@@ -34,7 +35,7 @@ var mrApproveCmd = &cobra.Command{
 }
 
 func init() {
-	mrApproveCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrApproveCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
+	zsh.Wrap(mrApproveCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(mrApproveCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrApproveCmd)
 }

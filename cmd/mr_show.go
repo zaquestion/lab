@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var mrShowCmd = &cobra.Command{
@@ -70,7 +71,7 @@ WebURL: %s
 }
 
 func init() {
-	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
+	zsh.Wrap(mrShowCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(mrShowCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrShowCmd)
 }

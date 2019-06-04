@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 // ciStatusCmd represents the run command
@@ -84,7 +85,7 @@ lab ci status --wait`,
 }
 
 func init() {
-	ciStatusCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
+	zsh.Wrap(ciStatusCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
 	ciStatusCmd.Flags().Bool("wait", false, "Continuously print the status and wait to exit until the pipeline finishes. Exit code indicates pipeline status")
 	ciCmd.AddCommand(ciStatusCmd)
 }

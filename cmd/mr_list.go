@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var (
@@ -66,7 +67,7 @@ func init() {
 		"filter merge requests by target branch")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
 
-	listCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(listCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	listCmd.MarkFlagCustom("state", "(opened closed merged)")
 	mrCmd.AddCommand(listCmd)
 }

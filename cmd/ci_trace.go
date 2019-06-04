@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 // ciLintCmd represents the lint command
@@ -108,7 +109,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 }
 
 func init() {
-	ciTraceCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	ciTraceCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
+	zsh.Wrap(ciTraceCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(ciTraceCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	ciCmd.AddCommand(ciTraceCmd)
 }

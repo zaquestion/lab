@@ -10,6 +10,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var mrBrowseCmd = &cobra.Command{
@@ -62,7 +63,7 @@ var mrBrowseCmd = &cobra.Command{
 }
 
 func init() {
-	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
+	zsh.Wrap(mrBrowseCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(mrBrowseCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrBrowseCmd)
 }

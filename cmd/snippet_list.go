@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var snippetListConfig struct {
@@ -66,6 +67,6 @@ func init() {
 	snippetListCmd.Flags().IntVarP(&snippetListConfig.Number, "number", "n", 10, "Number of snippets to return")
 	snippetListCmd.Flags().BoolVarP(&snippetListConfig.All, "all", "a", false, "List all snippets")
 
-	snippetListCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(snippetListCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	snippetCmd.AddCommand(snippetListCmd)
 }

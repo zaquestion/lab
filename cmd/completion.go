@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 // completionCmd represents the completion command
@@ -18,7 +19,7 @@ var completionCmd = &cobra.Command{
 		case "bash":
 			RootCmd.GenBashCompletion(os.Stdout)
 		case "zsh":
-			RootCmd.GenZshCompletion(os.Stdout)
+			zsh.Wrap(RootCmd).GenZshCompletion(os.Stdout)
 		default:
 			println("only 'bash' or 'zsh' allowed")
 		}

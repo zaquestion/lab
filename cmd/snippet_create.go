@@ -16,6 +16,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var (
@@ -172,6 +173,6 @@ func init() {
 	snippetCreateCmd.Flags().StringSliceP("message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	snippetCmd.Flags().AddFlagSet(snippetCreateCmd.Flags())
 
-	snippetCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(snippetCreateCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	snippetCmd.AddCommand(snippetCreateCmd)
 }

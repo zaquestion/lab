@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var issueShowCmd = &cobra.Command{
@@ -130,9 +131,9 @@ func printDiscussions(discussions []*gitlab.Discussion) {
 }
 
 func init() {
-	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	issueShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
-	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
+	zsh.Wrap(issueShowCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(issueShowCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
+	zsh.Wrap(issueShowCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
 	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
 	issueCmd.AddCommand(issueShowCmd)
 }

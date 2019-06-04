@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var projectListConfig struct {
@@ -61,5 +62,5 @@ func init() {
 	projectListCmd.Flags().BoolVar(&projectListConfig.Starred, "starred", false, "limit by your starred projects")
 	projectListCmd.Flags().IntVarP(&projectListConfig.Number, "number", "n", 100, "Number of projects to return")
 
-	projectListCmd.MarkZshCompPositionalArgumentCustom(1, "()")
+	zsh.Wrap(projectListCmd).MarkZshCompPositionalArgumentCustom(1, "()")
 }

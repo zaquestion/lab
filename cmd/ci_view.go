@@ -21,6 +21,7 @@ import (
 
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var (
@@ -625,7 +626,7 @@ func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
 }
 
 func init() {
-	ciViewCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	ciViewCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
+	zsh.Wrap(ciViewCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+	zsh.Wrap(ciViewCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	ciCmd.AddCommand(ciViewCmd)
 }

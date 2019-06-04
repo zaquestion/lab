@@ -13,6 +13,7 @@ import (
         gitlab "github.com/xanzy/go-gitlab"
         "github.com/zaquestion/lab/internal/git"
         lab "github.com/zaquestion/lab/internal/gitlab"
+	zsh "github.com/rsteube/cobra-zsh-gen"
 )
 
 var mrCreateNoteCmd = &cobra.Command{
@@ -96,7 +97,7 @@ func mrNoteText() (string, error) {
         func init() {
                 mrCreateNoteCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 
-                mrCreateNoteCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-                mrCreateNoteCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
+                zsh.Wrap(mrCreateNoteCmd).MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
+                zsh.Wrap(mrCreateNoteCmd).MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
                 mrCmd.AddCommand(mrCreateNoteCmd)
         }
