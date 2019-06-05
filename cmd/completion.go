@@ -19,6 +19,8 @@ var completionCmd = &cobra.Command{
 		case "bash":
 			RootCmd.GenBashCompletion(os.Stdout)
 		case "zsh":
+			// currently using BashCompletionFunction variable for additional custom completions in zsh
+			RootCmd.BashCompletionFunction = zshCompletionFunction
 			zsh.Wrap(RootCmd).GenZshCompletion(os.Stdout)
 		default:
 			println("only 'bash' or 'zsh' allowed")
