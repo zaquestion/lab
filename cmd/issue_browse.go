@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"log"
-	"path"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -28,9 +27,11 @@ var issueBrowseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		issueURL := path.Join(project.WebURL, "issues")
+		// path.Join will remove 1 "/" from "http://" as it's consider that's
+		// file system path. So we better use normal string concat
+		issueURL := project.WebURL + "/issues"
 		if num > 0 {
-			issueURL = path.Join(issueURL, strconv.FormatInt(num, 10))
+			issueURL = issueURL + "/" + strconv.FormatInt(num, 10)
 		}
 
 		err = browse(issueURL)
