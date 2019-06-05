@@ -12,7 +12,7 @@ require (
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/rivo/tview v0.0.0-20180419193403-f855bee0205c
-	github.com/rsteube/cobra-zsh-gen v0.0.0-20190604134725-f82687b5b153
+	github.com/rsteube/cobra-zsh-gen v1.0.0
 	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
 	github.com/smartystreets/goconvey v0.0.0-20181108003508-044398e4856c // indirect
 	github.com/spf13/cobra v0.0.4
