@@ -2,13 +2,11 @@ package cmd
 
 import (
 	"log"
-	"net/url"
-	"path"
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/internal/browser"
+	"github.com/zaquestion/lab/internal/gitlab"
 )
 
 var browse = browser.Open
@@ -24,20 +22,19 @@ var issueBrowseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		c := viper.AllSettings()["core"]
-		config := c.([]map[string]interface{})[0]
-		host := config["host"].(string)
-
-		hostURL, err := url.Parse(host)
+		project, err := gitlab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}
-		hostURL.Path = path.Join(hostURL.Path, rn, "issues")
+
+		// path.Join will remove 1 "/" from "http://" as it's consider that's
+		// file system path. So we better use normal string concat
+		issueURL := project.WebURL + "/issues"
 		if num > 0 {
-			hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
+			issueURL = issueURL + "/" + strconv.FormatInt(num, 10)
 		}
 
-		err = browse(hostURL.String())
+		err = browse(issueURL)
 		if err != nil {
 			log.Fatal(err)
 		}
