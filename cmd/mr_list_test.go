@@ -9,6 +9,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_mrListAssignedTo(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--assignee=zaquestion")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "#1 Test MR for lab list")
+	require.NotContains(t, mrs, "#3")
+	require.NotContains(t, mrs, "filtering with labels and lists")
+}
+
 func Test_mrList(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)

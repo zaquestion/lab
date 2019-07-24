@@ -17,6 +17,9 @@ var (
 	mrTargetBranch string
 	mrNumRet       int
 	mrAll          bool
+	mrMine         bool
+	assigneeID     *int
+	mrAssignee     string
 )
 
 // listCmd represents the list command
@@ -47,6 +50,21 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrAll {
 		num = -1
 	}
+
+	if mrAssignee != "" {
+		_assigneeID, err := lab.UserIDByUserName(mrAssignee)
+		if err != nil {
+			log.Fatal(err)
+		}
+		assigneeID = &_assigneeID
+	} else if mrMine {
+		_assigneeID, err := lab.UserID()
+		if err != nil {
+			log.Fatal(err)
+		}
+		assigneeID = &_assigneeID
+	}
+
 	return lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: mrNumRet,
@@ -55,6 +73,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		State:        &mrState,
 		TargetBranch: &mrTargetBranch,
 		OrderBy:      gitlab.String("updated_at"),
+		AssigneeID:   assigneeID,
 	}, num)
 }
 
@@ -71,6 +90,9 @@ func init() {
 		&mrTargetBranch, "target-branch", "t", "",
 		"filter merge requests by target branch")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
+	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "List only MRs assigned to me")
+	listCmd.Flags().StringVar(
+		&mrAssignee, "assignee", "", "List only MRs assigned to $username")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
