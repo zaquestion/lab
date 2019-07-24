@@ -41,6 +41,33 @@ func User() string {
 	return user
 }
 
+func UserID() (int, error) {
+	u, _, err := lab.Users.CurrentUser()
+	if err != nil {
+		return 0, err
+	} else {
+		return u.ID, nil
+	}
+}
+
+func UserIDByUserName(username string) (int, error) {
+	opts := gitlab.ListUsersOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 1,
+		},
+		Username: &username,
+	}
+	users, _, err := lab.Users.ListUsers(&opts)
+	if err != nil {
+		return 0, err
+	} else {
+		for _, user := range users {
+			return user.ID, nil
+		}
+	}
+	return 0, errors.New("No user found with username " + username)
+}
+
 // Init initializes a gitlab client for use throughout lab.
 func Init(_host, _user, _token string) {
 	if len(_host) > 0 && _host[len(_host)-1 : len(_host)][0] == '/' {
@@ -170,18 +197,18 @@ func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, e
 
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
-        p, err := FindProject(project)
-        if err != nil {
-                return "", err
-        }
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
 
-        note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
-        if err != nil {
-                return "", err
-        }
-        // Unlike MR, Note has no WebURL property, so we have to create it
-        // ourselves from the project, noteable id and note id
-        return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
+	if err != nil {
+		return "", err
+	}
+	// Unlike MR, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRGet retrieves the merge request from GitLab project
