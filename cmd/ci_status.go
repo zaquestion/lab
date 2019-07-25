@@ -78,6 +78,14 @@ lab ci status --wait`,
 		failed := color.New(color.FgRed)
 		passed := color.New(color.FgGreen)
 		skipped := color.New(color.FgYellow)
+		running := color.New(color.FgBlue)
+		created := color.New(color.FgMagenta)
+		defaultPrinter := color.New(color.FgBlack)
+		defaultPrinter.DisableColor()
+		color.NoColor = !useColor
+		var (
+			printer *color.Color
+		)
 		for {
 			for _, job := range jobs {
 				if noSkipped && job.Status == "skipped" {
@@ -85,15 +93,21 @@ lab ci status --wait`,
 				} else if onlyFailures && job.Status != "failed" {
 					continue
 				} else {
-					if useColor && job.Status == "failed" {
-						failed.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
-					} else if useColor && job.Status == "success" {
-						passed.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
-					} else if useColor && job.Status == "skipped" {
-						skipped.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
-					} else {
-						fmt.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
+					switch job.Status {
+					case "failed":
+						printer = failed
+					case "success":
+						printer = passed
+					case "running":
+						printer = running
+					case "created":
+						printer = created
+					case "skipped":
+						printer = skipped
+					default:
+						printer = defaultPrinter
 					}
+					printer.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
 				}
 			}
 			if !wait {
