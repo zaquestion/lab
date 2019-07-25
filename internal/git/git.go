@@ -113,11 +113,12 @@ func Log(sha1, sha2 string) (string, error) {
 // CurrentBranch returns the currently checked out branch
 func CurrentBranch() (string, error) {
 	cmd := New("rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Stdout = nil
 	branch, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
-	return string(branch), nil
+	return strings.TrimSpace(string(branch)), nil
 }
 
 // PathWithNameSpace returns the owner/repository for the current repo
