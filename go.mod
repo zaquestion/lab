@@ -7,12 +7,17 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v1.1.0
 	github.com/gdamore/tcell v1.1.4
+	github.com/fatih/color v1.7.0
+	github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635 // indirect
+	github.com/gdamore/tcell v0.0.0-20180416163743-2f258105ca8c
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
 	github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a
 	github.com/magiconair/properties v1.7.6 // indirect
+	github.com/mattn/go-colorable v0.1.2 // indirect
+	github.com/mattn/go-runewidth v0.0.2 // indirect
 	github.com/mitchellh/mapstructure v0.0.0-20180220230111-00c29f56e238 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.1.0 // indirect

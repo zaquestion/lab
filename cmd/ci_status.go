@@ -6,6 +6,7 @@ import (
 	"os"
 	"text/tabwriter"
 
+	color "github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
@@ -59,11 +60,41 @@ lab ci status --wait`,
 		if err != nil {
 			log.Fatal(err)
 		}
+		noSkipped, err := cmd.Flags().GetBool("no-skipped")
+		if err != nil {
+			log.Fatal(err)
+		}
+		useColor, err := cmd.Flags().GetBool("color")
+		if err != nil {
+			log.Fatal(err)
+		}
+		onlyFailures, err := cmd.Flags().GetBool("failures")
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
+		jobFormat := "%s:\t%s\t(%d)\t-\t%s\n"
+		failed := color.New(color.FgRed)
+		passed := color.New(color.FgGreen)
+		skipped := color.New(color.FgYellow)
 		for {
 			for _, job := range jobs {
-				fmt.Fprintf(w, "%s:\t%s\t-\t%s\n", job.Stage, job.Name, job.Status)
+				if noSkipped && job.Status == "skipped" {
+					continue
+				} else if onlyFailures && job.Status != "failed" {
+					continue
+				} else {
+					if useColor && job.Status == "failed" {
+						failed.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
+					} else if useColor && job.Status == "success" {
+						passed.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
+					} else if useColor && job.Status == "skipped" {
+						skipped.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
+					} else {
+						fmt.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
+					}
+				}
 			}
 			if !wait {
 				break
@@ -86,5 +117,8 @@ lab ci status --wait`,
 func init() {
 	ciStatusCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
 	ciStatusCmd.Flags().Bool("wait", false, "Continuously print the status and wait to exit until the pipeline finishes. Exit code indicates pipeline status")
+	ciStatusCmd.Flags().Bool("no-skipped", false, "Ignore skipped tests - do not print them")
+	ciStatusCmd.Flags().Bool("failures", false, "Only print failures")
+	ciStatusCmd.Flags().Bool("color", false, "Use color for success and failure")
 	ciCmd.AddCommand(ciStatusCmd)
 }
