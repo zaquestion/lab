@@ -35,7 +35,11 @@ func loadConfig() (string, string, string) {
 			home = u.HomeDir
 		}
 	}
-	confpath := path.Join(home, ".config")
+	// Try XDG_CONFIG_HOME which is declared in XDG base directory specification
+	confpath := os.Getenv("XDG_CONFIG_HOME")
+	if confpath == "" {
+		confpath = path.Join(home, ".config")
+	}
 	if _, err := os.Stat(confpath); os.IsNotExist(err) {
 		os.Mkdir(confpath, 0700)
 	}
