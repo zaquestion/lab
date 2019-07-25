@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/lunixbochs/vtclean"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -323,7 +323,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 				tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
 
 				go func() {
-					err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIIWriter(tv), true), projectID, branch, curJob.Name)
+					err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, branch, curJob.Name)
 					if err != nil {
 						app.Stop()
 						log.Fatal(err)
@@ -403,6 +403,14 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 			}
 			// retryChar := '⟳'
 			title := fmt.Sprintf("%c %s", statChar, j.Name)
+			if statChar == '✔' {
+				// I don't understand why, but upon updating
+				// rivo/tview the '✔' rune now gets printed
+				// with an extra space for the title, so I'm
+				// remove the space that I add here to obviate
+				// this.
+				title = fmt.Sprintf("%c%s", statChar, j.Name)
+			}
 			// trim the suffix if it matches the stage, I've seen
 			// the pattern in 2 different places to handle
 			// different stages for the same service and it tends
@@ -412,7 +420,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pag
 			// tview default aligns center, which is nice, but if
 			// the title is too long we want to bias towards seeing
 			// the beginning of it
-			if tview.StringWidth(title) > maxTitle {
+			if tview.TaggedStringWidth(title) > maxTitle {
 				b.SetTitleAlign(tview.AlignLeft)
 			}
 			if j.StartedAt != nil {
