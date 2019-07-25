@@ -110,29 +110,15 @@ func Log(sha1, sha2 string) (string, error) {
 	return string(outputs), nil
 }
 
-// CurrentBranch returns the currently checked out branch and strips away all
-// but the branchname itself.
+// CurrentBranch returns the currently checked out branch
 func CurrentBranch() (string, error) {
-	cmd := New("branch")
+	cmd := New("rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Stdout = nil
-	gBranches, err := cmd.Output()
+	branch, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
-	branches := strings.Split(string(gBranches), "\n")
-	var branch string
-	for _, b := range branches {
-		if strings.HasPrefix(b, "* ") {
-			branch = b
-			break
-		}
-	}
-	if branch == "" {
-		return "", errors.New("current branch could not be determined")
-	}
-	branch = strings.TrimPrefix(branch, "* ")
-	branch = strings.TrimSpace(branch)
-	return branch, nil
+	return strings.TrimSpace(string(branch)), nil
 }
 
 // PathWithNameSpace returns the owner/repository for the current repo
