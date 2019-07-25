@@ -1,14 +1,14 @@
 package cmd
 
 import (
-	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 	"github.com/stretchr/testify/assert"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 func assertScreen(t *testing.T, screen tcell.Screen, expected []string) {
@@ -22,16 +22,19 @@ func assertScreen(t *testing.T, screen tcell.Screen, expected []string) {
 		for x, expectedRune := range row {
 			r, _, _, _ := screen.GetContent(x, y)
 			runes[x] = r
-			assert.Equal(t, expectedRune, r, "%s != %s at (%d,%d)",
-				strconv.QuoteRune(expectedRune), strconv.QuoteRune(r), x, y)
+			_ = expectedRune
+			//assert.Equal(t, expectedRune, r, "%s != %s at (%d,%d)",
+			//	strconv.QuoteRune(expectedRune), strconv.QuoteRune(r), x, y)
 		}
-		actual[y] = string(runes)
+
+		actual[y] = strings.TrimRight(string(runes), string('\x00'))
+		assert.Equal(t, str, actual[y])
 	}
 	t.Logf("Expected w: %d l: %d", len([]rune(expected[0])), len(expected))
 	for _, str := range expected {
 		t.Log(str)
 	}
-	t.Logf("Actual w: %d l: %d", len([]rune(actual[0])), len(actual))
+	t.Logf("Actual w: %d l: %d", sx, sy)
 	for _, str := range actual {
 		t.Log(str)
 	}
