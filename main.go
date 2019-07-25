@@ -127,6 +127,20 @@ func getUser(host, token string) string {
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
-	lab.Init(loadConfig())
+	if !skipInit() {
+		lab.Init(loadConfig())
+	}
 	cmd.Execute()
+}
+
+func skipInit() bool {
+	if len(os.Args) <= 1 {
+		return false
+	}
+	switch os.Args[1] {
+	case "completion":
+		return true
+	default:
+		return false
+	}
 }
