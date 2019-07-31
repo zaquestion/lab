@@ -7,10 +7,25 @@ import (
 	"text/tabwriter"
 
 	color "github.com/fatih/color"
+        flag "github.com/spf13/pflag"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+)
+
+var (
+  onlyFailures bool
+  useColor bool
+  noSkipped bool
+  wait bool
+  jobFormat = "%s:\t%s\t-\t%s\tid: %d\n"
+  failed = color.New(color.FgRed)
+  passed = color.New(color.FgGreen)
+  skipped = color.New(color.FgYellow)
+  running = color.New(color.FgBlue)
+  created = color.New(color.FgMagenta)
+  defaultPrinter = color.New(color.FgBlack)
 )
 
 // ciStatusCmd represents the run command
@@ -56,32 +71,7 @@ lab ci status --wait`,
 			return
 		}
 
-		wait, err := cmd.Flags().GetBool("wait")
-		if err != nil {
-			log.Fatal(err)
-		}
-		noSkipped, err := cmd.Flags().GetBool("no-skipped")
-		if err != nil {
-			log.Fatal(err)
-		}
-		useColor, err := cmd.Flags().GetBool("color")
-		if err != nil {
-			log.Fatal(err)
-		}
-		onlyFailures, err := cmd.Flags().GetBool("failures")
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
-		jobFormat := "%s:\t%s\t(%d)\t-\t%s\n"
-		failed := color.New(color.FgRed)
-		passed := color.New(color.FgGreen)
-		skipped := color.New(color.FgYellow)
-		running := color.New(color.FgBlue)
-		created := color.New(color.FgMagenta)
-		defaultPrinter := color.New(color.FgBlack)
-		defaultPrinter.DisableColor()
 		color.NoColor = !useColor
 		var (
 			printer *color.Color
@@ -93,21 +83,8 @@ lab ci status --wait`,
 				} else if onlyFailures && job.Status != "failed" {
 					continue
 				} else {
-					switch job.Status {
-					case "failed":
-						printer = failed
-					case "success":
-						printer = passed
-					case "running":
-						printer = running
-					case "created":
-						printer = created
-					case "skipped":
-						printer = skipped
-					default:
-						printer = defaultPrinter
-					}
-					printer.Fprintf(w, jobFormat, job.Stage, job.Name, job.ID, job.Status)
+                                        printer = statusColor(job.Status)
+					printer.Fprintf(w, jobFormat, job.Stage, job.Name, job.Status, job.ID)
 				}
 			}
 			if !wait {
@@ -128,11 +105,39 @@ lab ci status --wait`,
 	},
 }
 
+func aliasFailures(f *flag.FlagSet, name string) flag.NormalizedName {
+	switch name {
+	case "failed":
+		name = "failures"
+		break
+	}
+	return flag.NormalizedName(name)
+}
+
+func statusColor(status string) *color.Color {
+        switch status {
+        case "failed":
+                return failed
+        case "success":
+                return passed
+        case "running":
+                return running
+        case "created":
+                return created
+        case "skipped":
+                return skipped
+        default:
+                return defaultPrinter
+        }
+}
+
 func init() {
+        defaultPrinter.DisableColor()
 	ciStatusCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
-	ciStatusCmd.Flags().Bool("wait", false, "Continuously print the status and wait to exit until the pipeline finishes. Exit code indicates pipeline status")
-	ciStatusCmd.Flags().Bool("no-skipped", false, "Ignore skipped tests - do not print them")
-	ciStatusCmd.Flags().Bool("failures", false, "Only print failures")
-	ciStatusCmd.Flags().Bool("color", false, "Use color for success and failure")
+	ciStatusCmd.Flags().BoolVarP(&wait, "wait", "w", false, "Continuously print the status and wait to exit until the pipeline finishes. Exit code indicates pipeline status")
+	ciStatusCmd.Flags().BoolVarP(&noSkipped, "no-skipped", "", false, "Ignore skipped tests - do not print them")
+	ciStatusCmd.Flags().BoolVarP(&useColor, "color", "c", false, "Use color for success and failure")
+	ciStatusCmd.Flags().BoolVarP(&onlyFailures, "failures", "f", false, "Only print failures")
+        ciStatusCmd.Flags().SetNormalizeFunc(aliasFailures)
 	ciCmd.AddCommand(ciStatusCmd)
 }
