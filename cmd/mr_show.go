@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	git "github.com/zaquestion/lab/internal/git"
 )
 
 var mrShowCmd = &cobra.Command{
@@ -22,6 +23,27 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+                if int(mrNum) <= 0 {
+			currentBranch, err := git.CurrentBranch()
+			if err != nil {
+				log.Fatal(err)
+			}
+			mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
+				ListOptions: gitlab.ListOptions{
+					PerPage: 10,
+				},
+				Labels:       mrLabels,
+				State:        &mrState,
+				OrderBy:      gitlab.String("updated_at"),
+				SourceBranch: gitlab.String(currentBranch),
+			}, -1)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if len(mrs) > 0 {
+				mrNum = int64(mrs[0].IID)
+			}
+                }
 		mr, err := lab.MRGet(rn, int(mrNum))
 		if err != nil {
 			log.Fatal(err)
