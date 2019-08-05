@@ -127,7 +127,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 
 func pipelineStatus(pipeline *gitlab.Pipeline, jobs []*gitlab.Job) string {
         return fmt.Sprintf("\nPipeline Status:\t%s\n%s\n\n%s\n",
-                pipeline.Status, timeMessage(pipeline), jobSummary(jobs))
+                statusColor(pipeline.Status).Sprintf(pipeline.Status), timeMessage(pipeline), jobSummary(jobs))
 }
 
 func jobSummary(jobs []*gitlab.Job) string {
@@ -187,9 +187,13 @@ func statusColor(status string) *color.Color {
                 return failed
         case "success":
                 return passed
+        case "passed":
+                return passed
         case "running":
                 return running
         case "created":
+                return created
+        case "pending":
                 return created
         case "skipped":
                 return skipped
