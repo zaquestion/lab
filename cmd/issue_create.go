@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -34,6 +35,10 @@ var issueCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+                templateName, err := cmd.Flags().GetString("template")
+		if err != nil {
+			log.Fatal(err)
+		}
 		remote := forkedFromRemote
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
@@ -49,7 +54,7 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		title, body, err := issueMsg(msgs)
+		title, body, err := issueMsg(templateName, msgs)
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -76,24 +81,26 @@ var issueCreateCmd = &cobra.Command{
 	},
 }
 
-func issueMsg(msgs []string) (string, string, error) {
+func issueMsg(templateName string, msgs []string) (string, string, error) {
 	if len(msgs) > 0 {
 		return msgs[0], strings.Join(msgs[1:], "\n\n"), nil
 	}
 
-	text, err := issueText()
+	text, err := issueText(templateName)
 	if err != nil {
 		return "", "", err
 	}
 	return git.Edit("ISSUE", text)
 }
 
-func issueText() (string, error) {
+func issueText(templateName string) (string, error) {
 	const tmpl = `{{.InitMsg}}
 {{.CommentChar}} Write a message for this issue. The first block
 {{.CommentChar}} of text is the title and the rest is the description.`
 
-	issueTmpl := lab.LoadGitLabTmpl(lab.TmplIssue)
+        templateFile := filepath.Join("issue_templates", templateName)
+        templateFile += ".md"
+	issueTmpl := lab.LoadGitLabTmpl(templateFile)
 
 	initMsg := "\n"
 	if issueTmpl != "" {
@@ -128,6 +135,7 @@ func init() {
 	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
+	issueCreateCmd.Flags().StringP("template", "t", "default", "use the given issue template")
 
 	issueCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueCmd.AddCommand(issueCreateCmd)
