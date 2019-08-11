@@ -12,7 +12,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"syscall"
+	time "time"
 
 	"github.com/pkg/errors"
 	configdir "github.com/shibukawa/configdir"
@@ -64,12 +67,64 @@ func ReadCache(fileName string) (bool, []byte, error) {
 	if !cacheDir.Exists(fileName) {
 		return false, nil, nil
 	}
+
+	touchCacheFile(fileName)
+
 	b, err := cacheDir.ReadFile(fileName)
 	return true, b, err
 }
 
+// allow touching to error.
+func touchCacheFile(fileName string) {
+	fullPath := filepath.Join(cacheDir.Path, fileName)
+	file, err := os.Stat(fullPath)
+	if err != nil {
+		return
+	}
+	currenttime := time.Now().Local()
+	modifiedtime := file.ModTime()
+	os.Chtimes(fullPath, currenttime, modifiedtime)
+}
+
 func WriteCache(fileName string, buffer []byte) error {
+	err := removeOldCacheEntries()
+	if err != nil {
+		return err
+	}
 	return cacheDir.WriteFile(fileName, buffer)
+}
+
+func removeOldCacheEntries() error {
+	files, err := ioutil.ReadDir(cacheDir.Path)
+	if err != nil {
+		return err
+	}
+	currenttime := time.Now()
+	maxAge := 24 * 7.0 // one week, in hours
+
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		mtime := f.ModTime()
+		var atime time.Time
+
+		switch runtime.GOOS {
+		case "windows":
+			atime = mtime
+		default:
+			// Assume linux or osx
+			stat := f.Sys().(*syscall.Stat_t)
+			atime = time.Unix(int64(stat.Atim.Sec), int64(stat.Atim.Nsec))
+		}
+		if currenttime.Sub(atime).Hours() > maxAge {
+			err = os.Remove(filepath.Join(cacheDir.Path, f.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Defines filepath for default GitLab templates

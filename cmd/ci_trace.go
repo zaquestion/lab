@@ -102,7 +102,7 @@ func doTraceByJobID(ctx context.Context, w io.Writer, pid interface{}, jobID int
 	if err != nil {
 		return err
 	}
-	cacheKey = fmt.Sprintf("%d-%d.log", jobID, job.CreatedAt.Unix())
+	cacheKey = fmt.Sprintf("cmd_trace-%d-%d.log", jobID, job.CreatedAt.Unix())
 	var reader io.Reader
 
 	inCache, cached, err := lab.ReadCache(cacheKey)
