@@ -102,12 +102,13 @@ func doTraceByJobID(ctx context.Context, w io.Writer, pid interface{}, jobID int
 	if err != nil {
 		return err
 	}
-	cacheKey = fmt.Sprintf("%d-%v.log", jobID, job.CreatedAt)
+	cacheKey = fmt.Sprintf("%d-%d.log", jobID, job.CreatedAt.Unix())
 	var reader io.Reader
 
 	inCache, cached, err := lab.ReadCache(cacheKey)
 
 	if jobIsFinished(job) && inCache && err == nil {
+		fmt.Fprintf(w, "[FROM CACHE]")
 		reader = bytes.NewReader(cached)
 	} else {
 		trace, _, err := client.Jobs.GetTraceFile(pid, jobID)
