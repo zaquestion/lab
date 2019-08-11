@@ -21,6 +21,7 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/rivo/tview v0.0.0-20190721135419-23dc8a0944e4
 	github.com/russross/blackfriday v1.5.1 // indirect
+	github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0
 	github.com/sirupsen/logrus v1.2.0 // indirect
 	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
 	github.com/smartystreets/goconvey v0.0.0-20181108003508-044398e4856c // indirect

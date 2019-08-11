@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	configdir "github.com/shibukawa/configdir"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 )
@@ -55,12 +56,31 @@ func Init(_host, _user, _token string) {
 	token = _token
 	lab = gitlab.NewClient(nil, token)
 	lab.SetBaseURL(host + "/api/v4")
+	configDirs := configdir.New("zaquestion", "lab-cli")
+	cacheDir = configDirs.QueryCacheFolder()
+}
+
+func ReadCache(fileName string) (bool, []byte, error) {
+	if !cacheDir.Exists(fileName) {
+		return false, nil, nil
+	}
+	b, err := cacheDir.ReadFile(fileName)
+	return true, b, err
+}
+
+func WriteCache(fileName string, buffer []byte) error {
+	return cacheDir.WriteFile(fileName, buffer)
 }
 
 // Defines filepath for default GitLab templates
 const (
 	TmplMR    = "merge_request_templates/default.md"
 	TmplIssue = "issue_templates/default.md"
+)
+
+// Cache directory
+var (
+	cacheDir *configdir.Config
 )
 
 // LoadGitLabTmpl loads gitlab templates for use in creating Issues and MRs

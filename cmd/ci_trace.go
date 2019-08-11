@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	bytes "bytes"
 	"context"
 	"fmt"
 	"io"
@@ -17,6 +18,12 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+)
+
+var (
+	cacheKey       string
+	writeToCache   bool = false
+	cachedResponse bytes.Buffer
 )
 
 // ciLintCmd represents the lint command
@@ -59,6 +66,9 @@ var ciTraceCmd = &cobra.Command{
 						log.Fatal(err)
 					}
 					doTraceByJobID(context.Background(), os.Stdout, project.ID, i)
+					if writeToCache {
+						lab.WriteCache(cacheKey, cachedResponse.Bytes())
+					}
 					return
 				} else {
 					log.Fatal(args[0], " is not a remote:", err)
@@ -92,15 +102,27 @@ func doTraceByJobID(ctx context.Context, w io.Writer, pid interface{}, jobID int
 	if err != nil {
 		return err
 	}
-	trace, _, err := client.Jobs.GetTraceFile(pid, jobID)
-	if err != nil {
-		return err
+	cacheKey = fmt.Sprintf("%d-%v.log", jobID, job.CreatedAt)
+	var reader io.Reader
+
+	inCache, cached, err := lab.ReadCache(cacheKey)
+
+	if jobIsFinished(job) && inCache && err == nil {
+		reader = bytes.NewReader(cached)
+	} else {
+		trace, _, err := client.Jobs.GetTraceFile(pid, jobID)
+		if err != nil {
+			return err
+		}
+		reader = io.TeeReader(trace, &cachedResponse)
+		writeToCache = true
 	}
+
 	fmt.Fprintf(w, "Showing logs for %s job #%d\n", job.Name, job.ID)
-	return printTrace(w, job, &offset, trace)
+	return printTrace(w, &offset, reader)
 }
 
-func printTrace(w io.Writer, job *gitlab.Job, offset *int64, trace io.Reader) error {
+func printTrace(w io.Writer, offset *int64, trace io.Reader) error {
 	_, err := io.CopyN(ioutil.Discard, trace, *offset)
 	lenT, err := io.Copy(w, trace)
 	if err != nil {
@@ -138,14 +160,22 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		printTrace(w, job, offset, trace)
-		if job.Status == "success" ||
-			job.Status == "failed" ||
-			job.Status == "cancelled" {
+		printTrace(w, offset, trace)
+		if jobIsFinished(job) {
 			return nil
 		}
 	}
 	return nil
+}
+
+func jobIsFinished(job *gitlab.Job) bool {
+	if job.Status == "success" ||
+		job.Status == "failed" ||
+		job.Status == "skipped" ||
+		job.Status == "cancelled" {
+		return true
+	}
+	return false
 }
 
 func init() {
