@@ -72,15 +72,35 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	branch, err := git.CurrentBranch()
-	if err != nil {
-		log.Fatal(err)
+
+	var sourceRemote, sourceProjectName string
+	// If we have args attempt to get sourceProjectName and branch from args
+	if len(args) > 0 {
+		sourceProjectName, branch, err = parseArgsRemoteString(args)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	sourceRemote := determineSourceRemote(branch)
-	sourceProjectName, err := git.PathWithNameSpace(sourceRemote)
-	if err != nil {
-		log.Fatal(err)
+	// If we didn't get the branch name from args, get it from git context
+	if branch == "" {
+		branch, err = git.CurrentBranch()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// If we didn't get sourceProjectName from args, get it from git context
+	if sourceProjectName == "" {
+		sourceRemote = determineSourceRemote(branch)
+
+		sourceProjectName, err = git.PathWithNameSpace(sourceRemote)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		// Since we got sourceProjectName from args, set sourceRemote from args also for the benefit of following logic
+		sourceRemote = args[0]
 	}
 
 	p, err := lab.FindProject(sourceProjectName)
