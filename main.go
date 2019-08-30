@@ -12,6 +12,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/cmd"
 	"github.com/zaquestion/lab/internal/config"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -19,22 +20,11 @@ import (
 var version = "master"
 
 func loadConfig() (string, string, string) {
-	var home string
-	switch runtime.GOOS {
-	case "windows":
-		// userprofile works for roaming AD profiles
-		home = os.Getenv("USERPROFILE")
-	default:
-		// Assume linux or osx
-		home = os.Getenv("HOME")
-		if home == "" {
-			u, err := user.Current()
-			if err != nil {
-				log.Fatalf("cannot retrieve current user: %v \n", err)
-			}
-			home = u.HomeDir
-		}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
 	}
+
 	// Try XDG_CONFIG_HOME which is declared in XDG base directory specification
 	confpath := os.Getenv("XDG_CONFIG_HOME")
 	if confpath == "" {
@@ -48,6 +38,11 @@ func loadConfig() (string, string, string) {
 	viper.SetConfigType("hcl")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath(confpath)
+	gitDir, err := git.GitDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	viper.AddConfigPath(gitDir)
 
 	viper.SetEnvPrefix("LAB")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

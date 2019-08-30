@@ -134,4 +134,8 @@ alias git=lab
     <span property="dct:title">Zaq? Wiedmann</span></a>
   has waived all copyright and related or neighboring rights to
   <span property="dct:title">Lab</span>.
+  This work is published from:
+<span property="vcard:Country" datatype="dct:ISO3166"
+      content="US" about="https://github.com/zaquestion/lab">
+  United States</span>.
 </p>
