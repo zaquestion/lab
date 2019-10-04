@@ -46,8 +46,11 @@ scoop install lab
 
 Installs lab into `/usr/local/bin/`
 ```
-curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | bash
+curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | sudo bash
 ```
+NOTE: Please take care when executing scripts in this fashion. Make sure you
+trust the developer providing the script and consider peaking at the install
+script itself (ours is pretty simply ;)
 
 ### PreBuilt Binaries
 
@@ -56,7 +59,7 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 ### Source
 
 Required
-* [Go 1.11+](https://golang.org/doc/install)
+* [Go 1.12+](https://golang.org/doc/install)
 
 ```
 git clone git@github.com:zaquestion/lab

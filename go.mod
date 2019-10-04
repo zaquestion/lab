@@ -39,3 +39,5 @@ require (
 )
 
 replace github.com/spf13/cobra => github.com/rsteube/cobra v0.0.1-zsh-completion-custom
+
+go 1.13

@@ -3,9 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"os/user"
 	"path"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/viper"

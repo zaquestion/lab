@@ -21,8 +21,8 @@ _can_install() {
 }
 
 if ! _can_install && [[ $EUID != 0 ]]; then
-    sudo "$0" "$@"
-    exit "$?"
+  echo "Must be run as sudo"
+  exit 1
 fi
 
 if ! _can_install; then
