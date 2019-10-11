@@ -42,6 +42,11 @@ scoop bucket add zaquestion https://github.com/zaquestion/scoop-bucket.git
 scoop install lab
 ```
 
+### Alpine
+```
+apk add lab
+```
+
 ### Bash
 
 Installs lab into `/usr/local/bin/`
