@@ -86,8 +86,8 @@ See the [contribution guide](CONTRIBUTING.md).
 `lab` needs your GitLab information in order to interact with to your GitLab
 instance. There are several ways to provide this information to `lab`:
 
-1. environment variables: `LAB_CORE_HOST`, `LAB_CORE_USER`, `LAB_CORE_TOKEN`;
-2. environment variables: `CI_PROJECT_URL`, `CI_REGISTRY_USER`, `CI_JOB_TOKEN`;
+1. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
+2. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`;
     - Note: these are meant for when `lab` is running within a GitLab CI pipeline
 3. directory-specific configuration file in [HashiCorp configuration language (HCL)](https://github.com/hashicorp/hcl): `./lab.hcl`;
 4. user-specific configuration file in HCL: `~/.config/lab.hcl`.
@@ -98,7 +98,6 @@ For example:
 ```
 $ lab
 Enter default GitLab host (default: https://gitlab.com):
-Enter default GitLab user: zaq
 Enter default GitLab token:
 ```
 # Completions
