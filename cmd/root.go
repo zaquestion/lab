@@ -236,7 +236,7 @@ func Execute() {
 
 	if forkedFromRemote == "origin" {
 		// Check if the user fork exists
-		_, err = gitconfig.Local("remote." + lab.User() + ".url")
+		_, err := gitconfig.Local("remote." + lab.User() + ".url")
 		if err == nil {
 			forkRemote = lab.User()
 		}
@@ -287,17 +287,18 @@ func Execute() {
 	// allow flags to the root cmd to be passed through. Technically we'll drop any exit code info which isn't ideal.
 	// TODO: remove for 1.0 when we stop wrapping git
 	if cmd.Use == RootCmd.Use && len(os.Args) > 1 {
-		var hFlaged bool
+		var knownFlag bool
 		for _, v := range os.Args {
-			if v == "--help" {
-				hFlaged = true
+			if v == "--help" || v == "--version" {
+				knownFlag = true
 			}
 		}
-		if !hFlaged {
+		if !knownFlag {
 			git.New(os.Args[1:]...).Run()
 			return
 		}
 	}
+
 	if err := RootCmd.Execute(); err != nil {
 		// Execute has already logged the error
 		os.Exit(1)

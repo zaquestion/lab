@@ -37,10 +37,9 @@ func loadConfig() (string, string, string) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath(confpath)
 	gitDir, err := git.GitDir()
-	if err != nil {
-		log.Fatal(err)
+	if err == nil {
+		viper.AddConfigPath(gitDir)
 	}
-	viper.AddConfigPath(gitDir)
 
 	viper.SetEnvPrefix("LAB")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
