@@ -462,12 +462,29 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 		return nil, err
 	}
 
-	list, _, err := lab.Labels.ListLabels(p.ID, &gitlab.ListLabelsOptions{})
-	if err != nil {
-		return nil, err
+	labels := []*gitlab.Label{}
+	opt := &gitlab.ListLabelsOptions{
+		Page: 1,
 	}
 
-	return list, nil
+	for {
+		l, resp, err := lab.Labels.ListLabels(p.ID, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		labels = append(labels, l...)
+
+		// if we've seen all the pages, then we can break here
+		if opt.Page >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return labels, nil
 }
 
 // ProjectSnippetCreate creates a snippet in a project
