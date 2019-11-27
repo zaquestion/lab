@@ -64,7 +64,7 @@ Optionally add a title & description with -m`,
 			log.Fatal("aborting snippet due to empty msg")
 		}
 
-		visibility := gitlab.InternalVisibility
+		visibility := gitlab.PrivateVisibility
 		switch {
 		case private:
 			visibility = gitlab.PrivateVisibility

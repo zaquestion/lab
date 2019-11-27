@@ -41,7 +41,7 @@ lab project create -n "new proj"           # user/new-proj named "new proj"`,
 		}
 
 		// set the default visibility
-		visibility := gitlab.InternalVisibility
+		visibility := gitlab.PrivateVisibility
 
 		// now override the visibility if the user passed in relevant flags. if
 		// the user passes multiple flags, this will use the "most private"
@@ -97,6 +97,6 @@ func init() {
 	projectCreateCmd.Flags().StringP("description", "d", "", "description of the new project")
 	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make project private: visible only to project members")
 	projectCreateCmd.Flags().BoolVar(&public, "public", false, "Make project public: visible without any authentication")
-	projectCreateCmd.Flags().BoolVar(&internal,"internal", false, "Make project internal: visible to any authenticated user (default)")
+	projectCreateCmd.Flags().BoolVar(&internal, "internal", false, "Make project internal: visible to any authenticated user (default)")
 	projectCmd.AddCommand(projectCreateCmd)
 }
