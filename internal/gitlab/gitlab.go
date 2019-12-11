@@ -25,7 +25,7 @@ import (
 
 var (
 	// ErrProjectNotFound is returned when a GitLab project cannot be found.
-	ErrProjectNotFound = errors.New("gitlab project not found")
+	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
 )
 
 var (
