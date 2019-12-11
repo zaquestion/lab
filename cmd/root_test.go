@@ -66,10 +66,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	lab.Init(
-		config["host"].(string),
-		u.Username,
-		config["token"].(string))
+	lab.Init(config["host"].(string), u.Username, config["token"].(string), false)
 
 	code := m.Run()
 
