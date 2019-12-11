@@ -1,19 +1,19 @@
-## lab mr show
+## lab mr rebase
 
-Describe a merge request
+Rebase an open merge request
 
 ### Synopsis
 
-Describe a merge request
+Rebase an open merge request
 
 ```
-lab mr show [remote] <id> [flags]
+lab mr rebase [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for show
+  -h, --help   help for rebase
 ```
 
 ### SEE ALSO
