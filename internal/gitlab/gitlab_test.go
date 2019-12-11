@@ -41,10 +41,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	Init(
-		config["host"].(string),
-		u.Username,
-		config["token"].(string))
+	Init(config["host"].(string), u.Username, config["token"].(string), false)
 
 	code := m.Run()
 

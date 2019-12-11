@@ -5,14 +5,18 @@
 package gitlab
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -42,15 +46,77 @@ func User() string {
 }
 
 // Init initializes a gitlab client for use throughout lab.
-func Init(_host, _user, _token string) {
+func Init(_host, _user, _token string, allowInsecure bool) {
 	if len(_host) > 0 && _host[len(_host)-1 : len(_host)][0] == '/' {
 		_host = _host[0 : len(_host)-1]
 	}
 	host = _host
 	user = _user
 	token = _token
-	lab = gitlab.NewClient(nil, token)
+
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: allowInsecure,
+			},
+		},
+	}
+
+	lab = gitlab.NewClient(httpClient, token)
 	lab.SetBaseURL(host + "/api/v4")
+}
+
+func InitWithClientCerts(_host, _user, _token, caFile, clientKeyFile, clientCertFile string) error {
+	caCert, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return err
+	}
+	// use system cert pool as a baseline
+	caCertPool, err := x509.SystemCertPool()
+	if err != nil {
+		return err
+	}
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	cert, err := tls.LoadX509KeyPair(clientCertFile, clientKeyFile)
+	if err != nil {
+		return err
+	}
+
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}
+
+	lab = gitlab.NewClient(httpClient, token)
+	lab.SetBaseURL(host + "/api/v4")
+	return nil
 }
 
 // Defines filepath for default GitLab templates
@@ -170,18 +236,18 @@ func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, e
 
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
-        p, err := FindProject(project)
-        if err != nil {
-                return "", err
-        }
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
 
-        note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
-        if err != nil {
-                return "", err
-        }
-        // Unlike MR, Note has no WebURL property, so we have to create it
-        // ourselves from the project, noteable id and note id
-        return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
+	if err != nil {
+		return "", err
+	}
+	// Unlike MR, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRGet retrieves the merge request from GitLab project
