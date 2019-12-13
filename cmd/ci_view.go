@@ -82,28 +82,44 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 
 		boxes = make(map[string]*tview.TextView)
 		jobsCh := make(chan []*gitlab.Job)
+		inputCh := make(chan struct{})
+
+		screen, err := tcell.NewScreen()
+		if err != nil {
+			log.Fatal(err)
+		}
+		screen.Init()
 
 		var navi navigator
-		a.SetInputCapture(inputCapture(a, root, navi))
+		a.SetInputCapture(inputCapture(a, root, navi, inputCh))
 		go updateJobs(a, jobsCh, project.ID, branch)
-		go refreshScreen(a, root)
-		if err := a.SetRoot(root, true).SetBeforeDrawFunc(jobsView(a, jobsCh, root)).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
+		go func() {
+			defer recoverPanic(a)
+			for {
+				a.SetFocus(root)
+				jobsView(a, jobsCh, inputCh, root)
+				a.Draw()
+			}
+		}()
+		if err := a.SetScreen(screen).SetRoot(root, true).SetAfterDrawFunc(connectJobsView(a)).Run(); err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
-func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(event *tcell.EventKey) *tcell.EventKey {
+func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, inputCh chan struct{}) func(event *tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Rune() == 'q' || event.Key() == tcell.KeyEscape {
 			switch {
 			case modalVisible:
 				modalVisible = !modalVisible
 				root.HidePage("yesno")
+				inputCh <- struct{}{}
 			case logsVisible:
 				logsVisible = !logsVisible
 				root.HidePage("logs-" + curJob.Name)
-				a.Draw()
+				inputCh <- struct{}{}
+				a.ForceDraw()
 			default:
 				a.Stop()
 				return nil
@@ -111,6 +127,9 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(
 		}
 		if !modalVisible && !logsVisible {
 			curJob = navi.Navigate(jobs, event)
+			root.SendToFront("jobs-" + curJob.Name)
+			// update jobs view on input changes
+			inputCh <- struct{}{}
 		}
 		switch event.Rune() {
 		case 'c':
@@ -121,7 +140,8 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(
 			}
 			curJob = job
 			root.RemovePage("logs-" + curJob.Name)
-			a.Draw()
+			inputCh <- struct{}{}
+			a.ForceDraw()
 		case 'p', 'r':
 			if modalVisible {
 				break
@@ -134,11 +154,11 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(
 					modalVisible = false
 					root.RemovePage("yesno")
 					if buttonLabel == "No" {
-						a.Draw()
+						a.ForceDraw()
 						return
 					}
 					root.RemovePage("logs-" + curJob.Name)
-					a.Draw()
+					a.ForceDraw()
 
 					job, err := lab.CIPlayOrRetry(projectID, curJob.ID, curJob.Status)
 					if err != nil {
@@ -147,18 +167,20 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(
 					}
 					if job != nil {
 						curJob = job
-						a.Draw()
+						a.ForceDraw()
 					}
 				})
 			root.AddAndSwitchToPage("yesno", modal, false)
-			a.Draw()
+			inputCh <- struct{}{}
+			a.ForceDraw()
 			return nil
 		case 't':
 			logsVisible = !logsVisible
 			if !logsVisible {
 				root.HidePage("logs-" + curJob.Name)
 			}
-			a.Draw()
+			inputCh <- struct{}{}
+			a.ForceDraw()
 			return nil
 		case 'T':
 			a.Suspend(func() {
@@ -186,8 +208,10 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator) func(
 					}
 				}
 			})
+			inputCh <- struct{}{}
 			return nil
 		}
+		inputCh <- struct{}{}
 		return event
 	}
 }
@@ -298,151 +322,137 @@ func adjacentStages(jobs []*gitlab.Job, s string) (p, n string) {
 	return
 }
 
-func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, root *tview.Pages) func(screen tcell.Screen) bool {
-	return func(screen tcell.Screen) bool {
-		defer recoverPanic(app)
-		screen.Clear()
-		select {
-		case jobs = <-jobsCh:
-		default:
-			if len(jobs) == 0 {
-				jobs = <-jobsCh
-			}
-		}
-		if curJob == nil && len(jobs) > 0 {
-			curJob = jobs[0]
-		}
-		if modalVisible {
-			return false
-		}
-		if logsVisible {
-			logsKey := "logs-" + curJob.Name
-			if !root.SwitchToPage(logsKey).HasPage(logsKey) {
-				tv := tview.NewTextView()
-				tv.SetDynamicColors(true)
-				tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
-
-				go func() {
-					err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, branch, curJob.Name)
-					if err != nil {
-						app.Stop()
-						log.Fatal(err)
-					}
-				}()
-				root.AddAndSwitchToPage("logs-"+curJob.Name, tv, true)
-			}
-			return false
-		}
-		px, _, maxX, maxY := root.GetInnerRect()
-		var (
-			stages    = 0
-			lastStage = ""
-		)
-		// get the number of stages
-		for _, j := range jobs {
-			if j.Stage != lastStage {
-				lastStage = j.Stage
-				stages++
-			}
-		}
-		lastStage = ""
-		var (
-			rowIdx   = 0
-			stageIdx = 0
-			maxTitle = 20
-		)
-		for _, j := range jobs {
-			boxX := px + (maxX / stages * stageIdx)
-			if j.Stage != lastStage {
-				rowIdx = 0
-				stageIdx++
-				lastStage = j.Stage
-				key := "stage-" + j.Stage
-
-				x, y, w, h := boxX, maxY/6-4, maxTitle+2, 3
-				b := box(root, key, x, y, w, h)
-				b.SetText(strings.Title(j.Stage))
-				b.SetTextAlign(tview.AlignCenter)
-
-			}
-		}
-		lastStage = jobs[0].Stage
-		rowIdx = 0
-		stageIdx = 0
-		for _, j := range jobs {
-			if j.Stage != lastStage {
-				rowIdx = 0
-				lastStage = j.Stage
-				stageIdx++
-			}
-			boxX := px + (maxX / stages * stageIdx)
-
-			key := "jobs-" + j.Name
-			x, y, w, h := boxX, maxY/6+(rowIdx*5), maxTitle+2, 4
-			b := box(root, key, x, y, w, h)
-			b.SetTitle(j.Name)
-			// The scope of jobs to show, one or array of: created, pending, running,
-			// failed, success, canceled, skipped; showing all jobs if none provided
-			var statChar rune
-			switch j.Status {
-			case "success":
-				b.SetBorderColor(tcell.ColorGreen)
-				statChar = '✔'
-			case "failed":
-				b.SetBorderColor(tcell.ColorRed)
-				statChar = '✘'
-			case "running":
-				b.SetBorderColor(tcell.ColorBlue)
-				statChar = '●'
-			case "pending":
-				b.SetBorderColor(tcell.ColorYellow)
-				statChar = '●'
-			case "manual":
-				b.SetBorderColor(tcell.ColorGrey)
-				statChar = '●'
-			}
-			// retryChar := '⟳'
-			title := fmt.Sprintf("%c %s", statChar, j.Name)
-			if statChar == '✔' {
-				// I don't understand why, but upon updating
-				// rivo/tview the '✔' rune now gets printed
-				// with an extra space for the title, so I'm
-				// remove the space that I add here to obviate
-				// this.
-				title = fmt.Sprintf("%c%s", statChar, j.Name)
-			}
-			// trim the suffix if it matches the stage, I've seen
-			// the pattern in 2 different places to handle
-			// different stages for the same service and it tends
-			// to make the title spill over the max
-			title = strings.TrimSuffix(title, ":"+j.Stage)
-			b.SetTitle(title)
-			// tview default aligns center, which is nice, but if
-			// the title is too long we want to bias towards seeing
-			// the beginning of it
-			if tview.TaggedStringWidth(title) > maxTitle {
-				b.SetTitleAlign(tview.AlignLeft)
-			}
-			if j.StartedAt != nil {
-				end := time.Now()
-				if j.FinishedAt != nil {
-					end = *j.FinishedAt
-				}
-				b.SetText("\n" + fmtDuration(end.Sub(*j.StartedAt)))
-				b.SetTextAlign(tview.AlignRight)
-			} else {
-				b.SetText("")
-			}
-			rowIdx++
-
-		}
-		// last box keeps getting focus'd some how
-		for _, b := range boxes {
-			b.Blur()
-		}
-		boxes["jobs-"+curJob.Name].Focus(nil)
-		return false
+func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, inputCh chan struct{}, root *tview.Pages) {
+	select {
+	case jobs = <-jobsCh:
+	case <-inputCh:
+	case <-time.NewTicker(time.Second * 1).C:
 	}
+	if jobs == nil {
+		jobs = <-jobsCh
+	}
+	if curJob == nil && len(jobs) > 0 {
+		curJob = jobs[0]
+	}
+	if modalVisible {
+		return
+	}
+	if logsVisible {
+		logsKey := "logs-" + curJob.Name
+		if !root.SwitchToPage(logsKey).HasPage(logsKey) {
+			tv := tview.NewTextView()
+			tv.SetDynamicColors(true)
+			tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
+
+			go func() {
+				err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, branch, curJob.Name)
+				if err != nil {
+					app.Stop()
+					log.Fatal(err)
+				}
+			}()
+			root.AddAndSwitchToPage("logs-"+curJob.Name, tv, true)
+		}
+		return
+	}
+	px, _, maxX, maxY := root.GetInnerRect()
+	var (
+		stages    = 0
+		lastStage = ""
+	)
+	// get the number of stages
+	for _, j := range jobs {
+		if j.Stage != lastStage {
+			lastStage = j.Stage
+			stages++
+		}
+	}
+	lastStage = ""
+	var (
+		rowIdx   = 0
+		stageIdx = 0
+		maxTitle = 20
+	)
+	for _, j := range jobs {
+		boxX := px + (maxX / stages * stageIdx)
+		if j.Stage != lastStage {
+			rowIdx = 0
+			stageIdx++
+			lastStage = j.Stage
+			key := "stage-" + j.Stage
+
+			x, y, w, h := boxX, maxY/6-4, maxTitle+2, 3
+			b := box(root, key, x, y, w, h)
+
+			b.SetText(strings.Title(j.Stage))
+			b.SetTextAlign(tview.AlignCenter)
+
+		}
+	}
+	lastStage = jobs[0].Stage
+	rowIdx = 0
+	stageIdx = 0
+	for _, j := range jobs {
+		if j.Stage != lastStage {
+			rowIdx = 0
+			lastStage = j.Stage
+			stageIdx++
+		}
+		boxX := px + (maxX / stages * stageIdx)
+
+		key := "jobs-" + j.Name
+		x, y, w, h := boxX, maxY/6+(rowIdx*5), maxTitle+2, 4
+		b := box(root, key, x, y, w, h)
+		b.SetTitle(j.Name)
+		// The scope of jobs to show, one or array of: created, pending, running,
+		// failed, success, canceled, skipped; showing all jobs if none provided
+		var statChar rune
+		switch j.Status {
+		case "success":
+			b.SetBorderColor(tcell.ColorGreen)
+			statChar = '✔'
+		case "failed":
+			b.SetBorderColor(tcell.ColorRed)
+			statChar = '✘'
+		case "running":
+			b.SetBorderColor(tcell.ColorBlue)
+			statChar = '●'
+		case "pending":
+			b.SetBorderColor(tcell.ColorYellow)
+			statChar = '●'
+		case "manual":
+			b.SetBorderColor(tcell.ColorGrey)
+			statChar = '●'
+		}
+		// retryChar := '⟳'
+		title := fmt.Sprintf("%c %s", statChar, j.Name)
+		// trim the suffix if it matches the stage, I've seen
+		// the pattern in 2 different places to handle
+		// different stages for the same service and it tends
+		// to make the title spill over the max
+		title = strings.TrimSuffix(title, ":"+j.Stage)
+		b.SetTitle(title)
+		// tview default aligns center, which is nice, but if
+		// the title is too long we want to bias towards seeing
+		// the beginning of it
+		if tview.TaggedStringWidth(title) > maxTitle {
+			b.SetTitleAlign(tview.AlignLeft)
+		}
+		if j.StartedAt != nil {
+			end := time.Now()
+			if j.FinishedAt != nil {
+				end = *j.FinishedAt
+			}
+			b.SetText("\n" + fmtDuration(end.Sub(*j.StartedAt)))
+			b.SetTextAlign(tview.AlignRight)
+		} else {
+			b.SetText("")
+		}
+		rowIdx++
+
+	}
+	root.SendToFront("jobs-" + curJob.Name)
+
 }
 func fmtDuration(d time.Duration) string {
 	d = d.Round(time.Second)
@@ -468,14 +478,6 @@ func recoverPanic(app *tview.Application) {
 	if r := recover(); r != nil {
 		app.Stop()
 		log.Fatalf("%s\n%s\n", r, string(debug.Stack()))
-	}
-}
-
-func refreshScreen(app *tview.Application, root *tview.Pages) {
-	defer recoverPanic(app)
-	for {
-		app.Draw()
-		time.Sleep(time.Second * 1)
 	}
 }
 

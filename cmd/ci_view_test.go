@@ -499,6 +499,7 @@ func Test_jobsView(t *testing.T) {
 
 	boxes = make(map[string]*tview.TextView)
 	jobsCh := make(chan []*gitlab.Job)
+	inputCh := make(chan struct{})
 	root := tview.NewPages()
 	root.SetBorderPadding(1, 1, 2, 2)
 
@@ -515,7 +516,9 @@ func Test_jobsView(t *testing.T) {
 	go func() {
 		jobsCh <- jobs
 	}()
-	jobsView(nil, jobsCh, root)(screen)
+	root.Box.Focus(nil)
+	jobsView(nil, jobsCh, inputCh, root)
+	root.Focus(func(p tview.Primitive) { p.Focus(nil) })
 	root.Draw(screen)
 	connectJobsView(nil)(screen)
 	screen.Sync()
