@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/tls"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -52,7 +54,7 @@ func loadConfig() (string, string, string, bool) {
 	if host != "" && user != "" && token != "" {
 		return host, user, token, tlsSkipVerify
 	} else if host != "" && token != "" {
-		user = getUser(host, token)
+		user = getUser(host, token, tlsSkipVerify)
 		return host, user, token, tlsSkipVerify
 	}
 
@@ -116,17 +118,25 @@ func loadConfig() (string, string, string, bool) {
 	if v := viper.GetString("core.token"); v != "" {
 		cfg["token"] = v
 	}
+	if v := viper.GetString("core.user"); v != "" {
+		cfg["user"] = v
+	}
 	if v := viper.Get("tls.skip_verify"); v != nil {
 		tlsSkipVerify = v.(string) == "true"
 	}
 	host = cfg["host"].(string)
 	token = cfg["token"].(string)
-	user = getUser(host, token)
+	if v, ok := cfg["user"]; ok {
+		user = v.(string)
+	}
+	if user == "" {
+		user = getUser(host, token, tlsSkipVerify)
+	}
 	viper.Set("core.user", user)
 	return host, user, token, tlsSkipVerify
 }
 
-func loadTLSCerts() (string, string, string) {
+func loadTLSCerts() string {
 	c := viper.AllSettings()
 
 	var tls map[string]interface{}
@@ -140,27 +150,28 @@ func loadTLSCerts() (string, string, string) {
 		tls = v
 	}
 
-	for _, v := range []string{"ca_file", "cert_file", "key_file"} {
+	for _, v := range []string{"ca_file"} {
 		if _, ok := tls[v]; !ok {
-			return "", "", ""
+			return ""
 		}
 	}
 
 	if v := viper.GetString("tls.ca_file"); v != "" {
 		tls["ca_file"] = v
 	}
-	if v := viper.GetString("tls.cert_file"); v != "" {
-		tls["cert_file"] = v
-	}
-	if v := viper.GetString("tls.ca_file"); v != "" {
-		tls["key_file"] = v
-	}
 
-	return tls["ca_file"].(string), tls["cert_file"].(string), tls["key_file"].(string)
+	return tls["ca_file"].(string)
 }
 
-func getUser(host, token string) string {
-	lab := gitlab.NewClient(nil, token)
+func getUser(host, token string, skipVerify bool) string {
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: skipVerify,
+			},
+		},
+	}
+	lab := gitlab.NewClient(httpClient, token)
 	lab.SetBaseURL(host + "/api/v4")
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
@@ -173,11 +184,11 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
 	if !skipInit() {
-		ca, cert, key := loadTLSCerts()
+		ca := loadTLSCerts()
 		h, u, t, skipVerify := loadConfig()
 
-		if ca != "" && cert != "" && key != "" {
-			lab.InitWithClientCerts(h, u, t, ca, key, cert)
+		if ca != "" {
+			lab.InitWithCustomCA(h, u, t, ca)
 		} else {
 			lab.Init(h, u, t, skipVerify)
 		}

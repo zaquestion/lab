@@ -77,7 +77,7 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 	lab.SetBaseURL(host + "/api/v4")
 }
 
-func InitWithClientCerts(_host, _user, _token, caFile, clientKeyFile, clientCertFile string) error {
+func InitWithCustomCA(_host, _user, _token, caFile string) error {
 	caCert, err := ioutil.ReadFile(caFile)
 	if err != nil {
 		return err
@@ -88,11 +88,6 @@ func InitWithClientCerts(_host, _user, _token, caFile, clientKeyFile, clientCert
 		return err
 	}
 	caCertPool.AppendCertsFromPEM(caCert)
-
-	cert, err := tls.LoadX509KeyPair(clientCertFile, clientKeyFile)
-	if err != nil {
-		return err
-	}
 
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -108,8 +103,7 @@ func InitWithClientCerts(_host, _user, _token, caFile, clientKeyFile, clientCert
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			TLSClientConfig: &tls.Config{
-				RootCAs:      caCertPool,
-				Certificates: []tls.Certificate{cert},
+				RootCAs: caCertPool,
 			},
 		},
 	}
