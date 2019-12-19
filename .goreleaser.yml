@@ -30,7 +30,7 @@ scoop:
     email: goreleaser@carlosbecker.com
   homepage: "https://github.com/zaquestion/lab"
   description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
-  license: Unlicense
+  license: CC0
 builds:
 - goos:
   - linux
