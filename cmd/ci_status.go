@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 	"text/tabwriter"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -45,37 +47,50 @@ lab ci status --wait`,
 		pid := rn
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
-		jobs, err := lab.CIJobs(pid, branch)
-		if err != nil {
-			log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
-		}
-		jobs = latestJobs(jobs)
-
-		if len(jobs) == 0 {
-			return
-		}
 
 		wait, err := cmd.Flags().GetBool("wait")
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		var jobs []*gitlab.Job
+
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
 		for {
+			// fetch all of the CI Jobs from the API
+			jobs, err = lab.CIJobs(pid, branch)
+			if err != nil {
+				log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
+			}
+
+			// filter out old jobs
+			jobs = latestJobs(jobs)
+
+			if len(jobs) == 0 {
+				log.Fatal("no CI jobs found for branch ", branch, " on remote ", remote)
+				return
+			}
+
+			// print the status of all current jobs
 			for _, job := range jobs {
 				fmt.Fprintf(w, "%s:\t%s\t-\t%s\n", job.Stage, job.Name, job.Status)
 			}
-			if !wait {
+
+			dontWaitForJobsToFinish := !wait ||
+				(jobs[0].Pipeline.Status != "pending" &&
+					jobs[0].Pipeline.Status != "running")
+			if dontWaitForJobsToFinish {
 				break
 			}
-			if jobs[0].Pipeline.Status != "pending" &&
-				jobs[0].Pipeline.Status != "running" {
-				break
-			}
+
 			fmt.Fprintln(w)
+
+			// don't spam the api TOO much
+			time.Sleep(1 * time.Second)
 		}
 
 		fmt.Fprintf(w, "\nPipeline Status: %s\n", jobs[0].Pipeline.Status)
+		// exit w/ status code 1 to indicate a job failure
 		if wait && jobs[0].Pipeline.Status != "success" {
 			os.Exit(1)
 		}
