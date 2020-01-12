@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -69,10 +70,15 @@ func printIssue(issue *gitlab.Issue, project string) {
 			assignees[i] = a.Username
 		}
 	}
+	r, _ := glamour.NewTermRenderer(
+		glamour.WithStandardStyle("dark"),
+	)
+
+	issue.Description, _ = r.Render(issue.Description)
 
 	fmt.Printf(`
 #%d %s
-===================================
+###################################
 %s
 -----------------------------------
 Project: %s

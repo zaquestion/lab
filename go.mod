@@ -3,22 +3,19 @@ module github.com/zaquestion/lab
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/avast/retry-go v0.0.0-20180319101611-5469272a8171
+	github.com/charmbracelet/glamour v0.1.0
 	github.com/cpuguy83/go-md2man v1.0.8 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v1.1.0
 	github.com/gdamore/tcell v1.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
-	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
-	github.com/lucasb-eyer/go-colorful v1.0.3 // indirect
 	github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a
 	github.com/magiconair/properties v1.7.6 // indirect
-	github.com/mattn/go-runewidth v0.0.7 // indirect
-	github.com/mitchellh/mapstructure v0.0.0-20180220230111-00c29f56e238 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.1.0 // indirect
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.8.1
 	github.com/rivo/tview v0.0.0-20191129065140-82b05c9fb329
 	github.com/russross/blackfriday v1.5.1 // indirect
 	github.com/sirupsen/logrus v1.2.0 // indirect
@@ -30,7 +27,7 @@ require (
 	github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec // indirect
 	github.com/spf13/pflag v1.0.1
 	github.com/spf13/viper v0.0.0-20180507071007-15738813a09d
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.3.0
 	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad // indirect
 	github.com/xanzy/go-gitlab v0.12.3-0.20181228114601-7bc4155e8bf8
