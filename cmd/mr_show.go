@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -27,11 +28,13 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		printMR(mr, rn)
+		glamour_disabled, _ := cmd.Flags().GetBool("no-glamour")
+
+		printMR(mr, rn, !glamour_disabled)
 	},
 }
 
-func printMR(mr *gitlab.MergeRequest, project string) {
+func printMR(mr *gitlab.MergeRequest, project string, glamour_enabled bool) {
 	assignee := "None"
 	milestone := "None"
 	labels := "None"
@@ -48,6 +51,14 @@ func printMR(mr *gitlab.MergeRequest, project string) {
 	}
 	if len(mr.Labels) > 0 {
 		labels = strings.Join(mr.Labels, ", ")
+	}
+
+	if glamour_enabled {
+		r, _ := glamour.NewTermRenderer(
+			glamour.WithStandardStyle("dark"),
+		)
+
+		mr.Description, _ = r.Render(mr.Description)
 	}
 
 	fmt.Printf(`
@@ -72,5 +83,6 @@ WebURL: %s
 func init() {
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
+	mrShowCmd.Flags().BoolP("no-glamour", "G", false, "Don't use glamour to print the issue description")
 	mrCmd.AddCommand(mrShowCmd)
 }
