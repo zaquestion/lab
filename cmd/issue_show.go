@@ -29,9 +29,9 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		glamour_e, _ := cmd.Flags().GetBool("glamour")
+		glamour_disabled, _ := cmd.Flags().GetBool("no-glamour")
 
-		printIssue(issue, rn, glamour_e)
+		printIssue(issue, rn, !glamour_disabled)
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments {
@@ -145,6 +145,6 @@ func init() {
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
 	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
-	issueShowCmd.Flags().BoolP("glamour", "g", false, "Use glamour to print the issue description")
+	issueShowCmd.Flags().BoolP("no-glamour", "G", false, "Don't use glamour to print the issue description")
 	issueCmd.AddCommand(issueShowCmd)
 }
