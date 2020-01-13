@@ -22,7 +22,10 @@ func Test_mrShow(t *testing.T) {
 	require.Contains(t, string(b), `
 #1 Test MR for lab list
 ===================================
-This MR is to remain open for testing the `+"`lab mr list`"+` functionality
+
+  This MR is to remain open for testing the  lab mr list  functionality
+
+
 -----------------------------------
 Project: zaquestion/test
 Branches: mrtest->master
