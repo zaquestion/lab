@@ -29,9 +29,13 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		glamour_disabled, _ := cmd.Flags().GetBool("no-glamour")
+		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
+		if err != nil {
+			log.Fatal(err)
+		}
+		renderMarkdown := !noMarkdown
 
-		printIssue(issue, rn, !glamour_disabled)
+		printIssue(issue, rn, renderMarkdown)
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments {
@@ -45,7 +49,7 @@ var issueShowCmd = &cobra.Command{
 	},
 }
 
-func printIssue(issue *gitlab.Issue, project string, glamour_enabled bool) {
+func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 	milestone := "None"
 	timestats := "None"
 	dueDate := "None"
@@ -73,7 +77,7 @@ func printIssue(issue *gitlab.Issue, project string, glamour_enabled bool) {
 		}
 	}
 
-	if glamour_enabled {
+	if renderMarkdown {
 		r, _ := glamour.NewTermRenderer(
 			glamour.WithStandardStyle("dark"),
 		)
@@ -144,7 +148,7 @@ func init() {
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
+	issueShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
-	issueShowCmd.Flags().BoolP("no-glamour", "G", false, "Don't use glamour to print the issue description")
 	issueCmd.AddCommand(issueShowCmd)
 }

@@ -28,13 +28,17 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		glamour_disabled, _ := cmd.Flags().GetBool("no-glamour")
+		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
+		if err != nil {
+			log.Fatal(err)
+		}
+		renderMarkdown := !noMarkdown
 
-		printMR(mr, rn, !glamour_disabled)
+		printMR(mr, rn, renderMarkdown)
 	},
 }
 
-func printMR(mr *gitlab.MergeRequest, project string, glamour_enabled bool) {
+func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	assignee := "None"
 	milestone := "None"
 	labels := "None"
@@ -53,7 +57,7 @@ func printMR(mr *gitlab.MergeRequest, project string, glamour_enabled bool) {
 		labels = strings.Join(mr.Labels, ", ")
 	}
 
-	if glamour_enabled {
+	if renderMarkdown {
 		r, _ := glamour.NewTermRenderer(
 			glamour.WithStandardStyle("dark"),
 		)
@@ -83,6 +87,6 @@ WebURL: %s
 func init() {
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
-	mrShowCmd.Flags().BoolP("no-glamour", "G", false, "Don't use glamour to print the issue description")
+	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	mrCmd.AddCommand(mrShowCmd)
 }

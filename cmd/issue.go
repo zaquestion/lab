@@ -37,6 +37,6 @@ func init() {
 	issueCmd.Flags().BoolP("list", "l", false, "List issues on a remote")
 	issueCmd.Flags().BoolP("browse", "b", false, "View issue <id> in a browser")
 	issueCmd.Flags().StringP("close", "d", "", "Close issue <id> on remote")
-	issueCmd.Flags().BoolP("no-glamour", "G", false, "Don't use glamour to print the issue description")
+	issueCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	RootCmd.AddCommand(issueCmd)
 }

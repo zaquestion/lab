@@ -38,6 +38,6 @@ func init() {
 	mrCmd.Flags().BoolP("list", "l", false, "List merge requests on a remote")
 	mrCmd.Flags().BoolP("browse", "b", false, "View merge request <id> in a browser")
 	mrCmd.Flags().StringP("close", "d", "", "Close merge request <id> on remote")
-	mrCmd.Flags().BoolP("no-glamour", "G", false, "Don't use glamour to print the issue description")
+	mrCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	RootCmd.AddCommand(mrCmd)
 }
