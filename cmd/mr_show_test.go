@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/acarl005/stripansi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +20,9 @@ func Test_mrShow(t *testing.T) {
 		t.Error(err)
 	}
 
-	require.Contains(t, string(b), `
+	out := string(b)
+	out = stripansi.Strip(out)
+	require.Contains(t, out, `
 #1 Test MR for lab list
 ===================================
 

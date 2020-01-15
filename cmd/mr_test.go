@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/acarl005/stripansi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,14 +51,16 @@ func Test_mrCmd(t *testing.T) {
 			t.Log(string(b))
 			t.Fatal(err)
 		}
+
 		out := string(b)
+		outStripped := stripansi.Strip(out) // This is required because glamour adds a lot of ansi chars
 		require.Contains(t, out, "Project: lab-testing/test\n")
 		require.Contains(t, out, "Branches: mrtest->master\n")
 		require.Contains(t, out, "Status: Open\n")
 		require.Contains(t, out, "Assignee: lab-testing\n")
 		require.Contains(t, out, fmt.Sprintf("#%s mr title", mrID))
 		require.Contains(t, out, "===================================")
-		require.Contains(t, out, "mr description")
+		require.Contains(t, outStripped, "mr description")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/merge_requests/%s", mrID))
 	})
 	t.Run("delete", func(t *testing.T) {
