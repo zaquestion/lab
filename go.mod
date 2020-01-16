@@ -2,8 +2,10 @@ module github.com/zaquestion/lab
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/avast/retry-go v0.0.0-20180319101611-5469272a8171
-	github.com/charmbracelet/glamour v0.1.0
+	github.com/charmbracelet/glamour v0.1.1-0.20200114010931-28cbdae8e7a9
+	github.com/charmbracelet/glow v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man v1.0.8 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/derekparker/delve v1.1.0
@@ -23,7 +25,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20181108003508-044398e4856c // indirect
 	github.com/spf13/afero v1.1.0 // indirect
 	github.com/spf13/cast v1.2.0 // indirect
-	github.com/spf13/cobra v0.0.0-20180412120829-615425954c3b
+	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec // indirect
 	github.com/spf13/pflag v1.0.1
 	github.com/spf13/viper v0.0.0-20180507071007-15738813a09d

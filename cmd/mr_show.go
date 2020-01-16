@@ -59,7 +59,7 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 
 	if renderMarkdown {
 		r, _ := glamour.NewTermRenderer(
-			glamour.WithStandardStyle("dark"),
+			glamour.WithStandardStyle("auto"),
 		)
 
 		mr.Description, _ = r.Render(mr.Description)

@@ -79,7 +79,7 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 
 	if renderMarkdown {
 		r, _ := glamour.NewTermRenderer(
-			glamour.WithStandardStyle("dark"),
+			glamour.WithStandardStyle("auto"),
 		)
 
 		issue.Description, _ = r.Render(issue.Description)
