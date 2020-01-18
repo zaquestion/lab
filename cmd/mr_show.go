@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -27,11 +28,17 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		printMR(mr, rn)
+		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
+		if err != nil {
+			log.Fatal(err)
+		}
+		renderMarkdown := !noMarkdown
+
+		printMR(mr, rn, renderMarkdown)
 	},
 }
 
-func printMR(mr *gitlab.MergeRequest, project string) {
+func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	assignee := "None"
 	milestone := "None"
 	labels := "None"
@@ -48,6 +55,14 @@ func printMR(mr *gitlab.MergeRequest, project string) {
 	}
 	if len(mr.Labels) > 0 {
 		labels = strings.Join(mr.Labels, ", ")
+	}
+
+	if renderMarkdown {
+		r, _ := glamour.NewTermRenderer(
+			glamour.WithStandardStyle("auto"),
+		)
+
+		mr.Description, _ = r.Render(mr.Description)
 	}
 
 	fmt.Printf(`
@@ -72,5 +87,6 @@ WebURL: %s
 func init() {
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	mrShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
+	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	mrCmd.AddCommand(mrShowCmd)
 }
