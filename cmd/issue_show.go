@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -28,7 +29,13 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		printIssue(issue, rn)
+		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
+		if err != nil {
+			log.Fatal(err)
+		}
+		renderMarkdown := !noMarkdown
+
+		printIssue(issue, rn, renderMarkdown)
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments {
@@ -42,7 +49,7 @@ var issueShowCmd = &cobra.Command{
 	},
 }
 
-func printIssue(issue *gitlab.Issue, project string) {
+func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 	milestone := "None"
 	timestats := "None"
 	dueDate := "None"
@@ -68,6 +75,14 @@ func printIssue(issue *gitlab.Issue, project string) {
 		for i, a := range issue.Assignees {
 			assignees[i] = a.Username
 		}
+	}
+
+	if renderMarkdown {
+		r, _ := glamour.NewTermRenderer(
+			glamour.WithStandardStyle("auto"),
+		)
+
+		issue.Description, _ = r.Render(issue.Description)
 	}
 
 	fmt.Printf(`
@@ -133,6 +148,7 @@ func init() {
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueShowCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_issue")
+	issueShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
 	issueCmd.AddCommand(issueShowCmd)
 }
