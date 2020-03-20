@@ -29,10 +29,10 @@ func Test_issueCmd(t *testing.T) {
 		}
 
 		out := string(b)
-		require.Contains(t, out, "https://gitlab.com/lab-testing/test/issues/")
+		require.Contains(t, out, "https://gitlab.com/lab-testing/test/-/issues/")
 
 		i := strings.Index(out, "\n")
-		issueID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/issues/")
+		issueID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/issues/")
 		t.Log(issueID)
 	})
 	t.Run("show", func(t *testing.T) {

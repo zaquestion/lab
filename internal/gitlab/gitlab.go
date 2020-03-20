@@ -150,7 +150,7 @@ var (
 
 // GetProject looks up a Gitlab project by ID.
 func GetProject(projectID interface{}) (*gitlab.Project, error) {
-	target, resp, err := lab.Projects.GetProject(projectID)
+	target, resp, err := lab.Projects.GetProject(projectID, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
 	}
@@ -173,7 +173,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 		search = user + "/" + project
 	}
 
-	target, resp, err := lab.Projects.GetProject(search)
+	target, resp, err := lab.Projects.GetProject(search, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
 	}
@@ -206,7 +206,7 @@ func Fork(project string) (string, error) {
 		return "", err
 	}
 
-	fork, _, err := lab.Projects.ForkProject(target.ID)
+	fork, _, err := lab.Projects.ForkProject(target.ID, nil)
 	if err != nil {
 		return "", err
 	}
@@ -839,4 +839,10 @@ func UserIDFromUsername(username string) (int, error) {
 		return -1, err
 	}
 	return us[0].ID, nil
+}
+
+// Labels converts a []string into a non-nil *gitlab.Labels.
+func Labels(labels []string) *gitlab.Labels {
+	l := gitlab.Labels(labels)
+	return &l
 }

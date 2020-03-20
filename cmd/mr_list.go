@@ -38,7 +38,7 @@ var listCmd = &cobra.Command{
 			ListOptions: gitlab.ListOptions{
 				PerPage: mrNumRet,
 			},
-			Labels:       mrLabels,
+			Labels:       lab.Labels(mrLabels),
 			State:        &mrState,
 			TargetBranch: &mrTargetBranch,
 			OrderBy:      gitlab.String("updated_at"),

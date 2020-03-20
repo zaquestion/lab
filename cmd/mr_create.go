@@ -31,7 +31,7 @@ var mrCreateCmd = &cobra.Command{
 
 func init() {
 	mrCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	mrCreateCmd.Flags().StringP("assignee", "a", "", "Set assignee by username")
+	mrCreateCmd.Flags().StringSliceP("assignee", "a", []string{}, "Set assignee by username; can be specified multiple times for multiple assignees")
 	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Add label <label>; can be specified multiple times for multiple labels")
 	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "Remove source branch from remote after merge")
 	mrCreateCmd.Flags().BoolP("squash", "s", false, "Squash commits when merging")
@@ -63,12 +63,21 @@ func getAssigneeID(assignee string) *int {
 	return gitlab.Int(assigneeID)
 }
 
+// getAssignees returns the assigneeIDs for use with other GitLab API calls.
+func getAssigneeIDs(assignees []string) []int {
+	var ids []int
+	for _, a := range assignees {
+		ids = append(ids, *getAssigneeID(a))
+	}
+	return ids
+}
+
 func runMRCreate(cmd *cobra.Command, args []string) {
 	msgs, err := cmd.Flags().GetStringSlice("message")
 	if err != nil {
 		log.Fatal(err)
 	}
-	assignee, err := cmd.Flags().GetString("assignee")
+	assignees, err := cmd.Flags().GetStringSlice("assignee")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -159,11 +168,11 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		TargetProjectID:    &targetProject.ID,
 		Title:              &title,
 		Description:        &body,
-		AssigneeID:         getAssigneeID(assignee),
+		AssigneeIDs:        getAssigneeIDs(assignees),
 		RemoveSourceBranch: &removeSourceBranch,
 		Squash:             &squash,
 		AllowCollaboration: &allowCollaboration,
-		Labels:             gitlab.Labels(labels),
+		Labels:             lab.Labels(labels),
 		MilestoneID:        milestone,
 	})
 	if err != nil {
