@@ -37,6 +37,6 @@ Assignee: zaquestion
 Author: zaquestion
 Milestone: 1.0
 Labels: documentation
-WebURL: https://gitlab.com/zaquestion/test/merge_requests/1
+WebURL: https://gitlab.com/zaquestion/test/-/merge_requests/1
 `)
 }

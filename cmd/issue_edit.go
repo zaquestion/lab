@@ -70,7 +70,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 		}
 
 		if labelsChanged {
-			opts.Labels = gitlab.Labels(labels)
+			opts.Labels = lab.Labels(labels)
 		}
 
 		if assigneesChanged {

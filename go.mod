@@ -29,10 +29,10 @@ require (
 	github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec // indirect
 	github.com/spf13/pflag v1.0.1
 	github.com/spf13/viper v0.0.0-20180507071007-15738813a09d
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad // indirect
-	github.com/xanzy/go-gitlab v0.12.3-0.20181228114601-7bc4155e8bf8
+	github.com/xanzy/go-gitlab v0.28.0
 	golang.org/x/arch v0.0.0-20181203225421-5a4828bb7045 // indirect
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
