@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -35,7 +35,7 @@ var issueCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-                templateName, err := cmd.Flags().GetString("template")
+		templateName, err := cmd.Flags().GetString("template")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -98,8 +98,8 @@ func issueText(templateName string) (string, error) {
 {{.CommentChar}} Write a message for this issue. The first block
 {{.CommentChar}} of text is the title and the rest is the description.`
 
-        templateFile := filepath.Join("issue_templates", templateName)
-        templateFile += ".md"
+	templateFile := filepath.Join("issue_templates", templateName)
+	templateFile += ".md"
 	issueTmpl := lab.LoadGitLabTmpl(templateFile)
 
 	initMsg := "\n"
