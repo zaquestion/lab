@@ -22,7 +22,7 @@ func Test_issueCreate(t *testing.T) {
 	}
 	out := getAppOutput(b)[0]
 
-	require.Contains(t, out, "https://gitlab.com/lab-testing/test/issues/")
+	require.Contains(t, out, "https://gitlab.com/lab-testing/test/-/issues/")
 
 	// Get the issue ID from the returned URL and close the issue.
 	u, err := url.Parse(out)

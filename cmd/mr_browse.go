@@ -40,7 +40,7 @@ var mrBrowseCmd = &cobra.Command{
 				ListOptions: gitlab.ListOptions{
 					PerPage: 10,
 				},
-				Labels:       mrLabels,
+				Labels:       lab.Labels(mrLabels),
 				State:        &mrState,
 				OrderBy:      gitlab.String("updated_at"),
 				SourceBranch: gitlab.String(currentBranch),

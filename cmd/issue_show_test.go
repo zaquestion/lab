@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/acarl005/stripansi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,9 +20,14 @@ func Test_issueShow(t *testing.T) {
 		t.Error(err)
 	}
 
-	require.Contains(t, string(b), `
+	out := string(b)
+	out = stripansi.Strip(out) // This is required because glamour adds a lot of ansi chars
+
+	require.Contains(t, out, `
 #1 test issue for lab list
 ===================================
+
+
 
 -----------------------------------
 Project: zaquestion/test
@@ -32,7 +38,7 @@ Milestone: 1.0
 Due Date: 2018-01-01 00:00:00 +0000 UTC
 Time Stats: Estimated 1w, Spent 1d
 Labels: bug
-WebURL: https://gitlab.com/zaquestion/test/issues/1
+WebURL: https://gitlab.com/zaquestion/test/-/issues/1
 `)
 
 	require.Contains(t, string(b), `commented at`)

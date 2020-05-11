@@ -21,8 +21,17 @@ var snippetBrowseCmd = &cobra.Command{
 		}
 
 		c := viper.AllSettings()["core"]
-		config := c.([]map[string]interface{})[0]
-		host := config["host"].(string)
+		var cfg map[string]interface{}
+		switch v := c.(type) {
+		// Most run this is the type
+		case []map[string]interface{}:
+			cfg = v[0]
+		// On the first run when the cfg is created it comes in as this type
+		// for whatever reason
+		case map[string]interface{}:
+			cfg = v
+		}
+		host := cfg["host"].(string)
 		hostURL, err := url.Parse(host)
 		if err != nil {
 			log.Fatal(err)

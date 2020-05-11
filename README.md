@@ -18,7 +18,7 @@ lab will look for hub and uses that as your git binary when available so you don
 $ lab version
 git version 2.11.0
 hub version 2.3.0-pre9
-lab version 0.16.0
+lab version 0.17.2
 ```
 
 # Inspiration
@@ -42,12 +42,20 @@ scoop bucket add zaquestion https://github.com/zaquestion/scoop-bucket.git
 scoop install lab
 ```
 
+### Alpine
+```
+apk add lab
+```
+
 ### Bash
 
 Installs lab into `/usr/local/bin/`
 ```
-curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | bash
+curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | sudo bash
 ```
+NOTE: Please take care when executing scripts in this fashion. Make sure you
+trust the developer providing the script and consider peaking at the install
+script itself (ours is pretty simply ;)
 
 ### PreBuilt Binaries
 
@@ -56,7 +64,7 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 ### Source
 
 Required
-* [Go 1.11+](https://golang.org/doc/install)
+* [Go 1.12+](https://golang.org/doc/install)
 
 ```
 git clone git@github.com:zaquestion/lab
@@ -78,11 +86,11 @@ See the [contribution guide](CONTRIBUTING.md).
 `lab` needs your GitLab information in order to interact with to your GitLab
 instance. There are several ways to provide this information to `lab`:
 
-1. Environment variables: `LAB_CORE_HOST`, `LAB_CORE_USER`, `LAB_CORE_TOKEN`
-2. Environment variables: `CI_PROJECT_URL`, `CI_REGISTRY_USER`, `CI_JOB_TOKEN`
+1. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
+2. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`;
     - Note: these are meant for when `lab` is running within a GitLab CI pipeline
-3. HCL config file: `./lab.hcl`
-4. HCL config file: `~/.config/lab.hcl`
+3. directory-specific configuration file in [HashiCorp configuration language (HCL)](https://github.com/hashicorp/hcl): `./lab.hcl`;
+4. user-specific configuration file in HCL: `~/.config/lab.hcl`.
 
 These are checked in order. If no suitable config values are found, `lab` will
 prompt for your GitLab information and save it into `~/.config/lab.hcl`.
@@ -90,7 +98,6 @@ For example:
 ```
 $ lab
 Enter default GitLab host (default: https://gitlab.com):
-Enter default GitLab user: zaq
 Enter default GitLab token:
 ```
 # Completions
@@ -134,4 +141,8 @@ alias git=lab
     <span property="dct:title">Zaq? Wiedmann</span></a>
   has waived all copyright and related or neighboring rights to
   <span property="dct:title">Lab</span>.
+  This work is published from:
+<span property="vcard:Country" datatype="dct:ISO3166"
+      content="US" about="https://github.com/zaquestion/lab">
+  United States</span>.
 </p>

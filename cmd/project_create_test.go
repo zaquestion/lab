@@ -21,7 +21,7 @@ func Test_projectCreateCmd(t *testing.T) {
 	os.Remove(filepath.Join(repo, ".git/config"))
 
 	t.Run("create", func(t *testing.T) {
-		cmd := exec.Command(labBinaryPath, "project", "create")
+		cmd := exec.Command(labBinaryPath, "project", "create", "-p")
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
@@ -42,7 +42,6 @@ func Test_projectCreateCmd(t *testing.T) {
 		}
 		require.Equal(t, "git@gitlab.com:lab-testing/"+expectedPath+".git\n", string(remote))
 	})
-
 	p, err := lab.FindProject(expectedPath)
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "failed to find project for cleanup"))

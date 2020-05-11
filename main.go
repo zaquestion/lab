@@ -1,40 +1,30 @@
 package main
 
 import (
+	"crypto/tls"
 	"log"
+	"net/http"
 	"os"
-	"os/user"
 	"path"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/cmd"
 	"github.com/zaquestion/lab/internal/config"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 // version gets set on releases during build by goreleaser.
 var version = "master"
 
-func loadConfig() (string, string, string) {
-	var home string
-	switch runtime.GOOS {
-	case "windows":
-		// userprofile works for roaming AD profiles
-		home = os.Getenv("USERPROFILE")
-	default:
-		// Assume linux or osx
-		home = os.Getenv("HOME")
-		if home == "" {
-			u, err := user.Current()
-			if err != nil {
-				log.Fatalf("cannot retrieve current user: %v \n", err)
-			}
-			home = u.HomeDir
-		}
+func loadConfig() (string, string, string, bool) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
 	}
+
 	// Try XDG_CONFIG_HOME which is declared in XDG base directory specification
 	confpath := os.Getenv("XDG_CONFIG_HOME")
 	if confpath == "" {
@@ -48,23 +38,30 @@ func loadConfig() (string, string, string) {
 	viper.SetConfigType("hcl")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath(confpath)
+	gitDir, err := git.GitDir()
+	if err == nil {
+		viper.AddConfigPath(gitDir)
+	}
 
 	viper.SetEnvPrefix("LAB")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
+	var tlsSkipVerify bool
+	tlsSkipVerify = viper.GetBool("tls.skip_verify")
+
 	host, user, token := viper.GetString("core.host"), viper.GetString("core.user"), viper.GetString("core.token")
 	if host != "" && user != "" && token != "" {
-		return host, user, token
+		return host, user, token, tlsSkipVerify
 	} else if host != "" && token != "" {
-		user = getUser(host, token)
-		return host, user, token
+		user = getUser(host, token, tlsSkipVerify)
+		return host, user, token, tlsSkipVerify
 	}
 
 	// Attempt to auto-configure for GitLab CI
 	host, user, token = config.CI()
 	if host != "" && user != "" && token != "" {
-		return host, user, token
+		return host, user, token, tlsSkipVerify
 	}
 
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
@@ -77,9 +74,9 @@ func loadConfig() (string, string, string) {
 		}
 	}
 
-	c := viper.AllSettings()["core"]
+	c := viper.AllSettings()
 	var cfg map[string]interface{}
-	switch v := c.(type) {
+	switch v := c["core"].(type) {
 	// Most run this is the type
 	case []map[string]interface{}:
 		cfg = v[0]
@@ -96,6 +93,20 @@ func loadConfig() (string, string, string) {
 		}
 	}
 
+	var tls map[string]interface{}
+	switch v := c["tls"].(type) {
+	// Most run this is the type
+	case []map[string]interface{}:
+		tls = v[0]
+	// On the first run when the cfg is created it comes in as this type
+	// for whatever reason
+	case map[string]interface{}:
+		tls = v
+	}
+	if v, ok := tls["skip_verify"]; ok {
+		tlsSkipVerify = v.(bool)
+	}
+
 	// Set environment overrides
 	// Note: the code below that uses `cfg["host"]` to access these values
 	// is tough to simplify since cfg["host"] is accessing the array "core"
@@ -107,15 +118,60 @@ func loadConfig() (string, string, string) {
 	if v := viper.GetString("core.token"); v != "" {
 		cfg["token"] = v
 	}
+	if v := viper.GetString("core.user"); v != "" {
+		cfg["user"] = v
+	}
+	if v := viper.Get("tls.skip_verify"); v != nil {
+		tlsSkipVerify = v.(string) == "true"
+	}
 	host = cfg["host"].(string)
 	token = cfg["token"].(string)
-	user = getUser(host, token)
+	if v, ok := cfg["user"]; ok {
+		user = v.(string)
+	}
+	if user == "" {
+		user = getUser(host, token, tlsSkipVerify)
+	}
 	viper.Set("core.user", user)
-	return host, user, token
+	return host, user, token, tlsSkipVerify
 }
 
-func getUser(host, token string) string {
-	lab := gitlab.NewClient(nil, token)
+func loadTLSCerts() string {
+	c := viper.AllSettings()
+
+	var tls map[string]interface{}
+	switch v := c["tls"].(type) {
+	// Most run this is the type
+	case []map[string]interface{}:
+		tls = v[0]
+	// On the first run when the cfg is created it comes in as this type
+	// for whatever reason
+	case map[string]interface{}:
+		tls = v
+	}
+
+	for _, v := range []string{"ca_file"} {
+		if _, ok := tls[v]; !ok {
+			return ""
+		}
+	}
+
+	if v := viper.GetString("tls.ca_file"); v != "" {
+		tls["ca_file"] = v
+	}
+
+	return tls["ca_file"].(string)
+}
+
+func getUser(host, token string, skipVerify bool) string {
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: skipVerify,
+			},
+		},
+	}
+	lab := gitlab.NewClient(httpClient, token)
 	lab.SetBaseURL(host + "/api/v4")
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
@@ -128,7 +184,14 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
 	if !skipInit() {
-		lab.Init(loadConfig())
+		ca := loadTLSCerts()
+		h, u, t, skipVerify := loadConfig()
+
+		if ca != "" {
+			lab.InitWithCustomCA(h, u, t, ca)
+		} else {
+			lab.Init(h, u, t, skipVerify)
+		}
 	}
 	cmd.Execute()
 }

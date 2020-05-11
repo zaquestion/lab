@@ -46,6 +46,7 @@ func New(args ...string) *exec.Cmd {
 func GitDir() (string, error) {
 	cmd := New("rev-parse", "-q", "--git-dir")
 	cmd.Stdout = nil
+	cmd.Stderr = nil
 	d, err := cmd.Output()
 	if err != nil {
 		return "", err

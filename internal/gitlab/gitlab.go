@@ -5,14 +5,18 @@
 package gitlab
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -21,7 +25,7 @@ import (
 
 var (
 	// ErrProjectNotFound is returned when a GitLab project cannot be found.
-	ErrProjectNotFound = errors.New("gitlab project not found")
+	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
 )
 
 var (
@@ -42,15 +46,71 @@ func User() string {
 }
 
 // Init initializes a gitlab client for use throughout lab.
-func Init(_host, _user, _token string) {
+func Init(_host, _user, _token string, allowInsecure bool) {
 	if len(_host) > 0 && _host[len(_host)-1 : len(_host)][0] == '/' {
 		_host = _host[0 : len(_host)-1]
 	}
 	host = _host
 	user = _user
 	token = _token
-	lab = gitlab.NewClient(nil, token)
+
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: allowInsecure,
+			},
+		},
+	}
+
+	lab = gitlab.NewClient(httpClient, token)
 	lab.SetBaseURL(host + "/api/v4")
+}
+
+func InitWithCustomCA(_host, _user, _token, caFile string) error {
+	caCert, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return err
+	}
+	// use system cert pool as a baseline
+	caCertPool, err := x509.SystemCertPool()
+	if err != nil {
+		return err
+	}
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
+	}
+
+	lab = gitlab.NewClient(httpClient, token)
+	lab.SetBaseURL(host + "/api/v4")
+	return nil
 }
 
 // Defines filepath for default GitLab templates
@@ -90,7 +150,7 @@ var (
 
 // GetProject looks up a Gitlab project by ID.
 func GetProject(projectID interface{}) (*gitlab.Project, error) {
-	target, resp, err := lab.Projects.GetProject(projectID)
+	target, resp, err := lab.Projects.GetProject(projectID, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
 	}
@@ -113,7 +173,7 @@ func FindProject(project string) (*gitlab.Project, error) {
 		search = user + "/" + project
 	}
 
-	target, resp, err := lab.Projects.GetProject(search)
+	target, resp, err := lab.Projects.GetProject(search, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
 	}
@@ -146,7 +206,7 @@ func Fork(project string) (string, error) {
 		return "", err
 	}
 
-	fork, _, err := lab.Projects.ForkProject(target.ID)
+	fork, _, err := lab.Projects.ForkProject(target.ID, nil)
 	if err != nil {
 		return "", err
 	}
@@ -170,18 +230,18 @@ func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, e
 
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
-        p, err := FindProject(project)
-        if err != nil {
-                return "", err
-        }
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
 
-        note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
-        if err != nil {
-                return "", err
-        }
-        // Unlike MR, Note has no WebURL property, so we have to create it
-        // ourselves from the project, noteable id and note id
-        return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
+	if err != nil {
+		return "", err
+	}
+	// Unlike MR, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRGet retrieves the merge request from GitLab project
@@ -462,12 +522,29 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 		return nil, err
 	}
 
-	list, _, err := lab.Labels.ListLabels(p.ID, &gitlab.ListLabelsOptions{})
-	if err != nil {
-		return nil, err
+	labels := []*gitlab.Label{}
+	opt := &gitlab.ListLabelsOptions{
+		Page: 1,
 	}
 
-	return list, nil
+	for {
+		l, resp, err := lab.Labels.ListLabels(p.ID, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		labels = append(labels, l...)
+
+		// if we've seen all the pages, then we can break here
+		if opt.Page >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return labels, nil
 }
 
 // ProjectSnippetCreate creates a snippet in a project
@@ -762,4 +839,10 @@ func UserIDFromUsername(username string) (int, error) {
 		return -1, err
 	}
 	return us[0].ID, nil
+}
+
+// Labels converts a []string into a non-nil *gitlab.Labels.
+func Labels(labels []string) *gitlab.Labels {
+	l := gitlab.Labels(labels)
+	return &l
 }

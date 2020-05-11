@@ -71,7 +71,7 @@ var issueCreateCmd = &cobra.Command{
 		issueURL, err := lab.IssueCreate(rn, &gitlab.CreateIssueOptions{
 			Title:       &title,
 			Description: &body,
-			Labels:      gitlab.Labels(labels),
+			Labels:      lab.Labels(labels),
 			AssigneeIDs: assigneeIDs,
 		})
 		if err != nil {

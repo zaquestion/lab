@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/acarl005/stripansi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,10 +29,10 @@ func Test_issueCmd(t *testing.T) {
 		}
 
 		out := string(b)
-		require.Contains(t, out, "https://gitlab.com/lab-testing/test/issues/")
+		require.Contains(t, out, "https://gitlab.com/lab-testing/test/-/issues/")
 
 		i := strings.Index(out, "\n")
-		issueID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/issues/")
+		issueID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/issues/")
 		t.Log(issueID)
 	})
 	t.Run("show", func(t *testing.T) {
@@ -48,11 +49,13 @@ func Test_issueCmd(t *testing.T) {
 			t.Fatal(err)
 		}
 		out := string(b)
+		outStripped := stripansi.Strip(out) // This is required because glamour adds a lot of ansi chars
 		require.Contains(t, out, "Project: lab-testing/test\n")
 		require.Contains(t, out, "Status: Open\n")
 		require.Contains(t, out, "Assignees: lab-testing\n")
 		require.Contains(t, out, fmt.Sprintf("#%s issue title", issueID))
-		require.Contains(t, out, "===================================\nissue description")
+		require.Contains(t, out, "===================================\n")
+		require.Contains(t, outStripped, "issue description")
 		require.Contains(t, out, "Labels: bug, critical\n")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/issues/%s", issueID))
 	})
