@@ -59,7 +59,7 @@ func Test_issueMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			title, body, err := issueMsg(test.Msgs)
+			title, body, err := issueMsg("default", test.Msgs)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -71,7 +71,7 @@ func Test_issueMsg(t *testing.T) {
 
 func Test_issueText(t *testing.T) {
 	t.Parallel()
-	text, err := issueText()
+	text, err := issueText("default")
 	if err != nil {
 		t.Fatal(err)
 	}
