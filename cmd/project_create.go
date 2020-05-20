@@ -28,16 +28,33 @@ lab project create                         # user/<curr dir> named <curr dir>
                                            # (above only works w/i git repo)
 lab project create myproject               # user/myproject named myproject
 lab project create myproject -n "new proj" # user/myproject named "new proj"
-lab project create -n "new proj"           # user/new-proj named "new proj"`,
+lab project create -n "new proj"           # user/new-proj named "new proj"
+lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			name, _ = cmd.Flags().GetString("name")
-			desc, _ = cmd.Flags().GetString("description")
+			name, _  = cmd.Flags().GetString("name")
+			desc, _  = cmd.Flags().GetString("description")
+			group, _ = cmd.Flags().GetString("group")
 		)
+
 		path := determinePath(args, name)
 		if path == "" && name == "" {
 			log.Fatal("path or name must be set")
+		}
+
+		var namespaceID *int
+		if group != "" {
+			list, err := lab.NamespaceSearch(group)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if len(list) < 0 {
+				log.Fatalf("no namespace found with such name: %s", group)
+			}
+
+			namespaceID = &list[0].ID
 		}
 
 		// set the default visibility
@@ -56,6 +73,7 @@ lab project create -n "new proj"           # user/new-proj named "new proj"`,
 		}
 
 		opts := gitlab.CreateProjectOptions{
+			NamespaceID:          namespaceID,
 			Path:                 gitlab.String(path),
 			Name:                 gitlab.String(name),
 			Description:          gitlab.String(desc),
@@ -94,6 +112,7 @@ func determinePath(args []string, name string) string {
 
 func init() {
 	projectCreateCmd.Flags().StringP("name", "n", "", "name of the new project")
+	projectCreateCmd.Flags().StringP("group", "g", "", "group name (also known as namespace)")
 	projectCreateCmd.Flags().StringP("description", "d", "", "description of the new project")
 	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make project private: visible only to project members")
 	projectCreateCmd.Flags().BoolVar(&public, "public", false, "Make project public: visible without any authentication")

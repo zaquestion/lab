@@ -23,10 +23,8 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
-var (
-	// ErrProjectNotFound is returned when a GitLab project cannot be found.
-	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
-)
+// ErrProjectNotFound is returned when a GitLab project cannot be found.
+var ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
 
 var (
 	lab   *gitlab.Client
@@ -144,9 +142,7 @@ func LoadGitLabTmpl(tmplName string) string {
 	return strings.TrimSpace(string(tmpl))
 }
 
-var (
-	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
-)
+var localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 
 // GetProject looks up a Gitlab project by ID.
 func GetProject(projectID interface{}) (*gitlab.Project, error) {
@@ -693,6 +689,16 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 			break
 		}
 	}
+	return list, nil
+}
+
+// NamespaceSearch searches for a namespace on GitLab
+func NamespaceSearch(query string) ([]*gitlab.Namespace, error) {
+	list, _, err := lab.Namespaces.SearchNamespace(query)
+	if err != nil {
+		return nil, err
+	}
+
 	return list, nil
 }
 
