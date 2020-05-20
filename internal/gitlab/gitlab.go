@@ -24,10 +24,8 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
-var (
-	// ErrProjectNotFound is returned when a GitLab project cannot be found.
-	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
-)
+// ErrProjectNotFound is returned when a GitLab project cannot be found.
+var ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
 
 var (
 	lab   *gitlab.Client
@@ -169,9 +167,7 @@ func LoadGitLabTmpl(tmplName string) string {
 	return strings.TrimSpace(string(tmpl))
 }
 
-var (
-	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
-)
+var localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 
 // GetProject looks up a Gitlab project by ID.
 func GetProject(projectID interface{}) (*gitlab.Project, error) {
@@ -938,6 +934,16 @@ func (s JobSorter) Len() int      { return len(s.Jobs) }
 func (s JobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
 func (s JobSorter) Less(i, j int) bool {
 	return time.Time(*s.Jobs[i].CreatedAt).Before(time.Time(*s.Jobs[j].CreatedAt))
+}
+
+// NamespaceSearch searches for a namespace on GitLab
+func NamespaceSearch(query string) ([]*gitlab.Namespace, error) {
+	list, _, err := lab.Namespaces.SearchNamespace(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }
 
 // CIJobs returns a list of jobs in the pipeline with given id. The jobs are
