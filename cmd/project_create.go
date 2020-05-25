@@ -18,7 +18,7 @@ var internal bool
 var projectCreateCmd = &cobra.Command{
 	Use:   "create [path]",
 	Short: "Create a new project on GitLab",
-	Long: `Create a new project on GitLab in your user namespace.
+	Long: `Create a new project on GitLab.
 
 path refers to the path on GitLab not including the group/namespace. If no path
 or name is provided and the current directory is a git repo, the name of the
