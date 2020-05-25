@@ -73,6 +73,8 @@ lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 		}
 
 		opts := gitlab.CreateProjectOptions{
+			// if namespaceID is nil, the project will be created in user's
+			// namespace
 			NamespaceID:          namespaceID,
 			Path:                 gitlab.String(path),
 			Name:                 gitlab.String(name),
