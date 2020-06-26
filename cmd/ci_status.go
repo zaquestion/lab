@@ -24,15 +24,16 @@ var ciStatusCmd = &cobra.Command{
 lab ci status --wait`,
 	RunE: nil,
 	Run: func(cmd *cobra.Command, args []string) {
-		branch, err := git.CurrentBranch()
+		var err error
+		branchName, err = git.CurrentBranch()
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if len(args) > 1 {
-			branch = args[1]
+			branchName = args[1]
 		}
-		remote := determineSourceRemote(branch)
+		remote := determineSourceRemote(branchName)
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil || !ok {
@@ -45,6 +46,11 @@ lab ci status --wait`,
 			log.Fatal(err)
 		}
 		pid := rn
+		branch, err := lab.GetBranch(pid, branchName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		commitSHA = branch.Commit.ID
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
 
@@ -58,7 +64,7 @@ lab ci status --wait`,
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
 		for {
 			// fetch all of the CI Jobs from the API
-			jobs, err = lab.CIJobs(pid, branch)
+			jobs, err = lab.CIJobs(pid, commitSHA)
 			if err != nil {
 				log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
 			}

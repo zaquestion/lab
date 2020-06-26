@@ -24,8 +24,9 @@ import (
 )
 
 var (
-	projectID int
-	branch    string
+	projectID  int
+	branchName string
+	commitSHA  string
 )
 
 // ciViewCmd represents the ci command
@@ -49,15 +50,15 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			remote string
 			err    error
 		)
-		branch, err = git.CurrentBranch()
+		branchName, err = git.CurrentBranch()
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if len(args) > 1 {
-			branch = args[1]
+			branchName = args[1]
 		}
-		remote = determineSourceRemote(branch)
+		remote = determineSourceRemote(branchName)
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil || !ok {
@@ -77,6 +78,11 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			log.Fatal(err)
 		}
 		projectID = project.ID
+		branch, err := lab.GetBranch(projectID, branchName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		commitSHA = branch.Commit.ID
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 
@@ -92,7 +98,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 
 		var navi navigator
 		a.SetInputCapture(inputCapture(a, root, navi, inputCh))
-		go updateJobs(a, jobsCh, project.ID, branch)
+		go updateJobs(a, jobsCh)
 		go func() {
 			defer recoverPanic(a)
 			for {
@@ -186,7 +192,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 			a.Suspend(func() {
 				ctx, cancel := context.WithCancel(context.Background())
 				go func() {
-					err := doTrace(ctx, os.Stdout, projectID, branch, curJob.Name)
+					err := doTrace(ctx, os.Stdout, projectID, commitSHA, curJob.Name)
 					if err != nil {
 						a.Stop()
 						log.Fatal(err)
@@ -345,7 +351,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, inputCh chan st
 			tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
 
 			go func() {
-				err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, branch, curJob.Name)
+				err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, commitSHA, curJob.Name)
 				if err != nil {
 					app.Stop()
 					log.Fatal(err)
@@ -481,14 +487,14 @@ func recoverPanic(app *tview.Application) {
 	}
 }
 
-func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job, pid interface{}, branch string) {
+func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job) {
 	defer recoverPanic(app)
 	for {
 		if modalVisible {
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		jobs, err := lab.CIJobs(pid, branch)
+		jobs, err := lab.CIJobs(projectID, commitSHA)
 		if len(jobs) == 0 || err != nil {
 			app.Stop()
 			log.Fatal(errors.Wrap(err, "failed to find ci jobs"))

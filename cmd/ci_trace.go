@@ -27,9 +27,10 @@ var ciTraceCmd = &cobra.Command{
 		var (
 			remote  string
 			jobName string
+			err     error
 		)
 
-		branch, err := git.CurrentBranch()
+		branchName, err = git.CurrentBranch()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -37,10 +38,10 @@ var ciTraceCmd = &cobra.Command{
 			jobName = args[1]
 			if strings.Contains(args[1], ":") {
 				ps := strings.Split(args[1], ":")
-				branch, jobName = ps[0], ps[1]
+				branchName, jobName = ps[0], ps[1]
 			}
 		}
-		remote = determineSourceRemote(branch)
+		remote = determineSourceRemote(branchName)
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil || !ok {
@@ -57,14 +58,21 @@ var ciTraceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = doTrace(context.Background(), os.Stdout, project.ID, branch, jobName)
+		projectID = project.ID
+		branch, err := lab.GetBranch(projectID, branchName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		commitSHA = branch.Commit.ID
+
+		err = doTrace(context.Background(), os.Stdout, project.ID, commitSHA, jobName)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
-func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name string) error {
+func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string) error {
 	var (
 		once   sync.Once
 		offset int64
@@ -73,7 +81,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, branch, name)
+		trace, job, err := lab.CITrace(pid, sha, name)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}
