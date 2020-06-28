@@ -59,11 +59,11 @@ var ciTraceCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		branch, err := lab.GetBranch(projectID, branchName)
+		commit, err := lab.GetCommit(projectID, branchName)
 		if err != nil {
 			log.Fatal(err)
 		}
-		commitSHA = branch.Commit.ID
+		commitSHA = commit.ID
 
 		err = doTrace(context.Background(), os.Stdout, project.ID, commitSHA, jobName)
 		if err != nil {

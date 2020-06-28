@@ -111,36 +111,46 @@ func TestLint(t *testing.T) {
 	}
 }
 
-func TestGetBranch(t *testing.T) {
+func TestGetCommit(t *testing.T) {
 	tests := []struct {
-		desc   string
-		branch string
-		ok     bool
+		desc     string
+		ref      string
+		ok       bool
+		expectID string
 	}{
 		{
-			"branch not pushed",
+			"not pushed",
 			"not_a_branch",
 			false,
+			"",
 		},
 		{
-			"branch is pushed",
-			"mrtest",
+			"pushed branch",
+			"mrtest", // branch name
 			true,
+			"54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0",
 		},
 		{
-			"needs encoding is pushed",
-			"needs/encode",
+			"pushed branch, neeeds encoding",
+			"needs/encode", // branch name
 			true,
+			"381f2b123dd404e8046ea42d5785061aa3b6674b",
+		},
+		{
+			"pushed sha",
+			"700e056463504690c11d63727bf25a380f303be9",
+			true,
+			"700e056463504690c11d63727bf25a380f303be9",
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			b, err := GetBranch(4181224, test.branch)
+			b, err := GetCommit(4181224, test.ref)
 			if test.ok {
 				require.NoError(t, err)
-				require.Equal(t, test.branch, b.Name)
+				require.Equal(t, test.expectID, b.ID)
 			} else {
 				require.Error(t, err)
 				require.Nil(t, b)

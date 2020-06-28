@@ -96,7 +96,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := lab.GetBranch(p.ID, branch); err != nil {
+	if _, err := lab.GetCommit(p.ID, branch); err != nil {
 		err = errors.Wrapf(
 			err,
 			"aborting MR, source branch %s not present on remote %s. did you forget to push?",
@@ -123,7 +123,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	targetBranch := "master"
 	if len(args) > 1 && targetBranch != args[1] {
 		targetBranch = args[1]
-		if _, err := lab.GetBranch(targetProject.ID, targetBranch); err != nil {
+		if _, err := lab.GetCommit(targetProject.ID, targetBranch); err != nil {
 			err = errors.Wrapf(
 				err,
 				"aborting MR, target branch %s not present on remote %s. did you forget to push?",

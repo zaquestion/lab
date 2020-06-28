@@ -506,13 +506,13 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 	return discussions, nil
 }
 
-// GetBranch looks up a Gitlab Branch by name.
-func GetBranch(pid interface{}, branch string) (*gitlab.Branch, error) {
-	b, _, err := lab.Branches.GetBranch(pid, branch)
+// GetCommit returns top Commit by ref (hash, branch or tag).
+func GetCommit(pid interface{}, ref string) (*gitlab.Commit, error) {
+	c, _, err := lab.Commits.GetCommit(pid, ref)
 	if err != nil {
 		return nil, err
 	}
-	return b, nil
+	return c, nil
 }
 
 // LabelList gets a list of labels on a GitLab Project

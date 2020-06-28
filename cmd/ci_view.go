@@ -56,6 +56,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		}
 
 		if len(args) > 1 {
+			// branchName may also be a tag
 			branchName = args[1]
 		}
 		remote = determineSourceRemote(branchName)
@@ -78,11 +79,11 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		branch, err := lab.GetBranch(projectID, branchName)
+		commit, err := lab.GetCommit(projectID, branchName)
 		if err != nil {
 			log.Fatal(err)
 		}
-		commitSHA = branch.Commit.ID
+		commitSHA = commit.ID
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 

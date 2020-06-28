@@ -46,11 +46,11 @@ lab ci status --wait`,
 			log.Fatal(err)
 		}
 		pid := rn
-		branch, err := lab.GetBranch(pid, branchName)
+		commit, err := lab.GetCommit(pid, branchName)
 		if err != nil {
 			log.Fatal(err)
 		}
-		commitSHA = branch.Commit.ID
+		commitSHA = commit.ID
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
 
