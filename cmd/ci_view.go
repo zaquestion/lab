@@ -19,14 +19,13 @@ import (
 	"github.com/lunixbochs/vtclean"
 	gitlab "github.com/xanzy/go-gitlab"
 
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var (
-	projectID  int
-	branchName string
-	commitSHA  string
+	projectID int
+	refName   string
+	commitSHA string
 )
 
 // ciViewCmd represents the ci command
@@ -47,39 +46,21 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		a := tview.NewApplication()
 		defer recoverPanic(a)
 		var (
-			remote string
-			err    error
+			rn  string
+			err error
 		)
-		branchName, err = git.CurrentBranch()
+
+		rn, refName, err = parseArgsRemoteRef(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if len(args) > 1 {
-			// branchName may also be a tag
-			branchName = args[1]
-		}
-		remote = determineSourceRemote(branchName)
-		if len(args) > 0 {
-			ok, err := git.IsRemote(args[0])
-			if err != nil || !ok {
-				log.Fatal(args[0], " is not a remote:", err)
-			}
-			remote = args[0]
-		}
-
-		// See if we're in a git repo or if global is set to determine
-		// if this should be a personal snippet
-		rn, err := git.PathWithNameSpace(remote)
-		if err != nil {
-			log.Fatal(err)
-		}
 		project, err := lab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		commit, err := lab.GetCommit(projectID, branchName)
+		commit, err := lab.GetCommit(projectID, refName)
 		if err != nil {
 			log.Fatal(err)
 		}

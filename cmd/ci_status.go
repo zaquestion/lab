@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -24,29 +23,16 @@ var ciStatusCmd = &cobra.Command{
 lab ci status --wait`,
 	RunE: nil,
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		branchName, err = git.CurrentBranch()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if len(args) > 1 {
-			branchName = args[1]
-		}
-		remote := determineSourceRemote(branchName)
-		if len(args) > 0 {
-			ok, err := git.IsRemote(args[0])
-			if err != nil || !ok {
-				log.Fatal(args[0], " is not a remote:", err)
-			}
-			remote = args[0]
-		}
-		rn, err := git.PathWithNameSpace(remote)
+		var (
+			rn  string
+			err error
+		)
+		rn, refName, err = parseArgsRemoteRef(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 		pid := rn
-		commit, err := lab.GetCommit(pid, branchName)
+		commit, err := lab.GetCommit(pid, refName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,7 +59,7 @@ lab ci status --wait`,
 			jobs = latestJobs(jobs)
 
 			if len(jobs) == 0 {
-				log.Fatal("no CI jobs found for branch ", branch, " on remote ", remote)
+				log.Fatal("no CI jobs found for branch ", refName, " on remote ", rn)
 				return
 			}
 

@@ -212,6 +212,23 @@ func parseArgsRemoteString(args []string) (string, string, error) {
 	return remote, str, nil
 }
 
+// parseArgsRemoteRef returns a remote name and a ref name (default: current branch).
+// Like parseArgsRemoteString where second argument defaults to current branch.
+func parseArgsRemoteRef(args []string) (string, string, error) {
+	rn, name, err := parseArgsRemoteString(args)
+	if err != nil {
+		return "", "", err
+	}
+	if name == "" {
+		name, err = git.CurrentBranch()
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	return rn, name, nil
+}
+
 var (
 	// Will be updated to upstream in Execute() if "upstream" remote exists
 	forkedFromRemote = "origin"
