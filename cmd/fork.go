@@ -10,6 +10,8 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var skipClone = false
+
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
 	Use:   "fork [upstream-to-fork]",
@@ -17,6 +19,7 @@ var forkCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		skipClone, _ = cmd.Flags().GetBool("skip-clone")
 		if len(args) == 1 {
 			forkToUpstream(cmd, args)
 			return
@@ -66,7 +69,9 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cloneCmd.Run(nil, []string{strings.Split(args[0], "/")[1]})
+	if ! skipClone {
+		cloneCmd.Run(nil, []string{strings.Split(args[0], "/")[1]})
+	}
 }
 func determineForkRemote(project string) string {
 	name := lab.User()
@@ -79,5 +84,6 @@ func determineForkRemote(project string) string {
 }
 
 func init() {
+	forkCmd.Flags().BoolP("skip-clone", "s", false, "Skip clone after remote fork")
 	RootCmd.AddCommand(forkCmd)
 }
