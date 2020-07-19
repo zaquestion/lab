@@ -64,7 +64,7 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 ### Source
 
 Required
-* [Go 1.12+](https://golang.org/doc/install)
+* [Go 1.13+](https://golang.org/doc/install)
 
 ```
 git clone git@github.com:zaquestion/lab
