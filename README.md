@@ -64,7 +64,7 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 ### Source
 
 Required
-* [Go 1.12+](https://golang.org/doc/install)
+* [Go 1.13+](https://golang.org/doc/install)
 
 ```
 git clone git@github.com:zaquestion/lab
@@ -122,9 +122,17 @@ fpath=(/path/to/script_directory $fpath)
 
 # Aliasing
 
-Like hub, lab feels best when aliased as `git`. In your `.bashrc` or `.bash_profile`
+Like hub, lab feels best when aliased as `git`. In your `.bashrc` or `.bash_profile`:
+
 ```
 alias git=lab
+```
+
+NOTE: before aliasing, if you use git in your shell prompt command, be sure lab works by it's own first:
+
+```
+$ lab
+Enter GitLab host (default: https://gitlab.com):
 ```
 
 <p align="center"><img src="https://user-images.githubusercontent.com/2358914/34196973-420d389a-e519-11e7-92e6-3a1486d6b280.png" align="center"></p>
