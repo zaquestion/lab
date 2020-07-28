@@ -96,8 +96,12 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if !lab.BranchPushed(p.ID, branch) {
-		log.Fatalf("aborting MR, source branch %s not present on remote %s. did you forget to push?", branch, sourceRemote)
+	if _, err := lab.GetCommit(p.ID, branch); err != nil {
+		err = errors.Wrapf(
+			err,
+			"aborting MR, source branch %s not present on remote %s. did you forget to push?",
+			branch, sourceRemote)
+		log.Fatal(err)
 	}
 
 	targetRemote := forkedFromRemote
@@ -117,10 +121,14 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	targetBranch := "master"
-	if len(args) > 1 {
+	if len(args) > 1 && targetBranch != args[1] {
 		targetBranch = args[1]
-		if !lab.BranchPushed(targetProject.ID, targetBranch) {
-			log.Fatalf("aborting MR, target branch %s not present on remote %s. did you forget to push?", targetBranch, targetRemote)
+		if _, err := lab.GetCommit(targetProject.ID, targetBranch); err != nil {
+			err = errors.Wrapf(
+				err,
+				"aborting MR, target branch %s not present on remote %s. did you forget to push?",
+				targetBranch, targetRemote)
+			log.Fatal(err)
 		}
 	}
 

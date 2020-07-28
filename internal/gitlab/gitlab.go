@@ -506,13 +506,13 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 	return discussions, nil
 }
 
-// BranchPushed checks if a branch exists on a GitLab project
-func BranchPushed(pid interface{}, branch string) bool {
-	b, _, err := lab.Branches.GetBranch(pid, branch)
+// GetCommit returns top Commit by ref (hash, branch or tag).
+func GetCommit(pid interface{}, ref string) (*gitlab.Commit, error) {
+	c, _, err := lab.Commits.GetCommit(pid, ref)
 	if err != nil {
-		return false
+		return nil, err
 	}
-	return b != nil
+	return c, nil
 }
 
 // LabelList gets a list of labels on a GitLab Project
@@ -698,9 +698,9 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 
 // CIJobs returns a list of jobs in a pipeline for a given sha. The jobs are
 // returned sorted by their CreatedAt time
-func CIJobs(pid interface{}, branch string) ([]*gitlab.Job, error) {
+func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
 	pipelines, _, err := lab.Pipelines.ListProjectPipelines(pid, &gitlab.ListProjectPipelinesOptions{
-		Ref: gitlab.String(branch),
+		SHA: gitlab.String(sha),
 	})
 	if len(pipelines) == 0 || err != nil {
 		return nil, err
@@ -739,8 +739,8 @@ func CIJobs(pid interface{}, branch string) ([]*gitlab.Job, error) {
 // 1. Last Running Job
 // 2. First Pending Job
 // 3. Last Job in Pipeline
-func CITrace(pid interface{}, branch, name string) (io.Reader, *gitlab.Job, error) {
-	jobs, err := CIJobs(pid, branch)
+func CITrace(pid interface{}, sha, name string) (io.Reader, *gitlab.Job, error) {
+	jobs, err := CIJobs(pid, sha)
 	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
 	}

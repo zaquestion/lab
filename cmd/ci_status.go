@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -24,27 +23,20 @@ var ciStatusCmd = &cobra.Command{
 lab ci status --wait`,
 	RunE: nil,
 	Run: func(cmd *cobra.Command, args []string) {
-		branch, err := git.CurrentBranch()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if len(args) > 1 {
-			branch = args[1]
-		}
-		remote := determineSourceRemote(branch)
-		if len(args) > 0 {
-			ok, err := git.IsRemote(args[0])
-			if err != nil || !ok {
-				log.Fatal(args[0], " is not a remote:", err)
-			}
-			remote = args[0]
-		}
-		rn, err := git.PathWithNameSpace(remote)
+		var (
+			rn  string
+			err error
+		)
+		rn, refName, err = parseArgsRemoteRef(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 		pid := rn
+		commit, err := lab.GetCommit(pid, refName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		commitSHA = commit.ID
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
 
@@ -58,7 +50,7 @@ lab ci status --wait`,
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
 		for {
 			// fetch all of the CI Jobs from the API
-			jobs, err = lab.CIJobs(pid, branch)
+			jobs, err = lab.CIJobs(pid, commitSHA)
 			if err != nil {
 				log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
 			}
@@ -67,7 +59,7 @@ lab ci status --wait`,
 			jobs = latestJobs(jobs)
 
 			if len(jobs) == 0 {
-				log.Fatal("no CI jobs found for branch ", branch, " on remote ", remote)
+				log.Fatal("no CI jobs found for branch ", refName, " on remote ", rn)
 				return
 			}
 

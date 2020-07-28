@@ -25,46 +25,44 @@ var ciTraceCmd = &cobra.Command{
 	Long:    `If a job is not specified the latest running job or last job in the pipeline is used`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			remote  string
+			rn      string
 			jobName string
+			err     error
 		)
-
-		branch, err := git.CurrentBranch()
+		rn, jobName, err = parseArgsRemoteString(args)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if len(args) > 1 {
-			jobName = args[1]
-			if strings.Contains(args[1], ":") {
-				ps := strings.Split(args[1], ":")
-				branch, jobName = ps[0], ps[1]
+
+		if strings.Contains(jobName, ":") {
+			ps := strings.Split(jobName, ":")
+			refName, jobName = ps[0], ps[1]
+		} else {
+			refName, err = git.CurrentBranch()
+			if err != nil {
+				log.Fatal(err)
 			}
-		}
-		remote = determineSourceRemote(branch)
-		if len(args) > 0 {
-			ok, err := git.IsRemote(args[0])
-			if err != nil || !ok {
-				log.Fatal(args[0], " is not a remote:", err)
-			}
-			remote = args[0]
 		}
 
-		rn, err := git.PathWithNameSpace(remote)
-		if err != nil {
-			log.Fatal(err)
-		}
 		project, err := lab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = doTrace(context.Background(), os.Stdout, project.ID, branch, jobName)
+		projectID = project.ID
+		commit, err := lab.GetCommit(projectID, refName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		commitSHA = commit.ID
+
+		err = doTrace(context.Background(), os.Stdout, projectID, commitSHA, jobName)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
-func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name string) error {
+func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string) error {
 	var (
 		once   sync.Once
 		offset int64
@@ -73,7 +71,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, branch, name str
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, branch, name)
+		trace, job, err := lab.CITrace(pid, sha, name)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}
