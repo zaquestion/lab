@@ -10,8 +10,10 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -137,6 +139,8 @@ func init() {
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
 	issueCreateCmd.Flags().StringP("template", "t", "default", "use the given issue template")
 
-	issueCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
 	issueCmd.AddCommand(issueCreateCmd)
+	carapace.Gen(issueCreateCmd).PositionalCompletion(
+		action.Remotes(),
+	)
 }

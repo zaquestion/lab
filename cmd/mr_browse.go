@@ -6,8 +6,10 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/action"
 	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -62,7 +64,9 @@ var mrBrowseCmd = &cobra.Command{
 }
 
 func init() {
-	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrBrowseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrBrowseCmd)
+	carapace.Gen(mrBrowseCmd).PositionalCompletion(
+		action.Remotes(),
+		action.MergeRequests(mrList),
+	)
 }

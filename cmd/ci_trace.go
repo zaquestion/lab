@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -106,7 +108,9 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string
 }
 
 func init() {
-	ciTraceCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	ciTraceCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	ciCmd.AddCommand(ciTraceCmd)
+	carapace.Gen(ciTraceCmd).PositionalCompletion(
+		action.Remotes(),
+		action.RemoteBranches(0),
+	)
 }

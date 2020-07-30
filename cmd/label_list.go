@@ -5,7 +5,9 @@ import (
 	"log"
 	"strings"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -50,4 +52,7 @@ lab label list remote "search term"  # search "remote" for labels with "search t
 
 func init() {
 	labelCmd.AddCommand(labelListCmd)
+	carapace.Gen(labelCmd).PositionalCompletion(
+		action.Remotes(),
+	)
 }

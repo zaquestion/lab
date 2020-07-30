@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -131,14 +133,18 @@ func parseCIVariables(vars []string) (map[string]string, error) {
 }
 
 func init() {
-	ciCreateCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches origin")
 	ciCreateCmd.Flags().StringP("project", "p", "", "Project to create pipeline on")
 	ciCmd.AddCommand(ciCreateCmd)
+	carapace.Gen(ciCreateCmd).PositionalCompletion(
+		action.Remotes(),
+	)
 
-	ciTriggerCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote_branches")
 	ciTriggerCmd.Flags().StringP("project", "p", "", "Project to run pipeline trigger on")
 	ciTriggerCmd.Flags().StringP("token", "t", os.Getenv("CI_JOB_TOKEN"), "Pipeline trigger token, optional if run within GitLabCI")
 	ciTriggerCmd.Flags().StringSliceP("variable", "v", []string{}, "Variables to pass to pipeline")
 
 	ciCmd.AddCommand(ciTriggerCmd)
+	carapace.Gen(ciTriggerCmd).PositionalCompletion(
+		action.RemoteBranches(-1),
+	)
 }

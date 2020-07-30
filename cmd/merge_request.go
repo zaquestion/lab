@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 )
 
 var mergeRequestCmd = &cobra.Command{
@@ -16,4 +18,8 @@ var mergeRequestCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(mergeRequestCmd)
+	carapace.Gen(mergeRequestCmd).PositionalCompletion(
+		action.Remotes(),
+		action.RemoteBranches(0),
+	)
 }

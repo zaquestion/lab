@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -40,7 +42,9 @@ var snippetDeleteCmd = &cobra.Command{
 }
 
 func init() {
-	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	snippetDeleteCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_snippet $words[2]")
 	snippetCmd.AddCommand(snippetDeleteCmd)
+	carapace.Gen(snippetDeleteCmd).PositionalCompletion(
+		action.Remotes(),
+		action.Snippets(snippetList),
+	)
 }

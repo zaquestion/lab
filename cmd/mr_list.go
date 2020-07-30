@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -25,24 +27,7 @@ var listCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, _, err := parseArgs(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		num := mrNumRet
-		if mrAll {
-			num = -1
-		}
-		mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: mrNumRet,
-			},
-			Labels:       lab.Labels(mrLabels),
-			State:        &mrState,
-			TargetBranch: &mrTargetBranch,
-			OrderBy:      gitlab.String("updated_at"),
-		}, num)
+		mrs, err := mrList(args)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -50,6 +35,27 @@ var listCmd = &cobra.Command{
 			fmt.Printf("#%d %s\n", mr.IID, mr.Title)
 		}
 	},
+}
+
+func mrList(args []string) ([]*gitlab.MergeRequest, error) {
+	rn, _, err := parseArgs(args)
+	if err != nil {
+		return nil, err
+	}
+
+	num := mrNumRet
+	if mrAll {
+		num = -1
+	}
+	return lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: mrNumRet,
+		},
+		Labels:       lab.Labels(mrLabels),
+		State:        &mrState,
+		TargetBranch: &mrTargetBranch,
+		OrderBy:      gitlab.String("updated_at"),
+	}, num)
 }
 
 func init() {
@@ -66,7 +72,12 @@ func init() {
 		"filter merge requests by target branch")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
 
-	listCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	listCmd.MarkFlagCustom("state", "(opened closed merged)")
 	mrCmd.AddCommand(listCmd)
+	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
+		"state": carapace.ActionValues("opened", "closed", "merged"),
+	})
+
+	carapace.Gen(listCmd).PositionalCompletion(
+		action.Remotes(),
+	)
 }

@@ -214,6 +214,22 @@ func TestInsideGitRepo(t *testing.T) {
 	require.True(t, InsideGitRepo())
 }
 
+func TestRemotes(t *testing.T) {
+    res, err := Remotes()
+	if err != nil {
+		t.Fatal(err)
+	}
+    require.Contains(t, res, "origin", "remotes should contain 'origin' [%v]", res)
+}
+
+func TestRemoteBranches(t *testing.T) {
+    res, err := RemoteBranches("origin")
+	if err != nil {
+		t.Fatal(err)
+	}
+    require.Contains(t, res, "master", "remote branches should contain 'master' [%v]", res)
+}
+
 // copyTestRepo creates a copy of the testdata directory (contains a Git repo) in
 // the project root with a random dir name. It returns the absolute path of the
 // new testdata dir.

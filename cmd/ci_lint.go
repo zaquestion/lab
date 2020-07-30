@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -35,4 +36,7 @@ var ciLintCmd = &cobra.Command{
 
 func init() {
 	ciCmd.AddCommand(ciLintCmd)
+	carapace.Gen(ciLintCmd).PositionalCompletion(
+		carapace.ActionFiles(".gitlab-ci.yml"),
+	)
 }
