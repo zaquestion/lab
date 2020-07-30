@@ -40,10 +40,10 @@ func Test_snippetCmd_personal(t *testing.T) {
 		}
 
 		out := string(b)
-		require.Contains(t, out, "https://gitlab.com/snippets/")
+		require.Contains(t, out, "https://gitlab.com/-/snippets/")
 
 		i := strings.Index(out, "\n")
-		snipID = strings.TrimPrefix(out[:i], "https://gitlab.com/snippets/")
+		snipID = strings.TrimPrefix(out[:i], "https://gitlab.com/-/snippets/")
 		t.Log(snipID)
 	})
 	t.Run("list_personal", func(t *testing.T) {

@@ -73,8 +73,7 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 		},
 	}
 
-	lab = gitlab.NewClient(httpClient, token)
-	lab.SetBaseURL(host + "/api/v4")
+	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host + "/api/v4"))
 }
 
 func InitWithCustomCA(_host, _user, _token, caFile string) error {
@@ -108,8 +107,7 @@ func InitWithCustomCA(_host, _user, _token, caFile string) error {
 		},
 	}
 
-	lab = gitlab.NewClient(httpClient, token)
-	lab.SetBaseURL(host + "/api/v4")
+	lab,_ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host + "/api/v4"))
 	return nil
 }
 
@@ -524,7 +522,9 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 
 	labels := []*gitlab.Label{}
 	opt := &gitlab.ListLabelsOptions{
+      ListOptions: gitlab.ListOptions{
 		Page: 1,
+      },
 	}
 
 	for {

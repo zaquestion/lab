@@ -57,7 +57,7 @@ func Test_issueCmd(t *testing.T) {
 		require.Contains(t, out, "===================================\n")
 		require.Contains(t, outStripped, "issue description")
 		require.Contains(t, out, "Labels: bug, critical\n")
-		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/issues/%s", issueID))
+		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/-/issues/%s", issueID))
 	})
 	t.Run("close", func(t *testing.T) {
 		if issueID == "" {
