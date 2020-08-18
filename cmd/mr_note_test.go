@@ -3,6 +3,8 @@ package cmd
 import (
 	"os/exec"
 	"testing"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,6 +14,27 @@ func Test_mrCreateNote(t *testing.T) {
 	repo := copyTestRepo(t)
 	cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1",
 		"-m", "note text")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
+}
+
+func Test_mrCreateNote_file(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	err := ioutil.WriteFile(filepath.Join(repo, "hellolab.txt"), []byte("hello\nlab\n"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1",
+		"-F", "hellolab.txt")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
