@@ -82,8 +82,9 @@ func editorCMD(editorPath, filePath string) *exec.Cmd {
 	if r.MatchString(editorPath) {
 		args = append(args, "--cmd", "set ft=gitcommit tw=0 wrap lbr")
 	}
-	args = append(args, parts[1:]...)
-	args = append(args, filePath)
+	argparts := strings.Join(parts[1:], " ")
+	argparts = strings.Replace(argparts, "'", "\"", -1)
+	args = append(args, argparts, filePath)
 	cmd := exec.Command(parts[0], args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
