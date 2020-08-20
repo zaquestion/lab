@@ -17,7 +17,7 @@ require (
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/rivo/tview v0.0.0-20191129065140-82b05c9fb329
-	github.com/rsteube/carapace v0.0.15
+	github.com/rsteube/carapace v0.0.16
 	github.com/sirupsen/logrus v1.2.0 // indirect
 	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
 	github.com/smartystreets/goconvey v0.0.0-20181108003508-044398e4856c // indirect
