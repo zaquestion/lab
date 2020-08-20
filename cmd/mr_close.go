@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -34,7 +36,9 @@ var mrCloseCmd = &cobra.Command{
 }
 
 func init() {
-	mrCloseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrCloseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrCmd.AddCommand(mrCloseCmd)
+	carapace.Gen(mrCloseCmd).PositionalCompletion(
+		action.Remotes(),
+		action.MergeRequests(mrList),
+	)
 }

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -34,7 +36,9 @@ var issueCloseCmd = &cobra.Command{
 }
 
 func init() {
-	issueCloseCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	issueCloseCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueCmd.AddCommand(issueCloseCmd)
+	carapace.Gen(issueCloseCmd).PositionalCompletion(
+		action.Remotes(),
+		action.Issues(issueList),
+	)
 }

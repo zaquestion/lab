@@ -9,8 +9,10 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -96,7 +98,9 @@ func noteText() (string, error) {
 func init() {
 	issueCreateNoteCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 
-	issueCreateNoteCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	issueCreateNoteCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_issue $words[2]")
 	issueCmd.AddCommand(issueCreateNoteCmd)
+	carapace.Gen(issueCreateCmd).PositionalCompletion(
+		action.Remotes(),
+		action.Issues(issueList),
+	)
 }

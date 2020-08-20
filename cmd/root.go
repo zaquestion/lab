@@ -20,10 +20,9 @@ import (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:                   "lab",
-	Short:                 "A Git Wrapper for GitLab",
-	Long:                  ``,
-	ZshCompletionFunction: zshCompletionFunction,
+	Use:   "lab",
+	Short: "A Git Wrapper for GitLab",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if ok, err := cmd.Flags().GetBool("version"); err == nil && ok {
 			versionCmd.Run(cmd, args)
@@ -42,7 +41,7 @@ var templateFuncs = template.FuncMap{
 	"rpad": rpad,
 }
 
-const labUsageTmpl = `{{range .Commands}}{{if (and (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version") (ne .Name "merge-request")))}}
+const labUsageTmpl = `{{range .Commands}}{{if (and (not .Hidden) (or .IsAvailableCommand (ne .Name "help")) (and (ne .Name "clone") (ne .Name "version") (ne .Name "merge-request")))}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}`
 
 func labUsageFormat(c *cobra.Command) string {

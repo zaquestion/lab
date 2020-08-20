@@ -7,10 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	retry "github.com/avast/retry-go"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pkg/errors"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
@@ -182,6 +185,45 @@ func RemoteAdd(name, url, dir string) error {
 	}
 	fmt.Println("new remote:", name)
 	return nil
+}
+
+func Remotes() ([]string, error) {
+	repo, err := gogit.PlainOpen(".")
+	if err != nil {
+		return []string{}, err
+	}
+	remotes, err := repo.Remotes()
+	if err != nil {
+		return []string{}, err
+	}
+
+	names := make([]string, len(remotes))
+	for i, r := range remotes {
+		names[i] = r.Config().Name
+	}
+	return names, nil
+}
+
+func RemoteBranches(remote string) ([]string, error) {
+	repo, err := gogit.PlainOpen(".")
+	if err != nil {
+		return []string{}, err
+	}
+
+	branches, err := repo.References() // TODO verify is a branch Branches didn't seem to work
+	if err != nil {
+		return []string{}, err
+	}
+	reg := regexp.MustCompile(`^refs/remotes/[^/]+/`)
+
+	names := []string{}
+	branches.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().IsRemote() && strings.HasPrefix(ref.Name().String(), "refs/remotes/"+remote) {
+			names = append(names, reg.ReplaceAllString(ref.Name().String(), ""))
+		}
+		return nil
+	})
+	return names, nil
 }
 
 // IsRemote returns true when passed a valid remote in the git repo

@@ -14,11 +14,13 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/pkg/errors"
 	"github.com/rivo/tview"
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 
 	"github.com/lunixbochs/vtclean"
 	gitlab "github.com/xanzy/go-gitlab"
 
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -623,7 +625,9 @@ func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
 }
 
 func init() {
-	ciViewCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	ciViewCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_remote_branches $words[2]")
 	ciCmd.AddCommand(ciViewCmd)
+	carapace.Gen(ciViewCmd).PositionalCompletion(
+		action.Remotes(),
+		action.RemoteBranches(0),
+	)
 }

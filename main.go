@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/cmd"
@@ -202,6 +203,8 @@ func skipInit() bool {
 	switch os.Args[1] {
 	case "completion":
 		return true
+	case "_carapace":
+		return !carapace.IsCallback()
 	default:
 		return false
 	}

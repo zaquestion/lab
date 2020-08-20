@@ -25,19 +25,19 @@ func Test_issueCreateNote(t *testing.T) {
 
 func Test_issueNoteMsg(t *testing.T) {
 	tests := []struct {
-		Name          string
-		Msgs          []string
-		ExpectedBody  string
+		Name         string
+		Msgs         []string
+		ExpectedBody string
 	}{
 		{
-			Name:          "Using messages",
-			Msgs:          []string{"note paragraph 1", "note paragraph 2"},
-			ExpectedBody:  "note paragraph 1\n\nnote paragraph 2",
+			Name:         "Using messages",
+			Msgs:         []string{"note paragraph 1", "note paragraph 2"},
+			ExpectedBody: "note paragraph 1\n\nnote paragraph 2",
 		},
 		{
-			Name:          "From Editor",
-			Msgs:          nil,
-			ExpectedBody:  "", // this is not a great test
+			Name:         "From Editor",
+			Msgs:         nil,
+			ExpectedBody: "", // this is not a great test
 		},
 	}
 	for _, test := range tests {

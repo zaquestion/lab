@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -66,11 +68,15 @@ var mrThumbDownCmd = &cobra.Command{
 func init() {
 	mrCmd.AddCommand(mrThumbCmd)
 
-	mrThumbUpCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrThumbUpCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrThumbCmd.AddCommand(mrThumbUpCmd)
+	carapace.Gen(mrThumbUpCmd).PositionalCompletion(
+		action.Remotes(),
+		action.MergeRequests(mrList),
+	)
 
-	mrThumbDownCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	mrThumbDownCmd.MarkZshCompPositionalArgumentCustom(2, "__lab_completion_merge_request $words[2]")
 	mrThumbCmd.AddCommand(mrThumbDownCmd)
+	carapace.Gen(mrThumbDownCmd).PositionalCompletion(
+		action.Remotes(),
+		action.MergeRequests(mrList),
+	)
 }

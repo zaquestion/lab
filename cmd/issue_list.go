@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -27,29 +29,7 @@ lab issue list "search terms"         # search issues for "search terms"
 lab issue search "search terms"       # same as above
 lab issue list remote "search terms"  # search "remote" for issues with "search terms"`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, issueSearch, err := parseArgsRemoteString(args)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		opts := gitlab.ListProjectIssuesOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: issueNumRet,
-			},
-			Labels:  issueLabels,
-			State:   &issueState,
-			OrderBy: gitlab.String("updated_at"),
-		}
-
-		if issueSearch != "" {
-			opts.Search = &issueSearch
-		}
-
-		num := issueNumRet
-		if issueAll {
-			num = -1
-		}
-		issues, err := lab.IssueList(rn, opts, num)
+		issues, err := issueList(args)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,6 +37,32 @@ lab issue list remote "search terms"  # search "remote" for issues with "search 
 			fmt.Printf("#%d %s\n", issue.IID, issue.Title)
 		}
 	},
+}
+
+func issueList(args []string) ([]*gitlab.Issue, error) {
+	rn, issueSearch, err := parseArgsRemoteString(args)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := gitlab.ListProjectIssuesOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: issueNumRet,
+		},
+		Labels:  issueLabels,
+		State:   &issueState,
+		OrderBy: gitlab.String("updated_at"),
+	}
+
+	if issueSearch != "" {
+		opts.Search = &issueSearch
+	}
+
+	num := issueNumRet
+	if issueAll {
+		num = -1
+	}
+	return lab.IssueList(rn, opts, num)
 }
 
 func init() {
@@ -73,7 +79,11 @@ func init() {
 		&issueAll, "all", "a", false,
 		"List all issues on the project")
 
-	issueListCmd.MarkZshCompPositionalArgumentCustom(1, "__lab_completion_remote")
-	issueListCmd.MarkFlagCustom("state", "(opened closed)")
 	issueCmd.AddCommand(issueListCmd)
+	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{
+		"state": carapace.ActionValues("opened", "closed"),
+	})
+	carapace.Gen(issueListCmd).PositionalCompletion(
+		action.Remotes(),
+	)
 }
