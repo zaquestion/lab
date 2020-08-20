@@ -38,7 +38,7 @@ func Test_snippetCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/snippets/")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/-/snippets/")
 }
 
 func Test_snippetCreate_file(t *testing.T) {
@@ -61,7 +61,7 @@ func Test_snippetCreate_file(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/snippets/")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/-/snippets/")
 }
 
 func Test_snippetCreate_Global(t *testing.T) {
@@ -93,7 +93,7 @@ func Test_snippetCreate_Global(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/snippets/")
+	require.Contains(t, string(b), "https://gitlab.com/-/snippets/")
 }
 
 func Test_snipMsg(t *testing.T) {

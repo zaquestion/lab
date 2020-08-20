@@ -14,6 +14,16 @@ func Test_mrCmd(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
 	var mrID string
+	t.Run("prepare", func(t *testing.T) {
+		cmd := exec.Command("sh", "-c", labBinaryPath + ` mr list lab-testing | grep -m1 'mr title' | cut -c2- | awk '{print $1}' | xargs ` + labBinaryPath +` mr lab-testing -d` )
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			//t.Fatal(err)
+		}
+    })
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
 		git.Dir = repo
@@ -33,10 +43,10 @@ func Test_mrCmd(t *testing.T) {
 		b, _ = cmd.CombinedOutput()
 		out := string(b)
 		t.Log(out)
-		require.Contains(t, out, "https://gitlab.com/lab-testing/test/merge_requests")
+		require.Contains(t, out, "https://gitlab.com/lab-testing/test/-/merge_requests")
 
 		i := strings.Index(out, "/diffs\n")
-		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/merge_requests/")
+		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/merge_requests/")
 		t.Log(mrID)
 	})
 	t.Run("show", func(t *testing.T) {
@@ -61,7 +71,7 @@ func Test_mrCmd(t *testing.T) {
 		require.Contains(t, out, fmt.Sprintf("#%s mr title", mrID))
 		require.Contains(t, out, "===================================")
 		require.Contains(t, outStripped, "mr description")
-		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/merge_requests/%s", mrID))
+		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/-/merge_requests/%s", mrID))
 	})
 	t.Run("delete", func(t *testing.T) {
 		if mrID == "" {

@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad // indirect
-	github.com/xanzy/go-gitlab v0.28.0
+	github.com/xanzy/go-gitlab v0.33.1-0.20200713191942-71ea998bed24
 	golang.org/x/arch v0.0.0-20181203225421-5a4828bb7045 // indirect
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect

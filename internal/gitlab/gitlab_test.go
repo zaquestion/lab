@@ -34,8 +34,7 @@ func TestMain(m *testing.M) {
 	c := viper.AllSettings()["core"]
 	config := c.([]map[string]interface{})[0]
 
-	lab := gitlab.NewClient(nil, config["token"].(string))
-	lab.SetBaseURL(config["host"].(string) + "/api/v4")
+	lab,_ := gitlab.NewClient(config["token"].(string), gitlab.WithBaseURL(config["host"].(string) + "/api/v4"))
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
 		log.Fatal(err)

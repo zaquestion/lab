@@ -171,8 +171,7 @@ func getUser(host, token string, skipVerify bool) string {
 			},
 		},
 	}
-	lab := gitlab.NewClient(httpClient, token)
-	lab.SetBaseURL(host + "/api/v4")
+	lab, _ := gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host + "/api/v4"))
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
 		log.Fatal(err)
