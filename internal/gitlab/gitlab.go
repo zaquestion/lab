@@ -310,6 +310,21 @@ func MRClose(pid interface{}, id int) error {
 	return nil
 }
 
+// MRListDiscussions retrieves the discussions (aka notes & comments) for a merge request
+func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	discussions, _, err := lab.Discussions.ListMergeRequestDiscussions(p.ID, mrNum, &gitlab.ListMergeRequestDiscussionsOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return discussions, nil
+}
+
 // MRRebase merges an mr on a GitLab project
 func MRRebase(pid interface{}, id int) error {
 	_, err := lab.MergeRequests.RebaseMergeRequest(pid, int(id))

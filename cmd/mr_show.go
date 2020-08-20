@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/glamour"
 	"github.com/rsteube/carapace"
@@ -37,6 +38,16 @@ var mrShowCmd = &cobra.Command{
 		renderMarkdown := !noMarkdown
 
 		printMR(mr, rn, renderMarkdown)
+
+		showComments, _ := cmd.Flags().GetBool("comments")
+		if showComments {
+			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			printMRDiscussions(discussions)
+		}
 	},
 }
 
@@ -87,8 +98,47 @@ WebURL: %s
 		mr.Author.Username, milestone, labels, mr.WebURL)
 }
 
+func printMRDiscussions(discussions []*gitlab.Discussion) {
+	// for available fields, see
+	// https://godoc.org/github.com/xanzy/go-gitlab#Note
+	// https://godoc.org/github.com/xanzy/go-gitlab#Discussion
+	for _, discussion := range discussions {
+		for i, note := range discussion.Notes {
+
+			// skip system notes
+			if note.System {
+				continue
+			}
+
+			indentHeader, indentNote := "", ""
+			commented := "commented"
+
+			if !discussion.IndividualNote {
+				indentNote = "    "
+
+				if i == 0 {
+					commented = "started a discussion"
+				} else {
+					indentHeader = "    "
+				}
+			}
+
+			fmt.Printf(`
+%s-----------------------------------
+%s%s %s at %s
+
+%s%s
+`,
+				indentHeader,
+				indentHeader, note.Author.Username, commented, time.Time(*note.CreatedAt).String(),
+				indentNote, note.Body)
+		}
+	}
+}
+
 func init() {
 	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
+	mrShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the merge request")
 	mrCmd.AddCommand(mrShowCmd)
 	carapace.Gen(mrShowCmd).PositionalCompletion(
 		action.Remotes(),

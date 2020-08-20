@@ -11,7 +11,9 @@ import (
 func Test_mrShow(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "mr", "1")
+	// a comment has been added to
+	// https://gitlab.com/zaquestion/test/-/merge_requests/1 for this test
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -39,4 +41,6 @@ Milestone: 1.0
 Labels: documentation
 WebURL: https://gitlab.com/zaquestion/test/-/merge_requests/1
 `)
+
+	require.Contains(t, string(b), `commented at`)
 }
