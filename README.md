@@ -102,7 +102,7 @@ Enter default GitLab token:
 ```
 # Completions
 
-`lab` provides completions for bash and zsh.
+`lab` provides completions for bash, elvish, fish, powershell and zsh.
 
 ### Bash
 
@@ -111,6 +111,18 @@ Enter default GitLab token:
 ```bash
 source "/path/to/lab-completions.bash"
 ```
+
+### Elvish
+
+`lab completion elvish` will generate an elvish completion script. Save this script to `~/.elvish/lib/lab.elv` and add `use lab` to your startup script at `~/.elvish/rc.elv`
+
+### Fish
+
+`lab completion fish` will generate a fish completion script. Save this script to `~/.config/fish/completions/lab.fish`.
+
+### Powershell
+
+`lab completion powershell` will generate a powershell completion script. Save this script to `~/.config/powershell/lab-completions.ps1` and add `Get-Content ~/.config/powershell/lab-completions.ps1 | Out-String | Invoke-Expression` to your profile script at `~/.config/powershell/Microsoft.PowerShell_profile.ps1` (you might want to enable menu completion as well with `Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete`).
 
 ### Zsh
 
