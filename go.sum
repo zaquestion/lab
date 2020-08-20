@@ -224,6 +224,8 @@ github.com/rsteube/carapace v0.0.14 h1:k48kXY5aUS3GkEiV/GLJGKNmPSCBO67VbgxvR120s
 github.com/rsteube/carapace v0.0.14/go.mod h1:aOz85k53XSmXljF3xvsnje/5joN75jqWwl1aDAURhRQ=
 github.com/rsteube/carapace v0.0.15 h1:gt0KRBEmCgHJLpRu6NKjmnyAiFX044tf09AObrCyR7o=
 github.com/rsteube/carapace v0.0.15/go.mod h1:tfaU/IFaXi4SlssOcNwtgytI7zSw+tVuGPXyQ+d6kPU=
+github.com/rsteube/carapace v0.0.16 h1:/iLt/DWLHVkh4HB2u265FzI4f0mq6RwGnoJMACMX3vo=
+github.com/rsteube/carapace v0.0.16/go.mod h1:MW6dtBU0/zTdivRaQzlCHyceSHKzZP0xHqjXmgeSN5Y=
 github.com/rsteube/cobra v0.0.1-zsh-completion-custom h1:Hqbid4kBOEu78syaZ8hCAIjwLZGqraO0zlyytAVNhkY=
 github.com/rsteube/cobra v0.0.1-zsh-completion-custom/go.mod h1:pAlNXnbm7kUeUgr/8AEn0Lv+VrT1T6obUvI1mC8KlvA=
 github.com/russross/blackfriday v1.5.1 h1:B8ZN6pD4PVofmlDCDUdELeYrbsVIDM/bpjW3v3zgcRc=
