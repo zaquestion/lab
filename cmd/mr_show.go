@@ -49,7 +49,8 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		"closed": "Closed",
 		"merged": "Merged",
 	}[mr.State]
-	if mr.Assignee.Username != "" {
+
+	if mr.Assignee != nil && mr.Assignee.Username != "" {
 		assignee = mr.Assignee.Username
 	}
 	if mr.Milestone != nil {
