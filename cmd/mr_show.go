@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/charmbracelet/glamour"
+	"github.com/fatih/color"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -46,7 +48,12 @@ var mrShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printMRDiscussions(discussions)
+			since, err := cmd.Flags().GetString("since")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			printMRDiscussions(discussions, since)
 		}
 	},
 }
@@ -98,7 +105,13 @@ WebURL: %s
 		mr.Author.Username, milestone, labels, mr.WebURL)
 }
 
-func printMRDiscussions(discussions []*gitlab.Discussion) {
+func printMRDiscussions(discussions []*gitlab.Discussion, since string) {
+
+	sinceString, err := dateparse.ParseLocal(since)
+	if err != nil {
+		sinceString = time.Now().UTC()
+	}
+
 	// for available fields, see
 	// https://godoc.org/github.com/xanzy/go-gitlab#Note
 	// https://godoc.org/github.com/xanzy/go-gitlab#Discussion
@@ -126,13 +139,18 @@ func printMRDiscussions(discussions []*gitlab.Discussion) {
 				}
 			}
 
-			fmt.Printf(`
-%s-----------------------------------
+			printit := color.New().PrintfFunc()
+			printit(`
+%s-----------------------------------`, indentHeader)
+
+			if time.Time(*note.UpdatedAt).After(sinceString) {
+				printit = color.New(color.Bold).PrintfFunc()
+			}
+			printit(`
 %s%s %s at %s
 
 %s%s
 `,
-				indentHeader,
 				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
 				indentNote, note.Body)
 		}
@@ -142,6 +160,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion) {
 func init() {
 	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	mrShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the merge request")
+	mrShowCmd.Flags().StringP("since", "s", "", "Show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	mrCmd.AddCommand(mrShowCmd)
 	carapace.Gen(mrShowCmd).PositionalCompletion(
 		action.Remotes(),
