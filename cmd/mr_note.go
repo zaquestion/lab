@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"io/ioutil"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -34,11 +35,26 @@ var mrCreateNoteCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		body, err := mrNoteMsg(msgs)
+		filename, err := cmd.Flags().GetString("file")
 		if err != nil {
-			_, f, l, _ := runtime.Caller(0)
-			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			log.Fatal(err)
 		}
+
+		body := ""
+		if filename != "" {
+			content, err := ioutil.ReadFile(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+			body = string(content)
+		} else {
+			body, err = mrNoteMsg(msgs)
+			if err != nil {
+				_, f, l, _ := runtime.Caller(0)
+				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			}
+		}
+
 		if body == "" {
 			log.Fatal("aborting note due to empty note msg")
 		}
@@ -53,7 +69,6 @@ var mrCreateNoteCmd = &cobra.Command{
 	},
 }
 
-//
 func mrNoteMsg(msgs []string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
@@ -97,6 +112,7 @@ func mrNoteText() (string, error) {
 
 func init() {
 	mrCreateNoteCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	mrCreateNoteCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
 
 	mrCmd.AddCommand(mrCreateNoteCmd)
 	carapace.Gen(mrCreateNoteCmd).PositionalCompletion(
