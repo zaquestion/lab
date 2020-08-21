@@ -26,7 +26,7 @@ var mrCreateCmd = &cobra.Command{
 	Use:     "create [remote [branch]]",
 	Aliases: []string{"new"},
 	Short:   "Open a merge request on GitLab",
-	Long:    `Creates a merge request (MR created on origin master by default)`,
+	Long:    `Creates a merge request (default: MR created on default branch of origin)`,
 	Args:    cobra.MaximumNArgs(2),
 	Run:     runMRCreate,
 }
@@ -124,14 +124,15 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	targetBranch := "master"
+
+	targetBranch := targetProject.DefaultBranch
 	if len(args) > 1 && targetBranch != args[1] {
 		targetBranch = args[1]
 		if _, err := lab.GetCommit(targetProject.ID, targetBranch); err != nil {
 			err = errors.Wrapf(
 				err,
-				"aborting MR, target branch %s not present on remote %s. did you forget to push?",
-				targetBranch, targetRemote)
+				"aborting MR, %s:%s is not a valid target. Did you forget to push %s to %s?",
+				targetRemote, branch, branch, targetRemote)
 			log.Fatal(err)
 		}
 	}
