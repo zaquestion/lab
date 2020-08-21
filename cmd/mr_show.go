@@ -112,6 +112,9 @@ func printMRDiscussions(discussions []*gitlab.Discussion) {
 
 			indentHeader, indentNote := "", ""
 			commented := "commented"
+			if ! time.Time(*note.CreatedAt).Equal(time.Time(*note.UpdatedAt)) {
+				commented = "updated comment"
+			}
 
 			if !discussion.IndividualNote {
 				indentNote = "    "
@@ -130,7 +133,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion) {
 %s%s
 `,
 				indentHeader,
-				indentHeader, note.Author.Username, commented, time.Time(*note.CreatedAt).String(),
+				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
 				indentNote, note.Body)
 		}
 	}
