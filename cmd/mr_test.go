@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,7 +13,6 @@ import (
 )
 
 func Test_mrCmd(t *testing.T) {
-	t.Parallel()
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
@@ -76,6 +77,65 @@ func Test_mrCmd(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
 		if mrID == "" {
 			t.Skip("mrID is empty, create likely failed")
+		}
+		cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "-d", mrID)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s closed", mrID))
+	})
+}
+
+func Test_mrCmd_file(t *testing.T) {
+	repo := copyTestRepo(t)
+	var mrID string
+	t.Run("prepare", func(t *testing.T) {
+		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'Fancy Description' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			//t.Fatal(err)
+		}
+	})
+	t.Run("create", func(t *testing.T) {
+		git := exec.Command("git", "checkout", "mrtest")
+		git.Dir = repo
+		b, err := git.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+
+		err = ioutil.WriteFile(filepath.Join(repo, "hellolab.txt"), []byte("Fancy Description\n\nFancy body of text describing this merge request.\n"), 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		cmd := exec.Command(labBinaryPath, "mr", "create", "lab-testing", "master",
+			"-F", "hellolab.txt",
+			"-a", "lab-testing",
+		)
+		cmd.Dir = repo
+
+		b, _ = cmd.CombinedOutput()
+		out := string(b)
+		t.Log(out)
+		require.Contains(t, out, "https://gitlab.com/lab-testing/test/-/merge_requests")
+
+		i := strings.Index(out, "/diffs\n")
+		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/merge_requests/")
+		t.Log(mrID)
+
+	})
+	t.Run("delete", func(t *testing.T) {
+		if mrID == "" {
+			t.Skip("mrID is empty, create -F likely failed")
 		}
 		cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "-d", mrID)
 		cmd.Dir = repo
