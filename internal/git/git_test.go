@@ -215,19 +215,19 @@ func TestInsideGitRepo(t *testing.T) {
 }
 
 func TestRemotes(t *testing.T) {
-    res, err := Remotes()
+	res, err := Remotes()
 	if err != nil {
 		t.Fatal(err)
 	}
-    require.Contains(t, res, "origin", "remotes should contain 'origin' [%v]", res)
+	require.Contains(t, res, "origin", "remotes should contain 'origin' [%v]", res)
 }
 
 func TestRemoteBranches(t *testing.T) {
-    res, err := RemoteBranches("origin")
+	res, err := RemoteBranches("origin")
 	if err != nil {
 		t.Fatal(err)
 	}
-    require.Contains(t, res, "master", "remote branches should contain 'master' [%v]", res)
+	require.Contains(t, res, "master", "remote branches should contain 'master' [%v]", res)
 }
 
 // copyTestRepo creates a copy of the testdata directory (contains a Git repo) in

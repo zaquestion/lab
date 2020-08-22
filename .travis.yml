@@ -30,6 +30,7 @@ before_script:
 
 script:
   - make test
+  - diff -u <(echo -n) <(gofmt -d .)
 
 after_success:
   - |
