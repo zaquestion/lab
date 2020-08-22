@@ -43,3 +43,21 @@ WebURL: https://gitlab.com/zaquestion/test/-/issues/1
 
 	require.Contains(t, string(b), `commented at`)
 }
+
+func Test_issueShow_updated_comments(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "issue", "show", "8", "--comments")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out) // This is required because glamour adds a lot of ansi chars
+
+	require.Contains(t, string(b), `updated comment at`)
+}
