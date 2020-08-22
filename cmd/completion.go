@@ -9,9 +9,9 @@ import (
 
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
-	Use:       "completion",
-	Short:     "Generates the shell autocompletion [bash, elvish, fish, powershell, zsh]",
-    Long: `Generates the shell autocompletion [bash, elvish, fish, powershell, zsh]
+	Use:   "completion",
+	Short: "Generates the shell autocompletion [bash, elvish, fish, powershell, zsh]",
+	Long: `Generates the shell autocompletion [bash, elvish, fish, powershell, zsh]
 
 Most scripts can be direcly sourced (though using pre-generated versions is recommended):
   bash       : source <(lab completion bash)

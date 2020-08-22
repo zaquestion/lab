@@ -99,7 +99,7 @@ Optionally add a title & description with -m`,
 		opts := gitlab.CreateProjectSnippetOptions{
 			Title:       gitlab.String(title),
 			Description: gitlab.String(body),
-			Content:        gitlab.String(code),
+			Content:     gitlab.String(code),
 			FileName:    gitlab.String(name),
 			Visibility:  &visibility,
 		}

@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"os/exec"
-	"testing"
 	"io/ioutil"
+	"os/exec"
 	"path/filepath"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

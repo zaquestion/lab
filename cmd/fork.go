@@ -69,7 +69,7 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if ! skipClone {
+	if !skipClone {
 		cloneCmd.Run(nil, []string{strings.Split(args[0], "/")[1]})
 	}
 }

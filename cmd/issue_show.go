@@ -122,7 +122,7 @@ func printDiscussions(discussions []*gitlab.Discussion) {
 
 			indentHeader, indentNote := "", ""
 			commented := "commented"
-			if ! time.Time(*note.CreatedAt).Equal(time.Time(*note.UpdatedAt)) {
+			if !time.Time(*note.CreatedAt).Equal(time.Time(*note.UpdatedAt)) {
 				commented = "updated comment"
 			}
 

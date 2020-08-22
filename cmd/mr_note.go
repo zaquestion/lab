@@ -3,12 +3,12 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
-	"io/ioutil"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
