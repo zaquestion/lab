@@ -14,6 +14,10 @@ _test
 coverage*
 vendor
 
+# go metadata
+go.sum
+go.mod
+
 # The testdata-* copies created by the unit tests must be ignored or the tests
 # will encounter write errors as Git attempts to add the dirs to its index.
 testdata-*
