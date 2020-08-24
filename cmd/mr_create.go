@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"log"
@@ -39,6 +40,7 @@ func init() {
 	mrCreateCmd.Flags().BoolP("squash", "s", false, "Squash commits when merging")
 	mrCreateCmd.Flags().Bool("allow-collaboration", false, "Allow commits from other members")
 	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
+	mrCreateCmd.Flags().StringP("file", "F", "", "Use the given file as the Description")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
@@ -82,6 +84,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	assignees, err := cmd.Flags().GetStringSlice("assignee")
+	if err != nil {
+		log.Fatal(err)
+	}
+	filename, err := cmd.Flags().GetString("file")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -139,7 +145,26 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	var title, body string
 
-	if len(msgs) > 0 {
+	if filename != "" {
+		file, err := os.Open(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fileScan := bufio.NewScanner(file)
+		fileScan.Split(bufio.ScanLines)
+
+		// The first line in the file is the title.
+		fileScan.Scan()
+		title = fileScan.Text()
+
+		for fileScan.Scan() {
+			body = body + fileScan.Text() + "\n"
+		}
+
+		file.Close()
+
+	} else if len(msgs) > 0 {
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
 		msg, err := mrText(targetBranch, branch, sourceRemote, forkedFromRemote)
