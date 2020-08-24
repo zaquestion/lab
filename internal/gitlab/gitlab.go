@@ -45,6 +45,33 @@ func User() string {
 	return user
 }
 
+func UserID() (int, error) {
+	u, _, err := lab.Users.CurrentUser()
+	if err != nil {
+		return 0, err
+	} else {
+		return u.ID, nil
+	}
+}
+
+func UserIDByUserName(username string) (int, error) {
+	opts := gitlab.ListUsersOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 1,
+		},
+		Username: &username,
+	}
+	users, _, err := lab.Users.ListUsers(&opts)
+	if err != nil {
+		return 0, err
+	} else {
+		for _, user := range users {
+			return user.ID, nil
+		}
+	}
+	return 0, errors.New("No user found with username " + username)
+}
+
 // Init initializes a gitlab client for use throughout lab.
 func Init(_host, _user, _token string, allowInsecure bool) {
 	if len(_host) > 0 && _host[len(_host)-1 : len(_host)][0] == '/' {
