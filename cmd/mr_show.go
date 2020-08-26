@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -53,7 +55,7 @@ var mrShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printMRDiscussions(discussions, since)
+			printMRDiscussions(discussions, since, int(mrNum))
 		}
 	},
 }
@@ -105,11 +107,47 @@ WebURL: %s
 		mr.Author.Username, milestone, labels, mr.WebURL)
 }
 
-func printMRDiscussions(discussions []*gitlab.Discussion, since string) {
+func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum int) {
+	NewAccessTime := time.Now().UTC()
 
-	sinceString, err := dateparse.ParseLocal(since)
-	if err != nil {
-		sinceString = time.Now().UTC()
+	// default path for metadata config file
+	metadatafile := ".git/lab/show_metadata.hcl"
+
+	viper.Reset()
+	viper.AddConfigPath(".git/lab")
+	viper.SetConfigName("show_metadata")
+	viper.SetConfigType("hcl")
+	// write data
+	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {
+			os.MkdirAll(".git/lab", os.ModePerm)
+		}
+		if err := viper.WriteConfigAs(metadatafile); err != nil {
+			log.Fatal(err)
+		}
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	mrEntry := fmt.Sprintf("mr%d", mrNum)
+	// if specified on command line use that, o/w use config, o/w Now
+	var (
+		CompareTime time.Time
+		err         error
+		sinceIsSet  = true
+	)
+	CompareTime, err = dateparse.ParseLocal(since)
+	if err != nil || CompareTime.IsZero() {
+		CompareTime = viper.GetTime(mrEntry)
+		if CompareTime.IsZero() {
+			CompareTime = time.Now().UTC()
+		}
+		sinceIsSet = false
 	}
 
 	// for available fields, see
@@ -143,7 +181,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string) {
 			printit(`
 %s-----------------------------------`, indentHeader)
 
-			if time.Time(*note.UpdatedAt).After(sinceString) {
+			if time.Time(*note.UpdatedAt).After(CompareTime) {
 				printit = color.New(color.Bold).PrintfFunc()
 			}
 			printit(`
@@ -154,6 +192,11 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string) {
 				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
 				indentNote, note.Body)
 		}
+	}
+
+	if sinceIsSet == false {
+		viper.Set(mrEntry, NewAccessTime)
+		viper.WriteConfigAs(metadatafile)
 	}
 }
 
