@@ -3,12 +3,16 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/charmbracelet/glamour"
+	"github.com/fatih/color"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -46,7 +50,12 @@ var issueShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(discussions)
+			since, err := cmd.Flags().GetString("since")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			printDiscussions(discussions, since, int(issueNum))
 		}
 	},
 }
@@ -108,7 +117,49 @@ WebURL: %s
 	)
 }
 
-func printDiscussions(discussions []*gitlab.Discussion) {
+func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum int) {
+	NewAccessTime := time.Now().UTC()
+
+	// default path for metadata config file
+	metadatafile := ".git/lab/show_metadata.hcl"
+
+	viper.Reset()
+	viper.AddConfigPath(".git/lab")
+	viper.SetConfigName("show_metadata")
+	viper.SetConfigType("hcl")
+	// write data
+	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {
+			os.MkdirAll(".git/lab", os.ModePerm)
+		}
+		if err := viper.WriteConfigAs(metadatafile); err != nil {
+			log.Fatal(err)
+		}
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	issueEntry := fmt.Sprintf("issue%d", issueNum)
+	// if specified on command line use that, o/w use config, o/w Now
+	var (
+		CompareTime time.Time
+		err         error
+		sinceIsSet  = true
+	)
+	CompareTime, err = dateparse.ParseLocal(since)
+	if err != nil || CompareTime.IsZero() {
+		CompareTime = viper.GetTime(issueEntry)
+		if CompareTime.IsZero() {
+			CompareTime = time.Now().UTC()
+		}
+		sinceIsSet = false
+	}
+
 	// for available fields, see
 	// https://godoc.org/github.com/xanzy/go-gitlab#Note
 	// https://godoc.org/github.com/xanzy/go-gitlab#Discussion
@@ -135,23 +186,33 @@ func printDiscussions(discussions []*gitlab.Discussion) {
 					indentHeader = "    "
 				}
 			}
+			printit := color.New().PrintfFunc()
+			printit(`
+%s-----------------------------------`, indentHeader)
 
-			fmt.Printf(`
-%s-----------------------------------
+			if time.Time(*note.UpdatedAt).After(CompareTime) {
+				printit = color.New(color.Bold).PrintfFunc()
+			}
+			printit(`
 %s%s %s at %s
 
 %s%s
 `,
-				indentHeader,
 				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
 				indentNote, note.Body)
 		}
+	}
+
+	if sinceIsSet == false {
+		viper.Set(issueEntry, NewAccessTime)
+		viper.WriteConfigAs(metadatafile)
 	}
 }
 
 func init() {
 	issueShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
+	issueShowCmd.Flags().StringP("since", "s", "", "Show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	issueCmd.AddCommand(issueShowCmd)
 
 	carapace.Gen(issueShowCmd).PositionalCompletion(
