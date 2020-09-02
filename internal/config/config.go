@@ -2,8 +2,11 @@ package config
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/url"
 	"os"
 	"strings"
@@ -85,4 +88,59 @@ func CI() (string, string, string) {
 	ciUser := os.Getenv("GITLAB_USER_LOGIN")
 
 	return ciHost, ciUser, ciToken
+}
+
+// ConvertHCLtoTOML() converts an .hcl file to a .toml file
+func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
+	oldconfig := oldpath + "/" + file + ".hcl"
+	newconfig := newpath + "/" + file + ".toml"
+
+	_, err := os.Stat(oldconfig)
+	if os.IsNotExist(err) {
+		fmt.Println("oldfile not found", oldconfig)
+		return
+	}
+
+	_, err = os.Stat(newconfig)
+	if err == nil {
+		fmt.Println("newfile found", newconfig)
+		return
+	}
+
+	// read in the old config HCL file and write out the new TOML file
+	viper.Reset()
+	viper.SetConfigName("lab")
+	viper.SetConfigType("hcl")
+	viper.AddConfigPath(oldpath)
+	viper.ReadInConfig()
+	viper.SetConfigType("toml")
+	viper.WriteConfigAs(newconfig)
+
+	// delete the old config HCL file
+	err = os.Remove(oldconfig)
+	if err != nil {
+		fmt.Println("Warning: Could not delete old config file", oldconfig)
+	}
+
+	// HACK
+	// viper HCL parsing is broken and simply translating it to a TOML file
+	// results in a broken toml file.  The issue is that there are double
+	// square brackets for each entry where there should be single
+	// brackets.  Note: this hack only works because the config file is
+	// simple and doesn't contain deeply embedded config entries.
+	text, err := ioutil.ReadFile(newconfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	text = bytes.Replace(text, []byte("[["), []byte("["), -1)
+	text = bytes.Replace(text, []byte("]]"), []byte("]"), -1)
+
+	if err = ioutil.WriteFile(newconfig, text, 0666); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	// END HACK
+
+	fmt.Println("INFO: Converted old config", oldconfig, "to new config", newconfig)
 }

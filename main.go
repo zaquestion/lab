@@ -31,17 +31,29 @@ func loadConfig() (string, string, string, bool) {
 	if confpath == "" {
 		confpath = path.Join(home, ".config")
 	}
-	if _, err := os.Stat(confpath); os.IsNotExist(err) {
-		os.Mkdir(confpath, 0700)
+	labconfpath := confpath+"/lab"
+	if _, err := os.Stat(labconfpath); os.IsNotExist(err) {
+		os.MkdirAll(labconfpath, 0700)
+	}
+
+	// convert old hcl files to toml format
+
+	config.ConvertHCLtoTOML(".", ".", "lab")
+	config.ConvertHCLtoTOML(confpath, labconfpath, "lab")
+	var labgitDir string
+	gitDir, err := git.GitDir()
+	if err == nil {
+		labgitDir = gitDir+"/lab"
+		config.ConvertHCLtoTOML(gitDir, labgitDir, "lab")
+		config.ConvertHCLtoTOML(labgitDir, labgitDir, "show_metadata")
 	}
 
 	viper.SetConfigName("lab")
-	viper.SetConfigType("hcl")
+	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
-	viper.AddConfigPath(confpath)
-	gitDir, err := git.GitDir()
-	if err == nil {
-		viper.AddConfigPath(gitDir)
+	viper.AddConfigPath(labconfpath)
+	if labgitDir != "" {
+		viper.AddConfigPath(labgitDir)
 	}
 
 	viper.SetEnvPrefix("LAB")
@@ -66,7 +78,7 @@ func loadConfig() (string, string, string, bool) {
 	}
 
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		if err := config.New(path.Join(confpath, "lab.hcl"), os.Stdin); err != nil {
+		if err := config.New(path.Join(labconfpath, "lab.toml"), os.Stdin); err != nil {
 			log.Fatal(err)
 		}
 
