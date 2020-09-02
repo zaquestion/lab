@@ -132,9 +132,8 @@ func loadConfig() (string, string, string, bool) {
 	}
 	if user == "" {
 		user = getUser(host, token, tlsSkipVerify)
-		viper.Set("core.user", user)
-		viper.WriteConfigAs(path.Join(confpath, "lab.hcl"))
 	}
+	viper.Set("core.user", user)
 	return host, user, token, tlsSkipVerify
 }
 
