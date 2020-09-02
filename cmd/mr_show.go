@@ -15,7 +15,13 @@ import (
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+)
+
+var (
+	mrShowPatch        bool
+	mrShowPatchReverse bool
 )
 
 var mrShowCmd = &cobra.Command{
@@ -41,7 +47,25 @@ var mrShowCmd = &cobra.Command{
 		}
 		renderMarkdown := !noMarkdown
 
-		printMR(mr, rn, renderMarkdown)
+		if mrShowPatch {
+			var remote string
+
+			if len(args) == 1 {
+				remote = findLocalRemote(mr.TargetProjectID)
+			} else if len(args) == 2 {
+				remote = args[0]
+			} else {
+				log.Fatal("Too many arguments.")
+			}
+
+			err := git.Fetch(remote, mr.SHA)
+			if err != nil {
+				log.Fatal(err)
+			}
+			git.Show(remote+"/"+mr.TargetBranch, mr.SHA, mrShowPatchReverse)
+		} else {
+			printMR(mr, rn, renderMarkdown)
+		}
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments {
@@ -58,6 +82,36 @@ var mrShowCmd = &cobra.Command{
 			printMRDiscussions(discussions, since, int(mrNum))
 		}
 	},
+}
+
+func findLocalRemote(ProjectID int) string {
+	var remote string
+
+	project, err := lab.GetProject(ProjectID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	remotes_str, err := git.GetLocalRemotes()
+	if err != nil {
+		log.Fatal(err)
+	}
+	remotes := strings.Split(remotes_str, "\n")
+
+	// find the matching local remote for this project
+	for r := range remotes {
+		// The fetch and push entries can be different for a remote.
+		// Only the fetch entry is useful.
+		if strings.Contains(remotes[r], project.SSHURLToRepo+" (fetch)") {
+			found := strings.Split(remotes[r], "\t")
+			remote = found[0]
+			break
+		}
+	}
+
+	if remote == "" {
+		log.Fatal("remote for ", project.SSHURLToRepo, "not found in local remotes")
+	}
+	return remote
 }
 
 func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
@@ -204,6 +258,8 @@ func init() {
 	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
 	mrShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the merge request")
 	mrShowCmd.Flags().StringP("since", "s", "", "Show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
+	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "Show MR patches")
+	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "Reverse order when showing MR patches (chronological instead of anti-chronological)")
 	mrCmd.AddCommand(mrShowCmd)
 	carapace.Gen(mrShowCmd).PositionalCompletion(
 		action.Remotes(),

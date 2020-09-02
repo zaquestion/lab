@@ -248,3 +248,38 @@ func InsideGitRepo() bool {
 	out, _ := cmd.CombinedOutput()
 	return bytes.Contains(out, []byte("true\n"))
 }
+
+// Fetch a commit from a given remote
+func Fetch(remote, commit string) error {
+	gitcmd := []string{"fetch", remote, commit}
+	cmd := New(gitcmd...)
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	err := cmd.Run()
+	if err != nil {
+		return errors.Errorf("Can't fetch git commit %s from remote %s", commit, remote)
+	}
+	return nil
+}
+
+// Show all the commits between 2 git commits
+func Show(commit1, commit2 string, reverse bool) {
+	gitcmd := []string{"show"}
+	if reverse {
+		gitcmd = append(gitcmd, "--reverse")
+	}
+	gitcmd = append(gitcmd, fmt.Sprintf("%s..%s", commit1, commit2))
+	New(gitcmd...).Run()
+}
+
+// GetLocalRemotes returns a string of local remote names and URLs
+func GetLocalRemotes() (string, error) {
+	cmd := New("remote", "-v")
+	cmd.Stdout = nil
+	remotes, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return string(remotes), nil
+}
