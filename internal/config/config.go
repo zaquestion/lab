@@ -164,15 +164,16 @@ func getUser(host, token string, skipVerify bool) string {
 	return u.Username
 }
 
-// LoadConfig() loads the main config file
-func LoadConfig() (string, string, string, bool) {
+// LoadConfig() loads the main config file and returns a tuple of
+//  host, user, token, ca_file, skipVerify
+func LoadConfig() (string, string, string, string, bool) {
 
 	// Attempt to auto-configure for GitLab CI.
 	// Always do this before reading in the config file o/w CI will end up
 	// with the wrong data.
 	host, user, token := CI()
 	if host != "" && user != "" && token != "" {
-		return host, user, token, false
+		return host, user, token, "", false
 	}
 
 	// Try to find XDG_CONFIG_HOME which is declared in XDG base directory
@@ -230,9 +231,10 @@ func LoadConfig() (string, string, string, bool) {
 	user = viper.GetString("core.user")
 	token = viper.GetString("core.token")
 	tlsSkipVerify := viper.GetBool("tls.skip_verify")
+	ca_file := viper.GetString("tls.ca_file")
 
 	if host != "" && user != "" && token != "" {
-		return host, user, token, tlsSkipVerify
+		return host, user, token, ca_file, tlsSkipVerify
 	}
 
 	user = getUser(host, token, tlsSkipVerify)
@@ -241,5 +243,5 @@ func LoadConfig() (string, string, string, bool) {
 		viper.WriteConfig()
 	}
 
-	return host, user, token, tlsSkipVerify
+	return host, user, token, ca_file, tlsSkipVerify
 }
