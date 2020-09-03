@@ -97,13 +97,11 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 
 	_, err := os.Stat(oldconfig)
 	if os.IsNotExist(err) {
-		fmt.Println("oldfile not found", oldconfig)
 		return
 	}
 
 	_, err = os.Stat(newconfig)
 	if err == nil {
-		fmt.Println("newfile found", newconfig)
 		return
 	}
 
