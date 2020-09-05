@@ -100,13 +100,11 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 	oldconfig := oldpath + "/" + file + ".hcl"
 	newconfig := newpath + "/" + file + ".toml"
 
-	_, err := os.Stat(oldconfig)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(oldconfig); os.IsNotExist(err) {
 		return
 	}
 
-	_, err = os.Stat(newconfig)
-	if err == nil {
+	if _, err := os.Stat(newconfig); err == nil {
 		return
 	}
 
@@ -120,8 +118,7 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 	viper.WriteConfigAs(newconfig)
 
 	// delete the old config HCL file
-	err = os.Remove(oldconfig)
-	if err != nil {
+	if err := os.Remove(oldconfig); err != nil {
 		fmt.Println("Warning: Could not delete old config file", oldconfig)
 	}
 
@@ -193,8 +190,8 @@ func LoadConfig() (string, string, string, string, bool) {
 
 	// Convert old hcl files to toml format.
 	// NO NEW FILES SHOULD BE ADDED BELOW.
-	ConvertHCLtoTOML(".", ".", "lab")
 	ConvertHCLtoTOML(confpath, labconfpath, "lab")
+	ConvertHCLtoTOML(".", ".", "lab")
 	var labgitDir string
 	gitDir, err := git.GitDir()
 	if err == nil {

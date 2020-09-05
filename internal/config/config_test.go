@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -16,10 +17,7 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	testconf, err := ioutil.TempDir("", "testconf-")
-	if err != nil {
-		t.Fatal(err)
-	}
+	testconf := t.TempDir()
 
 	t.Run("create config", func(t *testing.T) {
 		old := os.Stdout // keep backup of the real stdout
@@ -73,15 +71,11 @@ func TestNewConfig(t *testing.T) {
   token = "abcde12345"
 `, string(cfgData))
 	})
-	os.RemoveAll(testconf)
 	viper.Reset()
 }
 
 func TestNewConfigHostOverride(t *testing.T) {
-	testconf, err := ioutil.TempDir("", "testconf-")
-	if err != nil {
-		t.Fatal(err)
-	}
+	testconf := t.TempDir()
 
 	os.Setenv("LAB_CORE_HOST", "https://gitlab2.zaquestion.io")
 
@@ -141,6 +135,44 @@ func TestNewConfigHostOverride(t *testing.T) {
   token = "abcde12345"
 `, string(cfgData))
 	})
-	os.RemoveAll(testconf)
 	viper.Reset()
+}
+
+func TestConvertHCLtoTOML(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldCnfPath := filepath.Join(tmpDir, "lab.hcl")
+	newCnfPath := filepath.Join(tmpDir, "lab.toml")
+	oldCnf, err := os.Create(oldCnfPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldCnf.WriteString(`"core" = {
+  "host" = "https://gitlab.com"
+  "token" = "foobar"
+  "user" = "lab-testing"
+}`)
+
+	ConvertHCLtoTOML(tmpDir, tmpDir, "lab")
+
+	_, err = os.Stat(oldCnfPath)
+	assert.True(t, os.IsNotExist(err))
+
+	_, err = os.Stat(newCnfPath)
+	assert.NoError(t, err)
+
+	newCnf, err := os.Open(newCnfPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfgData, err := ioutil.ReadAll(newCnf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, `
+[core]
+  host = "https://gitlab.com"
+  token = "foobar"
+  user = "lab-testing"
+`, string(cfgData))
 }
