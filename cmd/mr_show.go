@@ -24,6 +24,9 @@ var (
 	mrShowPatchReverse bool
 )
 
+// default path for metadata config file
+var metadatafile = ".git/lab/show_metadata.toml"
+
 var mrShowCmd = &cobra.Command{
 	Use:        "show [remote] <id>",
 	Aliases:    []string{"get"},
@@ -39,6 +42,27 @@ var mrShowCmd = &cobra.Command{
 		mr, err := lab.MRGet(rn, int(mrNum))
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		viper.Reset()
+		viper.AddConfigPath(".git/lab")
+		viper.SetConfigName("show_metadata")
+		viper.SetConfigType("toml")
+		// write data
+		if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+			if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {
+				os.MkdirAll(".git/lab", os.ModePerm)
+			}
+			if err := viper.WriteConfigAs(metadatafile); err != nil {
+				log.Fatal(err)
+			}
+			if err := viper.ReadInConfig(); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			if err := viper.ReadInConfig(); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
@@ -81,6 +105,7 @@ var mrShowCmd = &cobra.Command{
 
 			printMRDiscussions(discussions, since, int(mrNum))
 		}
+		viper.Reset()
 	},
 }
 
@@ -163,30 +188,6 @@ WebURL: %s
 
 func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum int) {
 	NewAccessTime := time.Now().UTC()
-
-	// default path for metadata config file
-	metadatafile := ".git/lab/show_metadata.toml"
-
-	viper.Reset()
-	viper.AddConfigPath(".git/lab")
-	viper.SetConfigName("show_metadata")
-	viper.SetConfigType("toml")
-	// write data
-	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {
-			os.MkdirAll(".git/lab", os.ModePerm)
-		}
-		if err := viper.WriteConfigAs(metadatafile); err != nil {
-			log.Fatal(err)
-		}
-		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal(err)
-		}
-	}
 
 	mrEntry := fmt.Sprintf("mr%d", mrNum)
 	// if specified on command line use that, o/w use config, o/w Now
