@@ -9,7 +9,7 @@ import (
 
 func Test_snippetBrowse(t *testing.T) {
 	viper.SetConfigName("lab")
-	viper.SetConfigType("hcl")
+	viper.SetConfigType("toml")
 	viper.AddConfigPath("../testdata")
 	err := viper.ReadInConfig()
 	if err != nil {

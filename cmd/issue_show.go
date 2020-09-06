@@ -121,12 +121,12 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 	NewAccessTime := time.Now().UTC()
 
 	// default path for metadata config file
-	metadatafile := ".git/lab/show_metadata.hcl"
+	metadatafile := ".git/lab/show_metadata.toml"
 
 	viper.Reset()
 	viper.AddConfigPath(".git/lab")
 	viper.SetConfigName("show_metadata")
-	viper.SetConfigType("hcl")
+	viper.SetConfigType("toml")
 	// write data
 	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
 		if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {

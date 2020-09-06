@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -16,10 +17,7 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	testconf, err := ioutil.TempDir("", "testconf-")
-	if err != nil {
-		t.Fatal(err)
-	}
+	testconf := t.TempDir()
 
 	t.Run("create config", func(t *testing.T) {
 		old := os.Stdout // keep backup of the real stdout
@@ -37,7 +35,7 @@ func TestNewConfig(t *testing.T) {
 			readPassword = oldreadPassword
 		}()
 
-		err := New(path.Join(testconf, "lab.hcl"), &buf)
+		err := New(path.Join(testconf, "lab.toml"), &buf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -58,7 +56,7 @@ func TestNewConfig(t *testing.T) {
 		assert.Contains(t, out, "Enter GitLab host (default: https://gitlab.com): ")
 		assert.Contains(t, out, "Create a token here: https://gitlab.zaquestion.io/profile/personal_access_tokens\nEnter default GitLab token (scope: api):")
 
-		cfg, err := os.Open(path.Join(testconf, "lab.hcl"))
+		cfg, err := os.Open(path.Join(testconf, "lab.toml"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -67,21 +65,17 @@ func TestNewConfig(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, `"core" = {
-  "host" = "https://gitlab.zaquestion.io"
-
-  "token" = "abcde12345"
-}`, string(cfgData))
+		assert.Equal(t, `
+[core]
+  host = "https://gitlab.zaquestion.io"
+  token = "abcde12345"
+`, string(cfgData))
 	})
-	os.RemoveAll(testconf)
 	viper.Reset()
 }
 
 func TestNewConfigHostOverride(t *testing.T) {
-	testconf, err := ioutil.TempDir("", "testconf-")
-	if err != nil {
-		t.Fatal(err)
-	}
+	testconf := t.TempDir()
 
 	os.Setenv("LAB_CORE_HOST", "https://gitlab2.zaquestion.io")
 
@@ -105,7 +99,7 @@ func TestNewConfigHostOverride(t *testing.T) {
 		}()
 
 		var buf bytes.Buffer
-		err := New(path.Join(testconf, "lab.hcl"), &buf)
+		err := New(path.Join(testconf, "lab.toml"), &buf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -126,7 +120,7 @@ func TestNewConfigHostOverride(t *testing.T) {
 		assert.NotContains(t, out, "Enter GitLab host")
 		assert.Contains(t, out, "Create a token here: https://gitlab2.zaquestion.io/profile/personal_access_tokens\nEnter default GitLab token (scope: api):")
 
-		cfg, err := os.Open(path.Join(testconf, "lab.hcl"))
+		cfg, err := os.Open(path.Join(testconf, "lab.toml"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -135,12 +129,50 @@ func TestNewConfigHostOverride(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, `"core" = {
-  "host" = "https://gitlab2.zaquestion.io"
-
-  "token" = "abcde12345"
-}`, string(cfgData))
+		assert.Equal(t, `
+[core]
+  host = "https://gitlab2.zaquestion.io"
+  token = "abcde12345"
+`, string(cfgData))
 	})
-	os.RemoveAll(testconf)
 	viper.Reset()
+}
+
+func TestConvertHCLtoTOML(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldCnfPath := filepath.Join(tmpDir, "lab.hcl")
+	newCnfPath := filepath.Join(tmpDir, "lab.toml")
+	oldCnf, err := os.Create(oldCnfPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldCnf.WriteString(`"core" = {
+  "host" = "https://gitlab.com"
+  "token" = "foobar"
+  "user" = "lab-testing"
+}`)
+
+	ConvertHCLtoTOML(tmpDir, tmpDir, "lab")
+
+	_, err = os.Stat(oldCnfPath)
+	assert.True(t, os.IsNotExist(err))
+
+	_, err = os.Stat(newCnfPath)
+	assert.NoError(t, err)
+
+	newCnf, err := os.Open(newCnfPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfgData, err := ioutil.ReadAll(newCnf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, `
+[core]
+  host = "https://gitlab.com"
+  token = "foobar"
+  user = "lab-testing"
+`, string(cfgData))
 }

@@ -52,20 +52,21 @@ func TestMain(m *testing.M) {
 	}
 	// Load config for non-testbinary based tests
 	viper.SetConfigName("lab")
-	viper.SetConfigType("hcl")
+	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
 	err = viper.ReadInConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	c := viper.AllSettings()["core"]
-	config := c.([]map[string]interface{})[0]
-	client, _ := gitlab.NewClient(config["token"].(string), gitlab.WithBaseURL(config["host"].(string)+"/api/v4"))
+	host := viper.GetString("core.host")
+	token := viper.GetString("core.token")
+
+	client, _ := gitlab.NewClient(token, gitlab.WithBaseURL(host+"/api/v4"))
 	u, _, err := client.Users.CurrentUser()
 	if err != nil {
 		log.Fatal(err)
 	}
-	lab.Init(config["host"].(string), u.Username, config["token"].(string), false)
+	lab.Init(host, u.Username, token, false)
 
 	code := m.Run()
 

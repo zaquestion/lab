@@ -25,22 +25,22 @@ func TestMain(m *testing.M) {
 	}
 
 	viper.SetConfigName("lab")
-	viper.SetConfigType("hcl")
+	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
 	err = viper.ReadInConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	c := viper.AllSettings()["core"]
-	config := c.([]map[string]interface{})[0]
+	host := viper.GetString("core.host")
+	token := viper.GetString("core.token")
 
-	lab, _ := gitlab.NewClient(config["token"].(string), gitlab.WithBaseURL(config["host"].(string)+"/api/v4"))
+	lab, _ := gitlab.NewClient(token, gitlab.WithBaseURL(host+"/api/v4"))
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	Init(config["host"].(string), u.Username, config["token"].(string), false)
+	Init(host, u.Username, token, false)
 
 	code := m.Run()
 

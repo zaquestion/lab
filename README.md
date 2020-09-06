@@ -64,7 +64,7 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 ### Source
 
 Required
-* [Go 1.13+](https://golang.org/doc/install)
+* [Go 1.15+](https://golang.org/doc/install)
 
 ```
 git clone git@github.com:zaquestion/lab
@@ -89,11 +89,11 @@ instance. There are several ways to provide this information to `lab`:
 1. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
 2. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`;
     - Note: these are meant for when `lab` is running within a GitLab CI pipeline
-3. directory-specific configuration file in [HashiCorp configuration language (HCL)](https://github.com/hashicorp/hcl): `./lab.hcl`;
-4. user-specific configuration file in HCL: `~/.config/lab.hcl`.
+3. directory-specific configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
+4. user-specific configuration file in HCL: `~/.config/lab/lab.toml`.
 
 These are checked in order. If no suitable config values are found, `lab` will
-prompt for your GitLab information and save it into `~/.config/lab.hcl`.
+prompt for your GitLab information and save it into `~/.config/lab/lab.toml`.
 For example:
 ```
 $ lab
