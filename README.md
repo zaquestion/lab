@@ -90,7 +90,7 @@ instance. There are several ways to provide this information to `lab`:
 2. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`;
     - Note: these are meant for when `lab` is running within a GitLab CI pipeline
 3. directory-specific configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
-4. user-specific configuration file in HCL: `~/.config/lab/lab.toml`.
+4. user-specific configuration file in TOML: `~/.config/lab/lab.toml`.
 
 These are checked in order. If no suitable config values are found, `lab` will
 prompt for your GitLab information and save it into `~/.config/lab/lab.toml`.
@@ -99,6 +99,13 @@ For example:
 $ lab
 Enter default GitLab host (default: https://gitlab.com):
 Enter default GitLab token:
+```
+
+Additionally, there are command-specific configuration files in TOML: .git/lab/[command]-metadata.toml which provide users the ability to override some command line options:
+
+```
+comments = true # sets --comments on 'mr show' commands
+
 ```
 # Completions
 
