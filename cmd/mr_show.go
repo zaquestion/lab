@@ -92,6 +92,9 @@ var mrShowCmd = &cobra.Command{
 		}
 
 		showComments, _ := cmd.Flags().GetBool("comments")
+		if showComments == false {
+			showComments = viper.GetBool("comments")
+		}
 		if showComments {
 			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
 			if err != nil {

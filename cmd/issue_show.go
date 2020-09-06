@@ -65,6 +65,9 @@ var issueShowCmd = &cobra.Command{
 		printIssue(issue, rn, renderMarkdown)
 
 		showComments, _ := cmd.Flags().GetBool("comments")
+		if showComments == false {
+			showComments = viper.GetBool("comments")
+		}
 		if showComments {
 			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
 			if err != nil {
