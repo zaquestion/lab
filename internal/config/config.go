@@ -230,14 +230,12 @@ func LoadConfig() (string, string, string, string, bool) {
 	tlsSkipVerify := viper.GetBool("tls.skip_verify")
 	ca_file := viper.GetString("tls.ca_file")
 
-	if host != "" && user != "" && token != "" {
-		return host, user, token, ca_file, tlsSkipVerify
-	}
-
-	user = getUser(host, token, tlsSkipVerify)
-	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
-		viper.Set("core.user", user)
-		viper.WriteConfig()
+	if user == "" {
+		user = getUser(host, token, tlsSkipVerify)
+		if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
+			viper.Set("core.user", user)
+			viper.WriteConfig()
+		}
 	}
 
 	return host, user, token, ca_file, tlsSkipVerify
