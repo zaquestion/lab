@@ -50,7 +50,7 @@ var cloneCmd = &cobra.Command{
 			if len(args) > 1 {
 				dir = args[1]
 			} else {
-				dir = project.Name
+				dir = project.Path
 			}
 			ffProject, err := gitlab.FindProject(project.ForkedFromProject.PathWithNamespace)
 			if err != nil {
