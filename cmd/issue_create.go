@@ -65,6 +65,11 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal("aborting issue due to empty issue msg")
 		}
 
+		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
+		if linebreak {
+			body = textToMarkdown(body)
+		}
+
 		assigneeIDs := make([]int, len(assignees))
 		for i, a := range assignees {
 			assigneeIDs[i] = *getAssigneeID(a)
@@ -138,6 +143,7 @@ func init() {
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
 	issueCreateCmd.Flags().StringP("template", "t", "default", "use the given issue template")
+	issueCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
 	issueCmd.AddCommand(issueCreateCmd)
 	carapace.Gen(issueCreateCmd).PositionalCompletion(

@@ -41,6 +41,7 @@ func init() {
 	mrCreateCmd.Flags().Bool("allow-collaboration", false, "Allow commits from other members")
 	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
 	mrCreateCmd.Flags().StringP("file", "F", "", "Use the given file as the Description")
+	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
@@ -177,6 +178,11 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 		}
+	}
+
+	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
+	if linebreak {
+		body = textToMarkdown(body)
 	}
 
 	removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
