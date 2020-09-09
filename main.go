@@ -33,6 +33,10 @@ func skipInit() bool {
 		return false
 	}
 	switch os.Args[1] {
+	case "--version", "version":
+		return true
+	case "--help", "help":
+		return true
 	case "completion":
 		return true
 	case "_carapace":
