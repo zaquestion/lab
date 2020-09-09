@@ -70,7 +70,11 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	if !skipClone {
-		cloneCmd.Run(nil, []string{strings.Split(args[0], "/")[1]})
+		projectParts := strings.Split(args[0], "/")
+		// In case many subgroups are used, the project's name forked will be
+		// the last index
+		projectName := projectParts[len(projectParts)-1]
+		cloneCmd.Run(nil, []string{projectName})
 	}
 }
 func determineForkRemote(project string) string {
