@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
+	"github.com/zaquestion/lab/internal/config"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -35,26 +35,7 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		viper.Reset()
-		viper.AddConfigPath(".git/lab")
-		viper.SetConfigName("show_metadata")
-		viper.SetConfigType("toml")
-		// write data
-		if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-			if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {
-				os.MkdirAll(".git/lab", os.ModePerm)
-			}
-			if err := viper.WriteConfigAs(metadatafile); err != nil {
-				log.Fatal(err)
-			}
-			if err := viper.ReadInConfig(); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			if err := viper.ReadInConfig(); err != nil {
-				log.Fatal(err)
-			}
-		}
+		config.LoadWorkTreeConfig("show")
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
 		if err != nil {
@@ -81,7 +62,7 @@ var issueShowCmd = &cobra.Command{
 
 			printDiscussions(discussions, since, int(issueNum))
 		}
-		viper.Reset()
+		config.FinishWorkTreeConfig()
 	},
 }
 
@@ -145,9 +126,6 @@ WebURL: %s
 func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum int) {
 	NewAccessTime := time.Now().UTC()
 
-	// default path for metadata config file
-	metadatafile := ".git/lab/show_metadata.toml"
-
 	issueEntry := fmt.Sprintf("issue%d", issueNum)
 	// if specified on command line use that, o/w use config, o/w Now
 	var (
@@ -209,7 +187,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 
 	if sinceIsSet == false {
 		viper.Set(issueEntry, NewAccessTime)
-		viper.WriteConfigAs(metadatafile)
+		config.WriteWorkTreeConfig("show")
 	}
 }
 
