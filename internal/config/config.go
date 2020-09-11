@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"syscall"
@@ -27,9 +28,9 @@ const defaultGitLabHost = "https://gitlab.com"
 // them to the provided confpath (default: ~/.config/lab.hcl)
 func New(confpath string, r io.Reader) error {
 	var (
-		reader      = bufio.NewReader(r)
-		host, token string
-		err         error
+		reader                 = bufio.NewReader(r)
+		host, token, loadToken string
+		err                    error
 	)
 	// If core host is set in the environment (LAB_CORE_HOST) we only want
 	// to prompt for the token. We'll use the environments host and place
@@ -50,20 +51,18 @@ func New(confpath string, r io.Reader) error {
 		host = viper.GetString("core.host")
 	}
 
-	tokenURL, err := url.Parse(host)
-	if err != nil {
-		return err
-	}
-	tokenURL.Path = "profile/personal_access_tokens"
-
-	fmt.Printf("Create a token here: %s\nEnter default GitLab token (scope: api): ", tokenURL.String())
-	token, err = readPassword()
-	if err != nil {
-		return err
-	}
-
 	viper.Set("core.host", host)
-	viper.Set("core.token", token)
+
+	token, loadToken, err = readPassword(*reader)
+	if err != nil {
+		return err
+	}
+	if token != "" {
+		viper.Set("core.token", token)
+	} else if loadToken != "" {
+		viper.Set("core.load_token", loadToken)
+	}
+
 	if err := viper.WriteConfigAs(confpath); err != nil {
 		return err
 	}
@@ -71,12 +70,32 @@ func New(confpath string, r io.Reader) error {
 	return nil
 }
 
-var readPassword = func() (string, error) {
+var readPassword = func(reader bufio.Reader) (string, string, error) {
+	var loadToken string
+
+	tokenURL, err := url.Parse(viper.GetString("core.host"))
+	if err != nil {
+		return "", "", err
+	}
+	tokenURL.Path = "profile/personal_access_tokens"
+
+	fmt.Printf("Create a token here: %s\nEnter default GitLab token (scope: api), or leave blank to provide a command to load the token: ", tokenURL.String())
 	byteToken, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return strings.TrimSpace(string(byteToken)), nil
+	if strings.TrimSpace(string(byteToken)) == "" {
+		fmt.Printf("\nEnter command to load the token:")
+		loadToken, err = reader.ReadString('\n')
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	if strings.TrimSpace(string(byteToken)) == "" && strings.TrimSpace(loadToken) == "" {
+		log.Fatal("Error: No token provided.  A token can be created at ", tokenURL.String())
+	}
+	return strings.TrimSpace(string(byteToken)), strings.TrimSpace(loadToken), nil
 }
 
 // CI returns credentials suitable for use within GitLab CI or empty strings if
@@ -161,6 +180,28 @@ func getUser(host, token string, skipVerify bool) string {
 	return u.Username
 }
 
+// GetToken returns a token string from the config file.
+// The token string can be cleartext or returned from a password manager or
+// encryption utility.
+func GetToken() string {
+	token := viper.GetString("core.token")
+	if token == "" && viper.GetString("core.load_token") != "" {
+		// args[0] isn't really an arg ;)
+		args := strings.Split(viper.GetString("core.load_token"), " ")
+		_token, err := exec.Command(args[0], args[1:]...).Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		token = string(_token)
+		// tools like pass and a simple bash script add a '\n' to
+		// their output which confuses the gitlab WebAPI
+		if token[len(token)-1:] == "\n" {
+			token = strings.TrimSuffix(token, "\n")
+		}
+	}
+	return token
+}
+
 // LoadConfig() loads the main config file and returns a tuple of
 //  host, user, token, ca_file, skipVerify
 func LoadConfig() (string, string, string, string, bool) {
@@ -226,7 +267,7 @@ func LoadConfig() (string, string, string, string, bool) {
 
 	host = viper.GetString("core.host")
 	user = viper.GetString("core.user")
-	token = viper.GetString("core.token")
+	token = GetToken()
 	tlsSkipVerify := viper.GetBool("tls.skip_verify")
 	ca_file := viper.GetString("tls.ca_file")
 
