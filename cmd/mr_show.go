@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
+	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -23,9 +23,6 @@ var (
 	mrShowPatch        bool
 	mrShowPatchReverse bool
 )
-
-// default path for metadata config file
-var metadatafile = ".git/lab/show_metadata.toml"
 
 var mrShowCmd = &cobra.Command{
 	Use:        "show [remote] <id>",
@@ -44,26 +41,7 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		viper.Reset()
-		viper.AddConfigPath(".git/lab")
-		viper.SetConfigName("show_metadata")
-		viper.SetConfigType("toml")
-		// write data
-		if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-			if _, err := os.Stat(".git/lab"); os.IsNotExist(err) {
-				os.MkdirAll(".git/lab", os.ModePerm)
-			}
-			if err := viper.WriteConfigAs(metadatafile); err != nil {
-				log.Fatal(err)
-			}
-			if err := viper.ReadInConfig(); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			if err := viper.ReadInConfig(); err != nil {
-				log.Fatal(err)
-			}
-		}
+		config.LoadWorkTreeConfig("show")
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
 		if err != nil {
@@ -108,7 +86,7 @@ var mrShowCmd = &cobra.Command{
 
 			printMRDiscussions(discussions, since, int(mrNum))
 		}
-		viper.Reset()
+		config.FinishWorkTreeConfig()
 	},
 }
 
@@ -254,7 +232,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum in
 
 	if sinceIsSet == false {
 		viper.Set(mrEntry, NewAccessTime)
-		viper.WriteConfigAs(metadatafile)
+		config.WriteWorkTreeConfig("show")
 	}
 }
 

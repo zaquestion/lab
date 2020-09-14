@@ -281,3 +281,41 @@ func LoadConfig() (string, string, string, string, bool) {
 
 	return host, user, token, ca_file, tlsSkipVerify
 }
+
+// default path for work tree config file
+var worktreepath = ".git/lab/"
+
+// LoadWorkTreeConfig opens and reads the .git/lab/[cmd]_string.toml
+// metadata file
+func LoadWorkTreeConfig(cmd string) {
+	viper.Reset()
+	viper.AddConfigPath(worktreepath)
+	viper.SetConfigName(cmd + "_metadata")
+	viper.SetConfigType("toml")
+
+	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		if _, err := os.Stat(worktreepath); os.IsNotExist(err) {
+			os.MkdirAll(worktreepath, os.ModePerm)
+		}
+		if err := viper.WriteConfigAs(worktreepath + cmd + "_metadata.toml"); err != nil {
+			log.Fatal(err)
+		}
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+// WriteWorkTreeConfig saves the .git/lab/[cmd]_string.toml metadata file
+func WriteWorkTreeConfig(cmd string) {
+	viper.WriteConfigAs(worktreepath + cmd + "_metadata.toml")
+}
+
+// FinishWorkTreeConfig closes the .git/lab/[cmd]_string.toml metadata file
+func FinishWorkTreeConfig() {
+	viper.Reset()
+}
