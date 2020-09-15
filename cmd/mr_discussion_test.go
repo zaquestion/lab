@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_mrCreateNote(t *testing.T) {
+func Test_mrCreateDiscussion(t *testing.T) {
 	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1",
-		"-m", "note text")
+	cmd := exec.Command(labBinaryPath, "mr", "discussion", "lab-testing", "1",
+		"-m", "discussion text")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
@@ -22,10 +22,10 @@ func Test_mrCreateNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#discussion_")
 }
 
-func Test_mrCreateNote_file(t *testing.T) {
+func Test_mrCreateDiscussion_file(t *testing.T) {
 	repo := copyTestRepo(t)
 
 	err := ioutil.WriteFile(filepath.Join(repo, "hellolab.txt"), []byte("hello\nlab\n"), 0644)
@@ -33,7 +33,7 @@ func Test_mrCreateNote_file(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1",
+	cmd := exec.Command(labBinaryPath, "mr", "discussion", "lab-testing", "1",
 		"-F", "hellolab.txt")
 	cmd.Dir = repo
 
@@ -43,10 +43,10 @@ func Test_mrCreateNote_file(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#discussion_")
 }
 
-func Test_mrNoteMsg(t *testing.T) {
+func Test_mrDiscussionMsg(t *testing.T) {
 	tests := []struct {
 		Name         string
 		Msgs         []string
@@ -54,8 +54,8 @@ func Test_mrNoteMsg(t *testing.T) {
 	}{
 		{
 			Name:         "Using messages",
-			Msgs:         []string{"note paragraph 1", "note paragraph 2"},
-			ExpectedBody: "note paragraph 1\n\nnote paragraph 2",
+			Msgs:         []string{"discussion paragraph 1", "discussion paragraph 2"},
+			ExpectedBody: "discussion paragraph 1\n\ndiscussion paragraph 2",
 		},
 		{
 			Name:         "From Editor",
@@ -67,7 +67,7 @@ func Test_mrNoteMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			body, err := mrNoteMsg(test.Msgs)
+			body, err := mrDiscussionMsg(test.Msgs)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -76,14 +76,14 @@ func Test_mrNoteMsg(t *testing.T) {
 	}
 }
 
-func Test_mrNoteText(t *testing.T) {
+func Test_mrDiscussionText(t *testing.T) {
 	t.Parallel()
-	text, err := mrNoteText()
+	text, err := mrDiscussionText()
 	if err != nil {
 		t.Fatal(err)
 	}
 	require.Equal(t, `
 
-# Write a message for this note. Commented lines are discarded.`, text)
+# Write a message for this discussion. Commented lines are discarded.`, text)
 
 }
