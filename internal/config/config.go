@@ -24,6 +24,10 @@ import (
 
 const defaultGitLabHost = "https://gitlab.com"
 
+var (
+	MainConfig *viper.Viper
+)
+
 // New prompts the user for the default config values to use with lab, and save
 // them to the provided confpath (default: ~/.config/lab.hcl)
 func New(confpath string, r io.Reader) error {
@@ -32,11 +36,13 @@ func New(confpath string, r io.Reader) error {
 		host, token, loadToken string
 		err                    error
 	)
+
+	confpath = path.Join(confpath, "lab.toml")
 	// If core host is set in the environment (LAB_CORE_HOST) we only want
 	// to prompt for the token. We'll use the environments host and place
 	// it in the config. In the event both the host and token are in the
 	// env, this function shouldn't be called in the first place
-	if viper.GetString("core.host") == "" {
+	if MainConfig.GetString("core.host") == "" {
 		fmt.Printf("Enter GitLab host (default: %s): ", defaultGitLabHost)
 		host, err = reader.ReadString('\n')
 		host = strings.TrimSpace(host)
@@ -48,22 +54,22 @@ func New(confpath string, r io.Reader) error {
 		}
 	} else {
 		// Required to correctly write config
-		host = viper.GetString("core.host")
+		host = MainConfig.GetString("core.host")
 	}
 
-	viper.Set("core.host", host)
+	MainConfig.Set("core.host", host)
 
 	token, loadToken, err = readPassword(*reader)
 	if err != nil {
 		return err
 	}
 	if token != "" {
-		viper.Set("core.token", token)
+		MainConfig.Set("core.token", token)
 	} else if loadToken != "" {
-		viper.Set("core.load_token", loadToken)
+		MainConfig.Set("core.load_token", loadToken)
 	}
 
-	if err := viper.WriteConfigAs(confpath); err != nil {
+	if err := MainConfig.WriteConfigAs(confpath); err != nil {
 		return err
 	}
 	fmt.Printf("\nConfig saved to %s\n", confpath)
@@ -128,13 +134,13 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 	}
 
 	// read in the old config HCL file and write out the new TOML file
-	viper.Reset()
-	viper.SetConfigName("lab")
-	viper.SetConfigType("hcl")
-	viper.AddConfigPath(oldpath)
-	viper.ReadInConfig()
-	viper.SetConfigType("toml")
-	viper.WriteConfigAs(newconfig)
+	oldConfig := viper.New()
+	oldConfig.SetConfigName("lab")
+	oldConfig.SetConfigType("hcl")
+	oldConfig.AddConfigPath(oldpath)
+	oldConfig.ReadInConfig()
+	oldConfig.SetConfigType("toml")
+	oldConfig.WriteConfigAs(newconfig)
 
 	// delete the old config HCL file
 	if err := os.Remove(oldconfig); err != nil {
@@ -184,10 +190,10 @@ func getUser(host, token string, skipVerify bool) string {
 // The token string can be cleartext or returned from a password manager or
 // encryption utility.
 func GetToken() string {
-	token := viper.GetString("core.token")
-	if token == "" && viper.GetString("core.load_token") != "" {
+	token := MainConfig.GetString("core.token")
+	if token == "" && MainConfig.GetString("core.load_token") != "" {
 		// args[0] isn't really an arg ;)
-		args := strings.Split(viper.GetString("core.load_token"), " ")
+		args := strings.Split(MainConfig.GetString("core.load_token"), " ")
 		_token, err := exec.Command(args[0], args[1:]...).Output()
 		if err != nil {
 			log.Fatal(err)
@@ -241,41 +247,42 @@ func LoadConfig() (string, string, string, string, bool) {
 		ConvertHCLtoTOML(labgitDir, labgitDir, "show_metadata")
 	}
 
-	viper.SetConfigName("lab")
-	viper.SetConfigType("toml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath(labconfpath)
+	MainConfig = viper.New()
+	MainConfig.SetConfigName("lab")
+	MainConfig.SetConfigType("toml")
+	MainConfig.AddConfigPath(".")
+	MainConfig.AddConfigPath(labconfpath)
 	if labgitDir != "" {
-		viper.AddConfigPath(labgitDir)
+		MainConfig.AddConfigPath(labgitDir)
 	}
 
-	viper.SetEnvPrefix("LAB")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
+	MainConfig.SetEnvPrefix("LAB")
+	MainConfig.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	MainConfig.AutomaticEnv()
 
-	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		err := New(path.Join(labconfpath, "lab.toml"), os.Stdin)
+	if _, ok := MainConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		err := New(labconfpath, os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = viper.ReadInConfig()
+		err = MainConfig.ReadInConfig()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	host = viper.GetString("core.host")
-	user = viper.GetString("core.user")
+	host = MainConfig.GetString("core.host")
+	user = MainConfig.GetString("core.user")
 	token = GetToken()
-	tlsSkipVerify := viper.GetBool("tls.skip_verify")
-	ca_file := viper.GetString("tls.ca_file")
+	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
+	ca_file := MainConfig.GetString("tls.ca_file")
 
 	if user == "" {
 		user = getUser(host, token, tlsSkipVerify)
 		if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
-			viper.Set("core.user", user)
-			viper.WriteConfig()
+			MainConfig.Set("core.user", user)
+			MainConfig.WriteConfig()
 		}
 	}
 

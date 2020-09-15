@@ -17,6 +17,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func initMainConfig(testconf string) {
+	MainConfig = viper.New()
+	MainConfig.SetConfigName("lab")
+	MainConfig.SetConfigType("toml")
+	MainConfig.AddConfigPath(testconf)
+}
+
+func resetMainConfig() {
+	// *viper.Viper.Reset() does not exist so just set MainConfig to nil for testing
+	MainConfig = nil
+}
+
 func TestNewConfig(t *testing.T) {
 	testconf := t.TempDir()
 
@@ -36,7 +48,8 @@ func TestNewConfig(t *testing.T) {
 			readPassword = oldreadPassword
 		}()
 
-		err := New(path.Join(testconf, "lab.toml"), &buf)
+		initMainConfig(testconf)
+		err := New(testconf, &buf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -71,7 +84,7 @@ func TestNewConfig(t *testing.T) {
   token = "abcde12345"
 `, string(cfgData))
 	})
-	viper.Reset()
+	resetMainConfig()
 }
 
 func TestNewConfigHostOverride(t *testing.T) {
@@ -80,11 +93,13 @@ func TestNewConfigHostOverride(t *testing.T) {
 	os.Setenv("LAB_CORE_HOST", "https://gitlab2.zaquestion.io")
 
 	t.Run("create config", func(t *testing.T) {
-		viper.SetEnvPrefix("LAB")
-		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-		viper.AutomaticEnv()
 
-		require.Equal(t, "https://gitlab2.zaquestion.io", viper.GetString("core.host"))
+		initMainConfig(testconf)
+		MainConfig.SetEnvPrefix("LAB")
+		MainConfig.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		MainConfig.AutomaticEnv()
+
+		require.Equal(t, "https://gitlab2.zaquestion.io", MainConfig.GetString("core.host"))
 
 		old := os.Stdout // keep backup of the real stdout
 		r, w, _ := os.Pipe()
@@ -99,7 +114,8 @@ func TestNewConfigHostOverride(t *testing.T) {
 		}()
 
 		var buf bytes.Buffer
-		err := New(path.Join(testconf, "lab.toml"), &buf)
+
+		err := New(testconf, &buf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -134,7 +150,7 @@ func TestNewConfigHostOverride(t *testing.T) {
   token = "abcde12345"
 `, string(cfgData))
 	})
-	viper.Reset()
+	resetMainConfig()
 }
 
 func TestNewLoadTokenConfig(t *testing.T) {
@@ -156,7 +172,8 @@ func TestNewLoadTokenConfig(t *testing.T) {
 			readPassword = oldreadPassword
 		}()
 
-		err := New(path.Join(testconf, "lab.toml"), &buf)
+		initMainConfig(testconf)
+		err := New(testconf, &buf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -191,7 +208,7 @@ func TestNewLoadTokenConfig(t *testing.T) {
   load_token = "bash echo abcde12345"
 `, string(cfgData))
 	})
-	viper.Reset()
+	resetMainConfig()
 }
 
 func TestConvertHCLtoTOML(t *testing.T) {
@@ -246,13 +263,12 @@ func TestTokenTest(t *testing.T) {
   token = "foobar"
   user = "lab-testing"
 `)
-	viper.SetConfigName("lab")
-	viper.SetConfigType("toml")
-	viper.AddConfigPath(tmpDir)
-	viper.ReadInConfig()
+
+	initMainConfig(tmpDir)
+	MainConfig.ReadInConfig()
 	token := GetToken()
 	os.Remove(configPath + "/lab.toml")
-	viper.Reset()
+	resetMainConfig()
 	assert.Equal(t, "foobar", token)
 }
 
@@ -269,12 +285,11 @@ func TestLoadTokenTest(t *testing.T) {
   load_token = "echo foobar"
   user = "lab-testing"
 `)
-	viper.SetConfigName("lab")
-	viper.SetConfigType("toml")
-	viper.AddConfigPath(tmpDir)
-	viper.ReadInConfig()
+
+	initMainConfig(tmpDir)
+	MainConfig.ReadInConfig()
 	token := GetToken()
 	os.Remove(configPath + "/lab.toml")
-	viper.Reset()
+	resetMainConfig()
 	assert.Equal(t, "foobar", token)
 }
