@@ -29,7 +29,7 @@ var issueCreateNoteCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		msgs, err := cmd.Flags().GetStringSlice("message")
+		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -101,7 +101,7 @@ func noteText() (string, error) {
 }
 
 func init() {
-	issueCreateNoteCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueCreateNoteCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueCreateNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
 	issueCmd.AddCommand(issueCreateNoteCmd)

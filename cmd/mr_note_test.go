@@ -11,18 +11,42 @@ import (
 )
 
 func Test_mrCreateNote(t *testing.T) {
-	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1",
-		"-m", "note text")
-	cmd.Dir = repo
-
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Log(string(b))
-		t.Fatal(err)
+	tests := []struct {
+		Name         string
+		Args         []string
+		ExpectedBody string
+	}{
+		{
+			Name:         "Normal text",
+			Args:         []string{"lab-testing", "1", "-m", "note text"},
+			ExpectedBody: "https://gitlab.com/lab-testing/test/merge_requests/1#note_",
+		},
+		{
+			// Escaped sequence text direct in the argument list as the
+			// following one was already a problem:
+			// https://github.com/zaquestion/lab/issues/376
+			Name:         "Escape char",
+			Args:         []string{"lab-testing", "1", "-m", "{\"key\": \"value\"}"},
+			ExpectedBody: "https://gitlab.com/lab-testing/test/merge_requests/1#note_",
+		},
 	}
+	noteCmd := []string{"mr", "note"}
+	repo := copyTestRepo(t)
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			cmd := exec.Command(labBinaryPath, append(noteCmd, test.Args...)...)
+			cmd.Dir = repo
+
+			b, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Log(string(b))
+				t.Fatal(err)
+			}
+
+			require.Contains(t, string(b), test.ExpectedBody)
+		})
+	}
 }
 
 func Test_mrCreateNote_file(t *testing.T) {

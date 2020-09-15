@@ -35,7 +35,7 @@ var snippetCreateCmd = &cobra.Command{
 Source snippets from stdin, file, or in editor from scratch
 Optionally add a title & description with -m`,
 	Run: func(cmd *cobra.Command, args []string) {
-		msgs, err := cmd.Flags().GetStringSlice("message")
+		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -171,7 +171,7 @@ func init() {
 	snippetCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make snippet private; visible only to project members (default: internal)")
 	snippetCreateCmd.Flags().BoolVar(&public, "public", false, "Make snippet public; can be accessed without any authentication (default: internal)")
 	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) Name snippet to add code highlighting, e.g. potato.go for GoLang")
-	snippetCreateCmd.Flags().StringSliceP("message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	snippetCreateCmd.Flags().StringArrayP("message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	snippetCmd.Flags().AddFlagSet(snippetCreateCmd.Flags())
 
 	snippetCmd.AddCommand(snippetCreateCmd)
