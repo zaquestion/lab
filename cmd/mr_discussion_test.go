@@ -22,7 +22,7 @@ func Test_mrCreateDiscussion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#discussion_")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
 }
 
 func Test_mrCreateDiscussion_file(t *testing.T) {
@@ -43,7 +43,7 @@ func Test_mrCreateDiscussion_file(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#discussion_")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
 }
 
 func Test_mrDiscussionMsg(t *testing.T) {
