@@ -59,6 +59,11 @@ var mrCreateNoteCmd = &cobra.Command{
 			log.Fatal("aborting note due to empty note msg")
 		}
 
+		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
+		if linebreak {
+			body = textToMarkdown(body)
+		}
+
 		noteURL, err := lab.MRCreateNote(rn, int(mrNum), &gitlab.CreateMergeRequestNoteOptions{
 			Body: &body,
 		})
@@ -113,6 +118,7 @@ func mrNoteText() (string, error) {
 func init() {
 	mrCreateNoteCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateNoteCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
+	mrCreateNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
 	mrCmd.AddCommand(mrCreateNoteCmd)
 	carapace.Gen(mrCreateNoteCmd).PositionalCompletion(

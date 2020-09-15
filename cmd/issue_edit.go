@@ -66,6 +66,11 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal("aborting: no changes")
 		}
 
+		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
+		if linebreak {
+			body = textToMarkdown(body)
+		}
+
 		opts := &gitlab.UpdateIssueOptions{
 			Title:       &title,
 			Description: &body,
@@ -278,6 +283,7 @@ func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
 	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
 	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
 	flags.StringSliceP("unassign", "", []string{}, "Remove an assigne by username")
+	flags.Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	return flags
 }
 
