@@ -208,9 +208,9 @@ func GetToken() string {
 	return token
 }
 
-// LoadConfig() loads the main config file and returns a tuple of
+// LoadMainConfig() loads the main config file and returns a tuple of
 //  host, user, token, ca_file, skipVerify
-func LoadConfig() (string, string, string, string, bool) {
+func LoadMainConfig() (string, string, string, string, bool) {
 
 	// Attempt to auto-configure for GitLab CI.
 	// Always do this before reading in the config file o/w CI will end up

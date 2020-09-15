@@ -17,7 +17,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
 	if !skipInit() {
-		h, u, t, ca, skipVerify := config.LoadConfig()
+		h, u, t, ca, skipVerify := config.LoadMainConfig()
 
 		if ca != "" {
 			lab.InitWithCustomCA(h, u, t, ca)
