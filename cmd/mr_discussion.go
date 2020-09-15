@@ -78,7 +78,7 @@ func mrDiscussionMsg(msgs []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return git.EditFile("MR_NOTE", text)
+	return git.EditFile("MR_DISCUSSION", text)
 }
 
 func mrDiscussionText() (string, error) {
