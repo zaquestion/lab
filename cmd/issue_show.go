@@ -20,6 +20,7 @@ import (
 
 var (
 	issueShowConfig *viper.Viper
+	issueShowPrefix string = "issue_show."
 )
 
 var issueShowCmd = &cobra.Command{
@@ -39,7 +40,7 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		issueShowConfig = config.LoadConfig("", "show_metadata")
+		issueShowConfig = config.LoadConfig("", "")
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
 		if err != nil {
@@ -51,7 +52,7 @@ var issueShowCmd = &cobra.Command{
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments == false {
-			showComments = issueShowConfig.GetBool("comments")
+			showComments = issueShowConfig.GetBool(issueShowPrefix + "comments")
 		}
 		if showComments {
 			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
@@ -138,7 +139,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 	)
 	CompareTime, err = dateparse.ParseLocal(since)
 	if err != nil || CompareTime.IsZero() {
-		CompareTime = issueShowConfig.GetTime(issueEntry)
+		CompareTime = issueShowConfig.GetTime(issueShowPrefix + issueEntry)
 		if CompareTime.IsZero() {
 			CompareTime = time.Now().UTC()
 		}
@@ -189,7 +190,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 	}
 
 	if sinceIsSet == false {
-		config.WriteConfigEntry(issueEntry, NewAccessTime, "", "show_metadata")
+		config.WriteConfigEntry(issueShowPrefix+issueEntry, NewAccessTime, "", "")
 	}
 }
 
