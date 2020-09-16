@@ -25,7 +25,7 @@ var (
 
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout",
+	Use:   "checkout <id>",
 	Short: "Checkout an open merge request",
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
