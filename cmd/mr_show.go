@@ -11,7 +11,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/config"
@@ -22,8 +21,6 @@ import (
 var (
 	mrShowPatch        bool
 	mrShowPatchReverse bool
-	mrShowConfig       *viper.Viper
-	mrShowPrefix       string = "mr_show."
 )
 
 var mrShowCmd = &cobra.Command{
@@ -33,6 +30,9 @@ var mrShowCmd = &cobra.Command{
 	Short:      "Describe a merge request",
 	Long:       ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		setCommandPrefix()
+
 		rn, mrNum, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
@@ -42,8 +42,6 @@ var mrShowCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		mrShowConfig = config.LoadConfig("", "")
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
 		if err != nil {
@@ -73,7 +71,7 @@ var mrShowCmd = &cobra.Command{
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments == false {
-			showComments = mrShowConfig.GetBool(mrShowPrefix + "comments")
+			showComments = getMainConfig().GetBool(CommandPrefix + "comments")
 		}
 		if showComments {
 			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
@@ -180,7 +178,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum in
 	)
 	CompareTime, err = dateparse.ParseLocal(since)
 	if err != nil || CompareTime.IsZero() {
-		CompareTime = mrShowConfig.GetTime(mrShowPrefix + mrEntry)
+		CompareTime = getMainConfig().GetTime(CommandPrefix + mrEntry)
 		if CompareTime.IsZero() {
 			CompareTime = time.Now().UTC()
 		}
@@ -232,7 +230,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum in
 	}
 
 	if sinceIsSet == false {
-		config.WriteConfigEntry(mrShowPrefix+mrEntry, NewAccessTime, "", "")
+		config.WriteConfigEntry(CommandPrefix+mrEntry, NewAccessTime, "", "")
 	}
 }
 

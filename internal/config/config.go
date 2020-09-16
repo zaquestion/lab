@@ -16,6 +16,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -73,6 +74,10 @@ func New(confpath string, r io.Reader) error {
 		return err
 	}
 	fmt.Printf("\nConfig saved to %s\n", confpath)
+	err = MainConfig.ReadInConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
 
@@ -171,6 +176,11 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 }
 
 func getUser(host, token string, skipVerify bool) string {
+	user := MainConfig.GetString("core.user")
+	if user != "" {
+		return user
+	}
+
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -183,6 +193,12 @@ func getUser(host, token string, skipVerify bool) string {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
+		MainConfig.Set("core.user", u.Username)
+		MainConfig.WriteConfig()
+	}
+
 	return u.Username
 }
 
@@ -211,6 +227,17 @@ func GetToken() string {
 // LoadMainConfig() loads the main config file and returns a tuple of
 //  host, user, token, ca_file, skipVerify
 func LoadMainConfig() (string, string, string, string, bool) {
+	// The lab config heirarchy is:
+	//	1. ENV variables (LAB_CORE_TOKEN, LAB_CORE_HOST)
+	//		- if specified, core.token and core.host values in
+	//		  config files are not updated.
+	//	2. "dot" . user specified config
+	//		- if specified, lower order config files will not override
+	//		  the user specified config
+	//	3.  .config/lab/lab.toml (global config)
+	//	4.  .git/lab/lab/toml (worktree config)
+	//
+	// Values from the worktree config will override any global config settings.
 
 	// Attempt to auto-configure for GitLab CI.
 	// Always do this before reading in the config file o/w CI will end up
@@ -250,6 +277,8 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	MainConfig = viper.New()
 	MainConfig.SetConfigName("lab")
 	MainConfig.SetConfigType("toml")
+	// The local path (aka 'dot slash') does not allow for any
+	// overrides from the work tree lab.toml
 	MainConfig.AddConfigPath(".")
 	MainConfig.AddConfigPath(labconfpath)
 	if labgitDir != "" {
@@ -261,30 +290,28 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	MainConfig.AutomaticEnv()
 
 	if _, ok := MainConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		// Create a new config
 		err := New(labconfpath, os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		err = MainConfig.ReadInConfig()
-		if err != nil {
-			log.Fatal(err)
+	} else {
+		// Config already exists.  Merge in .git/lab/lab.toml file
+		_, err := os.Stat(labgitDir + "/lab.toml")
+		if MainConfig.ConfigFileUsed() == labconfpath+"/lab.toml" && !os.IsNotExist(err) {
+			file, err := afero.ReadFile(afero.NewOsFs(), labgitDir+"/lab.toml")
+			if err != nil {
+				log.Fatal(err)
+			}
+			MainConfig.MergeConfig(bytes.NewReader(file))
 		}
 	}
 
 	host = MainConfig.GetString("core.host")
-	user = MainConfig.GetString("core.user")
 	token = GetToken()
-	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
 	ca_file := MainConfig.GetString("tls.ca_file")
-
-	if user == "" {
-		user = getUser(host, token, tlsSkipVerify)
-		if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
-			MainConfig.Set("core.user", user)
-			MainConfig.WriteConfig()
-		}
-	}
+	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
+	user = getUser(host, token, tlsSkipVerify)
 
 	return host, user, token, ca_file, tlsSkipVerify
 }
