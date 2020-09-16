@@ -18,6 +18,10 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var (
+	issueShowConfig *viper.Viper
+)
+
 var issueShowCmd = &cobra.Command{
 	Use:        "show [remote] <id>",
 	Aliases:    []string{"get"},
@@ -35,7 +39,7 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		config.LoadWorkTreeConfig("show")
+		issueShowConfig = config.LoadConfig("", "show_metadata")
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
 		if err != nil {
@@ -47,7 +51,7 @@ var issueShowCmd = &cobra.Command{
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments == false {
-			showComments = viper.GetBool("comments")
+			showComments = issueShowConfig.GetBool("comments")
 		}
 		if showComments {
 			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
@@ -62,7 +66,6 @@ var issueShowCmd = &cobra.Command{
 
 			printDiscussions(discussions, since, int(issueNum))
 		}
-		config.FinishWorkTreeConfig()
 	},
 }
 
@@ -135,7 +138,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 	)
 	CompareTime, err = dateparse.ParseLocal(since)
 	if err != nil || CompareTime.IsZero() {
-		CompareTime = viper.GetTime(issueEntry)
+		CompareTime = issueShowConfig.GetTime(issueEntry)
 		if CompareTime.IsZero() {
 			CompareTime = time.Now().UTC()
 		}
@@ -186,8 +189,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 	}
 
 	if sinceIsSet == false {
-		viper.Set(issueEntry, NewAccessTime)
-		config.WriteWorkTreeConfig("show")
+		config.WriteConfigEntry(issueEntry, NewAccessTime, "", "show_metadata")
 	}
 }
 

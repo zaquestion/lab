@@ -289,40 +289,46 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	return host, user, token, ca_file, tlsSkipVerify
 }
 
-// default path for work tree config file
-var worktreepath = ".git/lab/"
+// default path of worktree lab.toml file
+var (
+	WorkTreePath string = ".git/lab"
+	WorkTreeName string = "lab"
+)
 
-// LoadWorkTreeConfig opens and reads the .git/lab/[cmd]_string.toml
-// metadata file
-func LoadWorkTreeConfig(cmd string) {
-	viper.Reset()
-	viper.AddConfigPath(worktreepath)
-	viper.SetConfigName(cmd + "_metadata")
-	viper.SetConfigType("toml")
+// LoadConfig loads a config file specified by configpath and configname.
+// The configname must not have a '.toml' extension.  If configpath and/or
+// configname are unspecified, the worktree defaults will be used.
+func LoadConfig(configpath string, configname string) *viper.Viper {
+	targetConfig := viper.New()
+	targetConfig.SetConfigType("toml")
 
-	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		if _, err := os.Stat(worktreepath); os.IsNotExist(err) {
-			os.MkdirAll(worktreepath, os.ModePerm)
+	if configpath == "" {
+		configpath = WorkTreePath
+	}
+	if configname == "" {
+		configname = WorkTreeName
+	}
+	targetConfig.AddConfigPath(configpath)
+	targetConfig.SetConfigName(configname)
+	if _, ok := targetConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		if _, err := os.Stat(configpath); os.IsNotExist(err) {
+			os.MkdirAll(configpath, os.ModePerm)
 		}
-		if err := viper.WriteConfigAs(worktreepath + cmd + "_metadata.toml"); err != nil {
+		if err := targetConfig.WriteConfigAs(configpath + "/" + configname + ".toml"); err != nil {
 			log.Fatal(err)
 		}
-		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := viper.ReadInConfig(); err != nil {
+		if err := targetConfig.ReadInConfig(); err != nil {
 			log.Fatal(err)
 		}
 	}
+	return targetConfig
 }
 
-// WriteWorkTreeConfig saves the .git/lab/[cmd]_string.toml metadata file
-func WriteWorkTreeConfig(cmd string) {
-	viper.WriteConfigAs(worktreepath + cmd + "_metadata.toml")
-}
-
-// FinishWorkTreeConfig closes the .git/lab/[cmd]_string.toml metadata file
-func FinishWorkTreeConfig() {
-	viper.Reset()
+// WriteConfigEntry writes a value specified by desc and value to the
+// configfile specified by configpath and configname.  If configpath and/or
+// configname are unspecified, the worktree defaults will be used.
+func WriteConfigEntry(desc string, value interface{}, configpath string, configname string) {
+	targetConfig := LoadConfig(configpath, configname)
+	targetConfig.Set(desc, value)
+	targetConfig.WriteConfig()
 }

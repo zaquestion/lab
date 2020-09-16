@@ -22,6 +22,7 @@ import (
 var (
 	mrShowPatch        bool
 	mrShowPatchReverse bool
+	mrShowConfig       *viper.Viper
 )
 
 var mrShowCmd = &cobra.Command{
@@ -41,7 +42,7 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		config.LoadWorkTreeConfig("show")
+		mrShowConfig = config.LoadConfig("", "show_metadata")
 
 		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
 		if err != nil {
@@ -71,7 +72,7 @@ var mrShowCmd = &cobra.Command{
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments == false {
-			showComments = viper.GetBool("comments")
+			showComments = mrShowConfig.GetBool("comments")
 		}
 		if showComments {
 			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
@@ -86,7 +87,6 @@ var mrShowCmd = &cobra.Command{
 
 			printMRDiscussions(discussions, since, int(mrNum))
 		}
-		config.FinishWorkTreeConfig()
 	},
 }
 
@@ -179,7 +179,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum in
 	)
 	CompareTime, err = dateparse.ParseLocal(since)
 	if err != nil || CompareTime.IsZero() {
-		CompareTime = viper.GetTime(mrEntry)
+		CompareTime = mrShowConfig.GetTime(mrEntry)
 		if CompareTime.IsZero() {
 			CompareTime = time.Now().UTC()
 		}
@@ -231,8 +231,7 @@ func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum in
 	}
 
 	if sinceIsSet == false {
-		viper.Set(mrEntry, NewAccessTime)
-		config.WriteWorkTreeConfig("show")
+		config.WriteConfigEntry("show."+mrEntry, NewAccessTime, "", "show_metadata")
 	}
 }
 
