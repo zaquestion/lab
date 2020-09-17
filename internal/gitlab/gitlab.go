@@ -253,6 +253,24 @@ func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, e
 	return mr.WebURL, nil
 }
 
+// MRCreateDiscussion creates a discussion on a merge request on GitLab
+func MRCreateDiscussion(project string, mrNum int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, mrNum, opts)
+	if err != nil {
+		return "", err
+	}
+
+	// Unlike MR, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	note := discussion.Notes[0]
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
 	p, err := FindProject(project)
