@@ -31,8 +31,6 @@ var mrShowCmd = &cobra.Command{
 	Long:       ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		setCommandPrefix()
-
 		rn, mrNum, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)

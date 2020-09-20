@@ -2,10 +2,11 @@
 package cmd
 
 import (
-	"path"
-	"runtime"
+	"log"
+	"strconv"
 	"strings"
 
+	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/internal/config"
 )
@@ -14,21 +15,52 @@ var (
 	CommandPrefix string
 )
 
+// flagConfig compares command line flags and the flags set in the config
+// files.  The command line value will always override any value set in the
+// config files.
+func flagConfig(fs *flag.FlagSet) {
+	fs.VisitAll(func(f *flag.Flag) {
+		var (
+			configValue  interface{}
+			configString string
+		)
+
+		switch f.Value.Type() {
+		case "bool":
+			configValue = getMainConfig().GetBool(CommandPrefix + f.Name)
+			configString = strconv.FormatBool(configValue.(bool))
+		case "string":
+			configValue = getMainConfig().GetString(CommandPrefix + f.Name)
+			configString = configValue.(string)
+		case "stringSlice":
+			configValue = getMainConfig().GetStringSlice(CommandPrefix + f.Name)
+			configString = strings.Join(configValue.([]string), " ")
+
+		case "int":
+			configValue = getMainConfig().GetInt64(CommandPrefix + f.Name)
+			configString = strconv.FormatInt(configValue.(int64), 10)
+		case "stringArray":
+			// viper does not have support for stringArray
+			configString = ""
+		default:
+			log.Fatal("ERROR: found unidentified flag: ", f.Value.Type(), f)
+		}
+
+		// if set, always use the command line option (flag) value
+		if f.Value.String() != f.DefValue {
+			return
+		}
+		// o/w use the value in the configfile
+		if configString != "" && configString != f.DefValue {
+			f.Value.Set(configString)
+		}
+	})
+}
+
 // getMainConfig returns the merged config of ~/.config/lab/lab.toml and
 // .git/lab/lab.toml
 func getMainConfig() *viper.Viper {
 	return config.MainConfig
-}
-
-// setCommandPrefix sets command name that is used in the config
-// files to set per-command options.  For example, the "lab issue show"
-// command has a prefix of "issue_show.", and "lab mr list" as a
-// prefix of "mr_list."
-func setCommandPrefix() {
-	_, file, _, _ := runtime.Caller(1)
-	_, filename := path.Split(file)
-	s := strings.Split(filename, ".")
-	CommandPrefix = s[0] + "."
 }
 
 // textToMarkdown converts text with markdown friendly line breaks

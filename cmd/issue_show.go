@@ -25,8 +25,6 @@ var issueShowCmd = &cobra.Command{
 	Long:       ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		setCommandPrefix()
-
 		rn, issueNum, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
