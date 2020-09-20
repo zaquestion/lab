@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/internal/config"
@@ -68,4 +69,8 @@ func getMainConfig() *viper.Viper {
 func textToMarkdown(text string) string {
 	text = strings.Replace(text, "\n", "  \n", -1)
 	return text
+}
+
+func LabPersistentPreRun(cmd *cobra.Command, args []string) {
+	flagConfig(cmd.Flags())
 }

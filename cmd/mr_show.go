@@ -24,11 +24,12 @@ var (
 )
 
 var mrShowCmd = &cobra.Command{
-	Use:        "show [remote] <id>",
-	Aliases:    []string{"get"},
-	ArgAliases: []string{"s"},
-	Short:      "Describe a merge request",
-	Long:       ``,
+	Use:              "show [remote] <id>",
+	Aliases:          []string{"get"},
+	ArgAliases:       []string{"s"},
+	Short:            "Describe a merge request",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		rn, mrNum, err := parseArgs(args)
@@ -68,9 +69,6 @@ var mrShowCmd = &cobra.Command{
 		}
 
 		showComments, _ := cmd.Flags().GetBool("comments")
-		if showComments == false {
-			showComments = getMainConfig().GetBool(CommandPrefix + "comments")
-		}
 		if showComments {
 			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
 			if err != nil {
