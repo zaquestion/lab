@@ -23,7 +23,8 @@ var ciStatusCmd = &cobra.Command{
 	Long:    ``,
 	Example: `lab ci status
 lab ci status --wait`,
-	RunE: nil,
+	RunE:             nil,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn  string

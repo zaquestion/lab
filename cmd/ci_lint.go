@@ -14,9 +14,10 @@ import (
 
 // ciLintCmd represents the lint command
 var ciLintCmd = &cobra.Command{
-	Use:   "lint",
-	Short: "Validate .gitlab-ci.yml against GitLab",
-	Long:  ``,
+	Use:              "lint",
+	Short:            "Validate .gitlab-ci.yml against GitLab",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		path := ".gitlab-ci.yml"
 		if len(args) == 1 {

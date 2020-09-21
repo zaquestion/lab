@@ -18,10 +18,11 @@ var snippetListConfig struct {
 
 // snippetListCmd represents the snippetList command
 var snippetListCmd = &cobra.Command{
-	Use:     "list [remote]",
-	Aliases: []string{"ls"},
-	Short:   "List personal or project snippets",
-	Long:    ``,
+	Use:              "list [remote]",
+	Aliases:          []string{"ls"},
+	Short:            "List personal or project snippets",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		snips, err := snippetList(args)
 		if err != nil {

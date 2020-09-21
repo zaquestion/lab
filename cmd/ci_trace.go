@@ -21,10 +21,11 @@ import (
 
 // ciLintCmd represents the lint command
 var ciTraceCmd = &cobra.Command{
-	Use:     "trace [remote [[branch:]job]]",
-	Aliases: []string{"logs"},
-	Short:   "Trace the output of a ci job",
-	Long:    `If a job is not specified the latest running job or last job in the pipeline is used`,
+	Use:              "trace [remote [[branch:]job]]",
+	Aliases:          []string{"logs"},
+	Short:            "Trace the output of a ci job",
+	Long:             `If a job is not specified the latest running job or last job in the pipeline is used`,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn      string

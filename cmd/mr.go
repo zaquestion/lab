@@ -6,9 +6,10 @@ import (
 
 // mrCmd represents the mr command
 var mrCmd = &cobra.Command{
-	Use:   "mr",
-	Short: `Describe, list, and create merge requests`,
-	Long:  ``,
+	Use:              "mr",
+	Short:            `Describe, list, and create merge requests`,
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			listCmd.Run(cmd, args)

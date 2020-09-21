@@ -8,10 +8,11 @@ import (
 
 // snippetCmd represents the snippet command
 var snippetCmd = &cobra.Command{
-	Use:     "snippet",
-	Aliases: []string{"snip"},
-	Short:   snippetCreateCmd.Short,
-	Long:    snippetCreateCmd.Long,
+	Use:              "snippet",
+	Aliases:          []string{"snip"},
+	Short:            snippetCreateCmd.Short,
+	Long:             snippetCreateCmd.Long,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			snippetListCmd.Run(cmd, args)

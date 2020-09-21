@@ -20,6 +20,7 @@ var cloneCmd = &cobra.Command{
 - repo
 - namespace/repo
 - namespace/group/repo`,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])
 		if err == gitlab.ErrProjectNotFound {

@@ -19,9 +19,10 @@ var projectListConfig struct {
 }
 
 var projectListCmd = &cobra.Command{
-	Use:     "list [search]",
-	Aliases: []string{"ls", "search"},
-	Short:   "List your projects",
+	Use:              "list [search]",
+	Aliases:          []string{"ls", "search"},
+	Short:            "List your projects",
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		search, _, err := parseArgsStr(args)
 		if err != nil {

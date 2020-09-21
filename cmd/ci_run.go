@@ -27,6 +27,7 @@ Project will be inferred from branch if not provided
 Note: "lab ci create" differs from "lab ci trigger" which is a different API`,
 	Example: `lab ci create feature_branch
 lab ci create -p engineering/integration_tests master`,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)
 		if err != nil {
@@ -55,6 +56,7 @@ Note: "lab ci trigger" differs from "lab ci create" which is a different API`,
 	Example: `lab ci trigger feature_branch
 lab ci trigger -p engineering/integration_tests master
 lab ci trigger -p engineering/integration_tests -v foo=bar master`,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)
 		if err != nil {

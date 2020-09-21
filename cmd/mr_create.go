@@ -24,12 +24,13 @@ import (
 
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
-	Use:     "create [remote [branch]]",
-	Aliases: []string{"new"},
-	Short:   "Open a merge request on GitLab",
-	Long:    `Creates a merge request (default: MR created on default branch of origin)`,
-	Args:    cobra.MaximumNArgs(2),
-	Run:     runMRCreate,
+	Use:              "create [remote [branch]]",
+	Aliases:          []string{"new"},
+	Short:            "Open a merge request on GitLab",
+	Long:             `Creates a merge request (default: MR created on default branch of origin)`,
+	Args:             cobra.MaximumNArgs(2),
+	PersistentPreRun: LabPersistentPreRun,
+	Run:              runMRCreate,
 }
 
 func init() {

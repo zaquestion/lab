@@ -5,9 +5,10 @@ import (
 )
 
 var labelCmd = &cobra.Command{
-	Use:   "label",
-	Short: `List and search labels`,
-	Long:  ``,
+	Use:              "label",
+	Short:            `List and search labels`,
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 		return
