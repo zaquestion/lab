@@ -87,13 +87,18 @@ See the [contribution guide](CONTRIBUTING.md).
 instance. There are several ways to provide this information to `lab`:
 
 1. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
+    - If these variables are set, the config files will not be updated.
 2. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`;
     - Note: these are meant for when `lab` is running within a GitLab CI pipeline
-3. directory-specific configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
+    - If these variables are set, the config files will not be updated.
+3. local configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
+    - No other config files will be used as overrides if a local configuration file is specified
 4. user-specific configuration file in TOML: `~/.config/lab/lab.toml`.
+5. work-tree configuration file in TOML: `.git/lab/lab.toml`.  The values in
+this file will override any values set in the user-specific configuration file.
 
-These are checked in order. If no suitable config values are found, `lab` will
-prompt for your GitLab information and save it into `~/.config/lab/lab.toml`.
+If no suitable config values are found, `lab` will prompt for your GitLab
+information and save it into `~/.config/lab/lab.toml`.
 For example:
 ```
 $ lab
@@ -101,10 +106,11 @@ Enter default GitLab host (default: https://gitlab.com):
 Enter default GitLab token:
 ```
 
-Additionally, there are command-specific configuration files in TOML: .git/lab/[command]-metadata.toml which provide users the ability to override some command line options:
+Command-specific flags can be set in the config files.
 
 ```
-comments = true # sets --comments on 'mr show' commands
+[mr_show]
+  comments = true # sets --comments on 'mr show' commands
 
 ```
 # Completions

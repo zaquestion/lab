@@ -16,6 +16,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -23,6 +24,10 @@ import (
 )
 
 const defaultGitLabHost = "https://gitlab.com"
+
+var (
+	MainConfig *viper.Viper
+)
 
 // New prompts the user for the default config values to use with lab, and save
 // them to the provided confpath (default: ~/.config/lab.hcl)
@@ -32,11 +37,13 @@ func New(confpath string, r io.Reader) error {
 		host, token, loadToken string
 		err                    error
 	)
+
+	confpath = path.Join(confpath, "lab.toml")
 	// If core host is set in the environment (LAB_CORE_HOST) we only want
 	// to prompt for the token. We'll use the environments host and place
 	// it in the config. In the event both the host and token are in the
 	// env, this function shouldn't be called in the first place
-	if viper.GetString("core.host") == "" {
+	if MainConfig.GetString("core.host") == "" {
 		fmt.Printf("Enter GitLab host (default: %s): ", defaultGitLabHost)
 		host, err = reader.ReadString('\n')
 		host = strings.TrimSpace(host)
@@ -48,25 +55,29 @@ func New(confpath string, r io.Reader) error {
 		}
 	} else {
 		// Required to correctly write config
-		host = viper.GetString("core.host")
+		host = MainConfig.GetString("core.host")
 	}
 
-	viper.Set("core.host", host)
+	MainConfig.Set("core.host", host)
 
 	token, loadToken, err = readPassword(*reader)
 	if err != nil {
 		return err
 	}
 	if token != "" {
-		viper.Set("core.token", token)
+		MainConfig.Set("core.token", token)
 	} else if loadToken != "" {
-		viper.Set("core.load_token", loadToken)
+		MainConfig.Set("core.load_token", loadToken)
 	}
 
-	if err := viper.WriteConfigAs(confpath); err != nil {
+	if err := MainConfig.WriteConfigAs(confpath); err != nil {
 		return err
 	}
 	fmt.Printf("\nConfig saved to %s\n", confpath)
+	err = MainConfig.ReadInConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
 
@@ -128,13 +139,13 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 	}
 
 	// read in the old config HCL file and write out the new TOML file
-	viper.Reset()
-	viper.SetConfigName("lab")
-	viper.SetConfigType("hcl")
-	viper.AddConfigPath(oldpath)
-	viper.ReadInConfig()
-	viper.SetConfigType("toml")
-	viper.WriteConfigAs(newconfig)
+	oldConfig := viper.New()
+	oldConfig.SetConfigName("lab")
+	oldConfig.SetConfigType("hcl")
+	oldConfig.AddConfigPath(oldpath)
+	oldConfig.ReadInConfig()
+	oldConfig.SetConfigType("toml")
+	oldConfig.WriteConfigAs(newconfig)
 
 	// delete the old config HCL file
 	if err := os.Remove(oldconfig); err != nil {
@@ -165,6 +176,11 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 }
 
 func getUser(host, token string, skipVerify bool) string {
+	user := MainConfig.GetString("core.user")
+	if user != "" {
+		return user
+	}
+
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -177,6 +193,12 @@ func getUser(host, token string, skipVerify bool) string {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
+		MainConfig.Set("core.user", u.Username)
+		MainConfig.WriteConfig()
+	}
+
 	return u.Username
 }
 
@@ -184,10 +206,10 @@ func getUser(host, token string, skipVerify bool) string {
 // The token string can be cleartext or returned from a password manager or
 // encryption utility.
 func GetToken() string {
-	token := viper.GetString("core.token")
-	if token == "" && viper.GetString("core.load_token") != "" {
+	token := MainConfig.GetString("core.token")
+	if token == "" && MainConfig.GetString("core.load_token") != "" {
 		// args[0] isn't really an arg ;)
-		args := strings.Split(viper.GetString("core.load_token"), " ")
+		args := strings.Split(MainConfig.GetString("core.load_token"), " ")
 		_token, err := exec.Command(args[0], args[1:]...).Output()
 		if err != nil {
 			log.Fatal(err)
@@ -202,9 +224,20 @@ func GetToken() string {
 	return token
 }
 
-// LoadConfig() loads the main config file and returns a tuple of
+// LoadMainConfig() loads the main config file and returns a tuple of
 //  host, user, token, ca_file, skipVerify
-func LoadConfig() (string, string, string, string, bool) {
+func LoadMainConfig() (string, string, string, string, bool) {
+	// The lab config heirarchy is:
+	//	1. ENV variables (LAB_CORE_TOKEN, LAB_CORE_HOST)
+	//		- if specified, core.token and core.host values in
+	//		  config files are not updated.
+	//	2. "dot" . user specified config
+	//		- if specified, lower order config files will not override
+	//		  the user specified config
+	//	3.  .config/lab/lab.toml (global config)
+	//	4.  .git/lab/lab/toml (worktree config)
+	//
+	// Values from the worktree config will override any global config settings.
 
 	// Attempt to auto-configure for GitLab CI.
 	// Always do this before reading in the config file o/w CI will end up
@@ -241,81 +274,88 @@ func LoadConfig() (string, string, string, string, bool) {
 		ConvertHCLtoTOML(labgitDir, labgitDir, "show_metadata")
 	}
 
-	viper.SetConfigName("lab")
-	viper.SetConfigType("toml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath(labconfpath)
+	MainConfig = viper.New()
+	MainConfig.SetConfigName("lab")
+	MainConfig.SetConfigType("toml")
+	// The local path (aka 'dot slash') does not allow for any
+	// overrides from the work tree lab.toml
+	MainConfig.AddConfigPath(".")
+	MainConfig.AddConfigPath(labconfpath)
 	if labgitDir != "" {
-		viper.AddConfigPath(labgitDir)
+		MainConfig.AddConfigPath(labgitDir)
 	}
 
-	viper.SetEnvPrefix("LAB")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
+	MainConfig.SetEnvPrefix("LAB")
+	MainConfig.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	MainConfig.AutomaticEnv()
 
-	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		err := New(path.Join(labconfpath, "lab.toml"), os.Stdin)
+	if _, ok := MainConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		// Create a new config
+		err := New(labconfpath, os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		err = viper.ReadInConfig()
-		if err != nil {
-			log.Fatal(err)
+	} else {
+		// Config already exists.  Merge in .git/lab/lab.toml file
+		_, err := os.Stat(labgitDir + "/lab.toml")
+		if MainConfig.ConfigFileUsed() == labconfpath+"/lab.toml" && !os.IsNotExist(err) {
+			file, err := afero.ReadFile(afero.NewOsFs(), labgitDir+"/lab.toml")
+			if err != nil {
+				log.Fatal(err)
+			}
+			MainConfig.MergeConfig(bytes.NewReader(file))
 		}
 	}
 
-	host = viper.GetString("core.host")
-	user = viper.GetString("core.user")
+	host = MainConfig.GetString("core.host")
 	token = GetToken()
-	tlsSkipVerify := viper.GetBool("tls.skip_verify")
-	ca_file := viper.GetString("tls.ca_file")
-
-	if user == "" {
-		user = getUser(host, token, tlsSkipVerify)
-		if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
-			viper.Set("core.user", user)
-			viper.WriteConfig()
-		}
-	}
+	ca_file := MainConfig.GetString("tls.ca_file")
+	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
+	user = getUser(host, token, tlsSkipVerify)
 
 	return host, user, token, ca_file, tlsSkipVerify
 }
 
-// default path for work tree config file
-var worktreepath = ".git/lab/"
+// default path of worktree lab.toml file
+var (
+	WorkTreePath string = ".git/lab"
+	WorkTreeName string = "lab"
+)
 
-// LoadWorkTreeConfig opens and reads the .git/lab/[cmd]_string.toml
-// metadata file
-func LoadWorkTreeConfig(cmd string) {
-	viper.Reset()
-	viper.AddConfigPath(worktreepath)
-	viper.SetConfigName(cmd + "_metadata")
-	viper.SetConfigType("toml")
+// LoadConfig loads a config file specified by configpath and configname.
+// The configname must not have a '.toml' extension.  If configpath and/or
+// configname are unspecified, the worktree defaults will be used.
+func LoadConfig(configpath string, configname string) *viper.Viper {
+	targetConfig := viper.New()
+	targetConfig.SetConfigType("toml")
 
-	if _, ok := viper.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
-		if _, err := os.Stat(worktreepath); os.IsNotExist(err) {
-			os.MkdirAll(worktreepath, os.ModePerm)
+	if configpath == "" {
+		configpath = WorkTreePath
+	}
+	if configname == "" {
+		configname = WorkTreeName
+	}
+	targetConfig.AddConfigPath(configpath)
+	targetConfig.SetConfigName(configname)
+	if _, ok := targetConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
+		if _, err := os.Stat(configpath); os.IsNotExist(err) {
+			os.MkdirAll(configpath, os.ModePerm)
 		}
-		if err := viper.WriteConfigAs(worktreepath + cmd + "_metadata.toml"); err != nil {
+		if err := targetConfig.WriteConfigAs(configpath + "/" + configname + ".toml"); err != nil {
 			log.Fatal(err)
 		}
-		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := viper.ReadInConfig(); err != nil {
+		if err := targetConfig.ReadInConfig(); err != nil {
 			log.Fatal(err)
 		}
 	}
+	return targetConfig
 }
 
-// WriteWorkTreeConfig saves the .git/lab/[cmd]_string.toml metadata file
-func WriteWorkTreeConfig(cmd string) {
-	viper.WriteConfigAs(worktreepath + cmd + "_metadata.toml")
-}
-
-// FinishWorkTreeConfig closes the .git/lab/[cmd]_string.toml metadata file
-func FinishWorkTreeConfig() {
-	viper.Reset()
+// WriteConfigEntry writes a value specified by desc and value to the
+// configfile specified by configpath and configname.  If configpath and/or
+// configname are unspecified, the worktree defaults will be used.
+func WriteConfigEntry(desc string, value interface{}, configpath string, configname string) {
+	targetConfig := LoadConfig(configpath, configname)
+	targetConfig.Set(desc, value)
+	targetConfig.WriteConfig()
 }
