@@ -164,7 +164,7 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (st
 	title, body := issue.Title, issue.Description
 
 	// get all of the "message" flags
-	msgs, err := flags.GetStringSlice("message")
+	msgs, err := flags.GetStringArray("message")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -278,7 +278,7 @@ func same(a, b []string) bool {
 
 // issueEditCmdAddFlags adds various flags to the `lab issue edit` command
 func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
-	flags.StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	flags.StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
 	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
 	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")

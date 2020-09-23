@@ -25,7 +25,7 @@ var issueCreateCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		msgs, err := cmd.Flags().GetStringSlice("message")
+		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -139,7 +139,7 @@ func issueText(templateName string) (string, error) {
 }
 
 func init() {
-	issueCreateCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueCreateCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "Set assignees by username")
 	issueCreateCmd.Flags().StringP("template", "t", "default", "use the given issue template")
