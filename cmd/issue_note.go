@@ -3,7 +3,9 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -17,49 +19,92 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-var issueCreateNoteCmd = &cobra.Command{
+var issueNoteCmd = &cobra.Command{
 	Use:              "note [remote] <id>",
 	Aliases:          []string{"comment"},
 	Short:            "Add a note or comment to an issue on GitLab",
 	Long:             ``,
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
-	Run: func(cmd *cobra.Command, args []string) {
-		rn, issueNum, err := parseArgs(args)
+	Run:              NoteRunFn,
+}
+
+func NoteRunFn(cmd *cobra.Command, args []string) {
+	rn, idNum, err := parseArgs(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	msgs, err := cmd.Flags().GetStringArray("message")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	filename, err := cmd.Flags().GetString("file")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	linebreak, err := cmd.Flags().GetBool("force-linebreak")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	CreateNote(os.Args, rn, int(idNum), msgs, filename, linebreak)
+}
+
+var is_mr bool = false
+
+func CreateNote(args []string, rn string, idNum int, msgs []string, filename string, linebreak bool) {
+
+	var err error
+
+	if args[1] == "mr" {
+		is_mr = true
+	}
+
+	body := ""
+	if filename != "" {
+		content, err := ioutil.ReadFile(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		msgs, err := cmd.Flags().GetStringArray("message")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		body, err := noteMsg(msgs)
+		body = string(content)
+	} else {
+		body, err = noteMsg(msgs)
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 		}
-		if body == "" {
-			log.Fatal("aborting note due to empty note msg")
-		}
+	}
 
-		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
-		if linebreak {
-			body = textToMarkdown(body)
-		}
+	if body == "" {
+		log.Fatal("aborting note due to empty note msg")
+	}
 
-		noteURL, err := lab.IssueCreateNote(rn, int(issueNum), &gitlab.CreateIssueNoteOptions{
+	if linebreak {
+		body = textToMarkdown(body)
+	}
+
+	var (
+		noteURL string
+	)
+
+	if is_mr {
+		noteURL, err = lab.MRCreateNote(rn, idNum, &gitlab.CreateMergeRequestNoteOptions{
 			Body: &body,
 		})
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(noteURL)
-	},
+	} else {
+		noteURL, err = lab.IssueCreateNote(rn, idNum, &gitlab.CreateIssueNoteOptions{
+			Body: &body,
+		})
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(noteURL)
 }
 
-//
 func noteMsg(msgs []string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
@@ -68,6 +113,10 @@ func noteMsg(msgs []string) (string, error) {
 	text, err := noteText()
 	if err != nil {
 		return "", err
+	}
+
+	if is_mr {
+		return git.EditFile("MR_NOTE", text)
 	}
 	return git.EditFile("ISSUE_NOTE", text)
 }
@@ -102,11 +151,11 @@ func noteText() (string, error) {
 }
 
 func init() {
-	issueCreateNoteCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	issueCreateNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-
-	issueCmd.AddCommand(issueCreateNoteCmd)
-	carapace.Gen(issueCreateCmd).PositionalCompletion(
+	issueNoteCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueNoteCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
+	issueNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	issueCmd.AddCommand(issueNoteCmd)
+	carapace.Gen(issueNoteCmd).PositionalCompletion(
 		action.Remotes(),
 		action.Issues(issueList),
 	)
