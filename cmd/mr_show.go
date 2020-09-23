@@ -4,16 +4,12 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
-	"github.com/araddon/dateparse"
 	"github.com/charmbracelet/glamour"
-	"github.com/fatih/color"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
-	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
@@ -80,7 +76,7 @@ var mrShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printMRDiscussions(discussions, since, int(mrNum))
+			PrintDiscussions(discussions, since, "mr", int(mrNum))
 		}
 	},
 }
@@ -160,74 +156,6 @@ WebURL: %s
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
 		mr.TargetBranch, state, assignee,
 		mr.Author.Username, milestone, labels, mr.WebURL)
-}
-
-func printMRDiscussions(discussions []*gitlab.Discussion, since string, mrNum int) {
-	NewAccessTime := time.Now().UTC()
-
-	mrEntry := fmt.Sprintf("mr%d", mrNum)
-	// if specified on command line use that, o/w use config, o/w Now
-	var (
-		CompareTime time.Time
-		err         error
-		sinceIsSet  = true
-	)
-	CompareTime, err = dateparse.ParseLocal(since)
-	if err != nil || CompareTime.IsZero() {
-		CompareTime = getMainConfig().GetTime(CommandPrefix + mrEntry)
-		if CompareTime.IsZero() {
-			CompareTime = time.Now().UTC()
-		}
-		sinceIsSet = false
-	}
-
-	// for available fields, see
-	// https://godoc.org/github.com/xanzy/go-gitlab#Note
-	// https://godoc.org/github.com/xanzy/go-gitlab#Discussion
-	for _, discussion := range discussions {
-		for i, note := range discussion.Notes {
-
-			// skip system notes
-			if note.System {
-				continue
-			}
-
-			indentHeader, indentNote := "", ""
-			commented := "commented"
-			if !time.Time(*note.CreatedAt).Equal(time.Time(*note.UpdatedAt)) {
-				commented = "updated comment"
-			}
-
-			if !discussion.IndividualNote {
-				indentNote = "    "
-
-				if i == 0 {
-					commented = "started a discussion"
-				} else {
-					indentHeader = "    "
-				}
-			}
-
-			printit := color.New().PrintfFunc()
-			printit(`
-%s-----------------------------------`, indentHeader)
-
-			if time.Time(*note.UpdatedAt).After(CompareTime) {
-				printit = color.New(color.Bold).PrintfFunc()
-			}
-			printit(`
-%s%s %s at %s
-
-%s%s
-`,
-				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
-				indentNote, note.Body)
-		}
-	}
-
-	if sinceIsSet == false {
-		config.WriteConfigEntry(CommandPrefix+mrEntry, NewAccessTime, "", "")
-	}
 }
 
 func init() {

@@ -56,7 +56,7 @@ var issueShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(discussions, since, int(issueNum))
+			PrintDiscussions(discussions, since, "issues", int(issueNum))
 		}
 	},
 }
@@ -118,10 +118,10 @@ WebURL: %s
 	)
 }
 
-func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum int) {
+func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr string, idNum int) {
 	NewAccessTime := time.Now().UTC()
 
-	issueEntry := fmt.Sprintf("issue%d", issueNum)
+	issueEntry := fmt.Sprintf("%s%d", idstr, idNum)
 	// if specified on command line use that, o/w use config, o/w Now
 	var (
 		CompareTime time.Time
