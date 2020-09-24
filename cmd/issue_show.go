@@ -171,11 +171,11 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				printit = color.New(color.Bold).PrintfFunc()
 			}
 			printit(`
-%s%s %s at %s
+%s#%d: %s %s at %s
 
 %s%s
 `,
-				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
+				indentHeader, note.ID, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
 				indentNote, note.Body)
 		}
 	}

@@ -91,7 +91,7 @@ func Test_mrNoteMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			body, err := noteMsg(test.Msgs)
+			body, err := noteMsg(test.Msgs, true)
 			if err != nil {
 				t.Fatal(err)
 			}
