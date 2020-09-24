@@ -70,7 +70,11 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 	}
 
 	if reply != 0 {
-		ReplyNote(rn, isMR, int(idNum), reply, filename, linebreak)
+		quote, err := cmd.Flags().GetBool("quote")
+		if err != nil {
+			log.Fatal(err)
+		}
+		ReplyNote(rn, isMR, int(idNum), reply, quote, filename, linebreak)
 		return
 	}
 
@@ -89,7 +93,7 @@ func CreateNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 		}
 		body = string(content)
 	} else {
-		body, err = noteMsg(msgs, isMR)
+		body, err = noteMsg(msgs, isMR, "\n")
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -123,12 +127,12 @@ func CreateNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 	fmt.Println(noteURL)
 }
 
-func noteMsg(msgs []string, isMR bool) (string, error) {
+func noteMsg(msgs []string, isMR bool, body string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
 
-	text, err := noteText()
+	text, err := noteText(body)
 	if err != nil {
 		return "", err
 	}
@@ -139,11 +143,11 @@ func noteMsg(msgs []string, isMR bool) (string, error) {
 	return git.EditFile("ISSUE_NOTE", text)
 }
 
-func noteText() (string, error) {
+func noteText(body string) (string, error) {
 	const tmpl = `{{.InitMsg}}
 {{.CommentChar}} Write a message for this note. Commented lines are discarded.`
 
-	initMsg := "\n"
+	initMsg := body
 	commentChar := git.CommentChar()
 
 	t, err := template.New("tmpl").Parse(tmpl)
@@ -168,7 +172,7 @@ func noteText() (string, error) {
 	return b.String(), nil
 }
 
-func ReplyNote(rn string, isMR bool, idNum int, reply int, filename string, linebreak bool) {
+func ReplyNote(rn string, isMR bool, idNum int, reply int, quote bool, filename string, linebreak bool) {
 
 	var (
 		discussions []*gitlab.Discussion
@@ -203,7 +207,13 @@ func ReplyNote(rn string, isMR bool, idNum int, reply int, filename string, line
 				}
 				body = string(content)
 			} else {
-				body, err = noteMsg([]string{}, isMR)
+				noteBody := ""
+				if quote {
+					noteBody = note.Body
+					noteBody = strings.Replace(noteBody, "\n", "\n>", -1)
+					noteBody = ">" + noteBody + "\n"
+				}
+				body, err = noteMsg([]string{}, isMR, noteBody)
 				if err != nil {
 					_, f, l, _ := runtime.Caller(0)
 					log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -241,6 +251,7 @@ func init() {
 	issueNoteCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueNoteCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
 	issueNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	issueNoteCmd.Flags().Bool("quote", false, "Quote note in reply (used with --reply only)")
 
 	issueCmd.AddCommand(issueNoteCmd)
 	carapace.Gen(issueNoteCmd).PositionalCompletion(
