@@ -61,6 +61,7 @@ changelog:
     # Default is empty
     exclude:
       - '^\(docs\)'
+      - '^\(gitlab-ci\)'
       - '^\(travis\)'
       - '^\(coverage\)'
       - '^\(tests?'

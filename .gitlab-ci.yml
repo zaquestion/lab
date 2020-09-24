@@ -1,0 +1,73 @@
+workflow:
+  rules:
+    # For merge requests, create a pipeline.
+    - if: '$CI_MERGE_REQUEST_IID'
+    # For `master` branch, create a pipeline (this includes on schedules, pushes, merges, etc.).
+    # - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    # Temporarly create Ci for every branch:
+    - if: '$CI_COMMIT_BRANCH'
+    # For tags, create a pipeline.
+    - if: '$CI_COMMIT_TAG'
+    # For stable branches, create a pipeline.
+    - if: '$CI_COMMIT_BRANCH =~ /^[\d-]+-stable$/'
+    #
+
+stages:
+  - test
+
+default:
+  image: golang:1.15
+  tags:
+    - gitlab-org
+
+# Disable DIND for SAST because we need to execute a before_script in the gosec-sast job
+variables:
+  SAST_DISABLE_DIND: "true"
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+gosec-sast:
+  before_script:
+    - apk add make
+    - make install
+
+code_navigation:
+  image: golang:latest
+  allow_failure: true
+  script:
+    - go get github.com/sourcegraph/lsif-go/cmd/lsif-go
+    - lsif-go
+  artifacts:
+    reports:
+      lsif: dump.lsif
+
+.test:
+  # We limit concurrency because the integration tests execute _real_ actions in GitLab
+  # By limiting the resource group we can ensure that only one test is run in parallel
+  resource_group: test
+  variables:
+    GOPATH: "/builds/go"
+    GIT_CLONE_PATH: $GOPATH/src/github.com/zaquestion/lab
+    LAB_CORE_HOST: "https://gitlab.com"
+    LAB_CORE_USER: "lab-testing"
+    LAB_CORE_TOKEN: "uDz6czYV412zK-xC5mUu"
+  before_script:
+    # Add a non-sensitive ssh key to allow lab to function.
+    - mkdir ~/.ssh && chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - echo -e "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkTcgXnHuqR0gbwegnr9Zxz4hTkjjV/SpgJNPJz7mo/HKNbx0rqjj1P0yGR053R9GSFFim2ut4NK9DPPUkQdyucw+DoLkYRHJmlJ4BNa9NTCD0sl+eSXO2969kZojCYSOgbmkCJx8mdgTwhzdgE/jhBrsY0hPE6pRTlU+H68/zeNdJUAIJf0LLXOm3hpTKLA19VICltl/j9VvBJpgRHdBylXEyL8HokYpjkQQk1ZXj3m7Nlo8yDdg4VcljOJWC+Xh8kxRMfK5x/VRVsYKCQXN5QlzKeqf7USRDUS/7mFoPUBW+d4kwKtGxRsWuIL2yeqzifZUTOgsh9+ZWAWxWffQZ your_email@example.com" > ~/.ssh/id_rsa.pub
+    - echo -e "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA5E3IF5x7qkdIG8HoJ6/Wcc+IU5I41f0qYCTTyc+5qPxyjW8d\nK6o49T9MhkdOd0fRkhRYptrreDSvQzz1JEHcrnMPg6C5GERyZpSeATWvTUwg9LJf\nnklztvevZGaIwmEjoG5pAicfJnYE8Ic3YBP44Qa7GNITxOqUU5VPh+vP83jXSVAC\nCX9Cy1zpt4aUyiwNfVSApbZf4/VbwSaYER3QcpVxMi/B6JGKY5EEJNWV495uzZaP\nMg3YOFXJYziVgvl4fJMUTHyucf1UVbGCgkFzeUJcynqn+1EkQ1Ev+5haD1AVvneJ\nMCrRsUbFriC9snqs4n2VEzoLIffmVgFsVn30GQIDAQABAoIBAQDPQm2sQbti0mN8\nD4Uawl8D40v30n8WhUa7EbPTOmlqKAQ2sfDhex9KRbTLEmEBmImA/Eee8o9iCTIy\n8Fv8Fm6pUHt9G6Pti/XvemwW3Q3QNpSUkHqN0FDkgecQVqVBEb6uHo3mDm4RFINX\neOmkp30BjIK9/blEw1D0sFALLOEUPaDdPMwiXtFgqfrFSgpDET3TvQIwZ2LxxTm0\ncNmP3sCSlZHJNkZI4hBEWaaXR+V5/+C1qblDCo5blAWTcX3UzqrwUUJgFi6VnBuh\n7S9Q6+CEIU+4JRyWQNmY8YgZFaAp6IOr/kyfPxTP1+UEVVgcLn3WDYwfG9og0tmz\nfzlruAgBAoGBAPfz73Pey86tNZEanhJhbX8gVjzy2hvyhT0paHg0q/H6c1VWOtUH\nOwZ3Ns2xAZqJhlDqCHnQYSCZDly042U/theP4N8zo1APb4Yg4qdmXF9QE1+2M03r\nkS6138gU/CSCLf8pCYa6pA/GmsaXxloeJGLvT4fzOZRsVav80/92XHRhAoGBAOu2\nmKh4Gr1EjgN9QNbk9cQTSFDtlBEqO/0pTepvL73UvNp/BAn4iYZFU4WnklFVBSWc\nL84Sc732xU12TAbTTUsa6E7W29pS8u7zVTxlIdQIIU5pzDyU1pNNk2kpxzte5p3Y\nPDtniPFsoYLWoH0LpsKL93t2pLAj+IOkE6f3XBq5AoGAIKaYo5N1FxQr952frx/x\nQUpK0N/R5Ng8v18SiLG26rhmM5iVSrQXC7TrHI7wfR8a9tC6qP/NqnM9NuwC/bQ0\nEEo7/GhaWxKNRwZRkmWiSFLNGk9t1hbtGU+N1lUdFtmloPIQdRNiw0kN3JTj474Q\nYI7O1EItFORnK6yxZfR6HEECgYEA1CT7MGUoa8APsMRCXyaiq15Pb8bjxK8mXquW\nHLEFXuzhLCW1FORDoj0y9s/iuKC0iS0ROX8R/J7k5NrbgikbH8WP36UxKkYNr1IC\nHOFImPTYRSKjVsL+fIUNb1DSp3S6SsYbL7v3XJJQqtlQiDq8U8x1aQFXJ9C4EoLR\nzhKrKsECgYBtU/TSF/TATZY5XtrN9O+HX1Fbz70Ci8XgvioheVI2fezOcXPRzDcC\nOYPaCMNKA5E8gHdg4s0TN7uDvKTJ+KhSg2V7gZ39A28dHrJaRX7Nz4k6t2uEBjX9\na1JidpAIbJ+3w7+hj6L299tVZvS+Y/6Dz/uuEQGXfJg/l/5CCvQPsA==\n-----END RSA PRIVATE KEY-----" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa*
+    - eval `ssh-agent -s`
+    - ssh-add ~/.ssh/id_rsa
+  script:
+    - go version
+    - export PATH=$GOPATH/bin:$PATH
+    - make test
+
+test:
+  stage: test
+  extends: .test
+  image: golang:1.15
