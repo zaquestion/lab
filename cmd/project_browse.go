@@ -8,10 +8,11 @@ import (
 )
 
 var projectBrowseCmd = &cobra.Command{
-	Use:     "browse [remote]",
-	Aliases: []string{"b"},
-	Short:   "View project in a browser",
-	Long:    ``,
+	Use:              "browse [remote]",
+	Aliases:          []string{"b"},
+	Short:            "View project in a browser",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, _, err := parseArgs(args)
 

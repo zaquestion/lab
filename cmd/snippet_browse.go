@@ -13,9 +13,10 @@ import (
 )
 
 var snippetBrowseCmd = &cobra.Command{
-	Use:   "browse [remote] <id>",
-	Short: "View personal or project snippet in a browser",
-	Long:  ``,
+	Use:              "browse [remote] <id>",
+	Short:            "View personal or project snippet in a browser",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgs(args)
 		if err != nil {

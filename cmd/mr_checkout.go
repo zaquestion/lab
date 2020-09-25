@@ -25,10 +25,11 @@ var (
 
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout <id>",
-	Short: "Checkout an open merge request",
-	Long:  ``,
-	Args:  cobra.MinimumNArgs(1),
+	Use:              "checkout <id>",
+	Short:            "Checkout an open merge request",
+	Long:             ``,
+	Args:             cobra.MinimumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrID, err := parseArgs(args)
 		if err != nil {

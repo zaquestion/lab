@@ -19,11 +19,12 @@ import (
 )
 
 var mrCreateNoteCmd = &cobra.Command{
-	Use:     "note [remote] <id>",
-	Aliases: []string{"comment"},
-	Short:   "Add a note or comment to an MR on GitLab",
-	Long:    ``,
-	Args:    cobra.MinimumNArgs(1),
+	Use:              "note [remote] <id>",
+	Aliases:          []string{"comment"},
+	Short:            "Add a note or comment to an MR on GitLab",
+	Long:             ``,
+	Args:             cobra.MinimumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgs(args)
 		if err != nil {

@@ -10,10 +10,11 @@ import (
 )
 
 var mrRebaseCmd = &cobra.Command{
-	Use:     "rebase [remote] <id>",
-	Aliases: []string{"delete"},
-	Short:   "Rebase an open merge request",
-	Args:    cobra.MinimumNArgs(1),
+	Use:              "rebase [remote] <id>",
+	Aliases:          []string{"delete"},
+	Short:            "Rebase an open merge request",
+	Args:             cobra.MinimumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgs(args)
 		if err != nil {

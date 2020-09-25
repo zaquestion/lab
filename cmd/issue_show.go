@@ -18,14 +18,13 @@ import (
 )
 
 var issueShowCmd = &cobra.Command{
-	Use:        "show [remote] <id>",
-	Aliases:    []string{"get"},
-	ArgAliases: []string{"s"},
-	Short:      "Describe an issue",
-	Long:       ``,
+	Use:              "show [remote] <id>",
+	Aliases:          []string{"get"},
+	ArgAliases:       []string{"s"},
+	Short:            "Describe an issue",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		setCommandPrefix()
 
 		rn, issueNum, err := parseArgs(args)
 		if err != nil {
@@ -46,9 +45,6 @@ var issueShowCmd = &cobra.Command{
 		printIssue(issue, rn, renderMarkdown)
 
 		showComments, _ := cmd.Flags().GetBool("comments")
-		if showComments == false {
-			showComments = getMainConfig().GetBool(CommandPrefix + "comments")
-		}
 		if showComments {
 			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
 			if err != nil {

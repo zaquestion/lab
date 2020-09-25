@@ -19,11 +19,12 @@ import (
 )
 
 var issueCreateCmd = &cobra.Command{
-	Use:     "create [remote]",
-	Aliases: []string{"new"},
-	Short:   "Open an issue on GitLab",
-	Long:    ``,
-	Args:    cobra.MaximumNArgs(1),
+	Use:              "create [remote]",
+	Aliases:          []string{"new"},
+	Short:            "Open an issue on GitLab",
+	Long:             ``,
+	Args:             cobra.MaximumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {

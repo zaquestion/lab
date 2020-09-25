@@ -11,11 +11,12 @@ import (
 )
 
 var mrApproveCmd = &cobra.Command{
-	Use:     "approve [remote] <id>",
-	Aliases: []string{},
-	Short:   "Approve merge request",
-	Long:    ``,
-	Args:    cobra.MinimumNArgs(1),
+	Use:              "approve [remote] <id>",
+	Aliases:          []string{},
+	Short:            "Approve merge request",
+	Long:             ``,
+	Args:             cobra.MinimumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgs(args)
 		if err != nil {

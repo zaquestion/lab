@@ -28,7 +28,8 @@ lab issue update <id>                              # same as above
 lab issue edit <id> -m "new title"                 # update title
 lab issue edit <id> -m "new title" -m "new desc"   # update title & description
 lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
-	Args: cobra.MinimumNArgs(1),
+	Args:             cobra.MinimumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		// get remote and issue from cmd arguments
 		rn, issueNum, err := parseArgs(args)

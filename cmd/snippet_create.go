@@ -34,6 +34,7 @@ var snippetCreateCmd = &cobra.Command{
 	Long: `
 Source snippets from stdin, file, or in editor from scratch
 Optionally add a title & description with -m`,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {

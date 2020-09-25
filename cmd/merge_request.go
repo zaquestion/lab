@@ -7,10 +7,11 @@ import (
 )
 
 var mergeRequestCmd = &cobra.Command{
-	Use:   "merge-request [remote [branch]]",
-	Short: mrCreateCmd.Short,
-	Long:  mrCreateCmd.Long,
-	Args:  mrCreateCmd.Args,
+	Use:              "merge-request [remote [branch]]",
+	Short:            mrCreateCmd.Short,
+	Long:             mrCreateCmd.Long,
+	Args:             mrCreateCmd.Args,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		runMRCreate(cmd, args)
 	},

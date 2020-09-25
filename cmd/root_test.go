@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/acarl005/stripansi"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -510,4 +511,188 @@ func getAppOutput(output []byte) []string {
 		}
 	}
 	return lines
+}
+
+func setConfigValues(repo string, configVal string, gitVal string) {
+	err := os.Rename(repo+"/lab.toml", "/home/travis/.config/lab/lab.toml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configfile, err := os.OpenFile("/home/travis/.config/lab/lab.toml", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := configfile.WriteString("\n[mr_show]\n  comments = " + configVal + "\n"); err != nil {
+		log.Fatal(err)
+	}
+	configfile.Close()
+
+	err = os.Mkdir(repo+"/.git/lab/", 0700)
+	if err != nil {
+		log.Fatal(err)
+	}
+	gitfile, err := os.OpenFile(repo+"/.git/lab/lab.toml", os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err = gitfile.WriteString("\n[mr_show]\n  comments = " + gitVal + "\n"); err != nil {
+		log.Fatal(err)
+	}
+	gitfile.Close()
+}
+
+// There isn't a really good way to test the config override
+// infrastruture, so just call 'mr show' and set 'mr_show.comments'
+func Test_config_gitConfig_FF(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	setConfigValues(repo, "false", "false")
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// both configs set to false, comments should not be output
+	require.NotContains(t, string(b), `commented at`)
+}
+
+func Test_config_gitConfig_FT(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	setConfigValues(repo, "false", "true")
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// .config set to false and .git set to true, comments should be
+	// output
+	require.Contains(t, string(b), `commented at`)
+}
+
+func Test_config_gitConfig_TF(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	setConfigValues(repo, "true", "false")
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// .config set to true and .git set to false, comments should not be
+	// output
+	require.NotContains(t, string(b), `commented at`)
+}
+
+func Test_config_gitConfig_TT(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	setConfigValues(repo, "true", "true")
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// both configs set to true, comments should be output
+	require.Contains(t, string(b), `commented at`)
+}
+
+// Some flag and config tests do not have to be run.
+// flag not set, config true == comments
+//   This case is handled by Test_config_gitConfig_TT
+// flag not set, config false == no comments
+//   This case is handled by Test_config_gitConfig_FF
+// flag not set, config not set == no comments
+// flag set, config not set == comments
+//   These case are handled in cmd/mr_show_test.go
+
+// flag set, config true == comments
+func Test_flag_config_TT(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	setConfigValues(repo, "true", "true")
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// both configs set to true, comments should be output
+	require.Contains(t, string(b), `commented at`)
+}
+
+// flag set, config false == comments
+func Test_flag_config_TF(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	setConfigValues(repo, "false", "false")
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// both configs set to true, comments should be output
+	require.Contains(t, string(b), `commented at`)
 }

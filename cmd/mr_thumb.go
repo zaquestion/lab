@@ -11,17 +11,19 @@ import (
 )
 
 var mrThumbCmd = &cobra.Command{
-	Use:     "thumb",
-	Aliases: []string{},
-	Short:   "Thumb operations on merge requests",
-	Long:    ``,
+	Use:              "thumb",
+	Aliases:          []string{},
+	Short:            "Thumb operations on merge requests",
+	PersistentPreRun: LabPersistentPreRun,
+	Long:             ``,
 }
 
 var mrThumbUpCmd = &cobra.Command{
-	Use:     "up [remote] <id>",
-	Aliases: []string{},
-	Short:   "Thumb up merge request",
-	Long:    ``,
+	Use:              "up [remote] <id>",
+	Aliases:          []string{},
+	Short:            "Thumb up merge request",
+	Long:             ``,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgs(args)
 		if err != nil {

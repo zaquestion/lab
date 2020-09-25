@@ -29,7 +29,8 @@ lab project create                         # user/<curr dir> named <curr dir>
 lab project create myproject               # user/myproject named myproject
 lab project create myproject -n "new proj" # user/myproject named "new proj"
 lab project create -n "new proj"           # user/new-proj named "new proj"`,
-	Args: cobra.MaximumNArgs(1),
+	Args:             cobra.MaximumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			name, _ = cmd.Flags().GetString("name")

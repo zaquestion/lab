@@ -24,11 +24,12 @@ var (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:     "list [remote]",
-	Aliases: []string{"ls"},
-	Short:   "List merge requests",
-	Long:    ``,
-	Args:    cobra.MaximumNArgs(1),
+	Use:              "list [remote]",
+	Aliases:          []string{"ls"},
+	Short:            "List merge requests",
+	Long:             ``,
+	Args:             cobra.MaximumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)
 		if err != nil {

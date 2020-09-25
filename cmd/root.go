@@ -228,6 +228,29 @@ func parseArgsRemoteRef(args []string) (string, string, error) {
 	return rn, name, nil
 }
 
+// setCommandPrefix returns a concatenated value of some of the commandline.
+// For example, 'lab mr show' would return 'mr_show.', and 'lab issue list'
+// would return 'issue_list.'
+func setCommandPrefix(scmd *cobra.Command) {
+	for _, command := range RootCmd.Commands() {
+		if CommandPrefix != "" {
+			break
+		}
+		commandName := strings.Split(command.Use, " ")[0]
+		if scmd == command {
+			CommandPrefix = commandName + "."
+			break
+		}
+		for _, subcommand := range command.Commands() {
+			subCommandName := commandName + "_" + strings.Split(subcommand.Use, " ")[0]
+			if scmd == subcommand {
+				CommandPrefix = subCommandName + "."
+				break
+			}
+		}
+	}
+}
+
 var (
 	// Will be updated to upstream in Execute() if "upstream" remote exists
 	forkedFromRemote = "origin"
@@ -314,6 +337,10 @@ func Execute() {
 			return
 		}
 	}
+
+	// Set CommandPrefix
+	scmd, _, _ := cmd.Find(os.Args)
+	setCommandPrefix(scmd)
 
 	if err := RootCmd.Execute(); err != nil {
 		// Execute has already logged the error

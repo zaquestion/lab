@@ -14,10 +14,11 @@ var skipClone = false
 
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
-	Use:   "fork [upstream-to-fork]",
-	Short: "Fork a remote repository on GitLab and add as remote",
-	Long:  ``,
-	Args:  cobra.MaximumNArgs(1),
+	Use:              "fork [upstream-to-fork]",
+	Short:            "Fork a remote repository on GitLab and add as remote",
+	Long:             ``,
+	Args:             cobra.MaximumNArgs(1),
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		skipClone, _ = cmd.Flags().GetBool("skip-clone")
 		if len(args) == 1 {
