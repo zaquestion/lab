@@ -163,6 +163,8 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 					indentHeader = "    "
 				}
 			}
+
+			noteBody := strings.Replace(note.Body, "\n", "\n"+indentHeader, -1)
 			printit := color.New().PrintfFunc()
 			printit(`
 %s-----------------------------------`, indentHeader)
@@ -176,7 +178,7 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 %s%s
 `,
 				indentHeader, note.ID, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
-				indentNote, note.Body)
+				indentNote, noteBody)
 		}
 	}
 
