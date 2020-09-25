@@ -71,5 +71,61 @@ Date:   Tue Sep 19 03:55:16 2017 +0000
 diff --git a/mrtest b/mrtest
 new file mode 100644
 `)
+}
 
+func Test_mrShow_diffs(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	coCmd := exec.Command(labBinaryPath, "mr", "checkout", "14")
+	coCmd.Dir = repo
+	coCmdOutput, err := coCmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(coCmdOutput))
+		t.Error(err)
+	}
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "origin", "14", "--comments")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	coCmd = exec.Command("git", "checkout", "master")
+	coCmd.Dir = repo
+	coCmdOutput, err = coCmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(coCmdOutput))
+		t.Error(err)
+	}
+
+	require.Contains(t, out, `
+File:test
+  4   4  
+  5   5  
+  6   6  line 6 This is a test file with some text in it.
+  7   7  
+  8     -line 8 This is the second text line in the file.
+      8 +line 8 This is an edit of line 8.
+
+
+    This is a comment on the deleted line 8.
+`)
+
+	require.Contains(t, out, `
+File:test
+      6 +line 6 This is a test file with some text in it.
+      7 +
+      8 +line 8 This is an edit of line 8.
+      9 +
+     10 +line 10 This is the third line in the file.
+
+
+    This is a comment on line 10.
+`)
 }
