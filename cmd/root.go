@@ -160,7 +160,7 @@ func parseArgsRemoteInt(args []string) (string, int64, error) {
 			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
 		}
 	}
-	if err != nil || remote == "" {
+	if remote == "" {
 		remote = forkedFromRemote
 	}
 	rn, err := git.PathWithNameSpace(remote)
