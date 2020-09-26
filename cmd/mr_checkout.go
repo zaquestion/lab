@@ -25,15 +25,20 @@ var (
 
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
-	Use:              "checkout <id>",
+	Use:              "checkout [remote] <id>",
 	Short:            "Checkout an open merge request",
 	Long:             ``,
-	Args:             cobra.MinimumNArgs(1),
+	Args:             cobra.RangeArgs(1, 2),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrID, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
+		}
+		var targetRemote = forkedFromRemote
+		if len(args) == 2 {
+			// parseArgs above already validated this is a remote
+			targetRemote = args[0]
 		}
 
 		mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
@@ -75,7 +80,7 @@ var checkoutCmd = &cobra.Command{
 		// https://docs.gitlab.com/ce/user/project/merge_requests/#checkout-merge-requests-locally
 		mrRef := fmt.Sprintf("refs/merge-requests/%d/head", mrID)
 		fetchRefSpec := fmt.Sprintf("%s:%s", mrRef, fetchToRef)
-		if err := git.New("fetch", forkedFromRemote, fetchRefSpec).Run(); err != nil {
+		if err := git.New("fetch", targetRemote, fetchRefSpec).Run(); err != nil {
 			log.Fatal(err)
 		}
 
