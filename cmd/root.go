@@ -276,6 +276,18 @@ func Execute() {
 			forkedFromRemote = remote
 		} else if remote, err = gitconfig.Local("branch.master.remote"); err == nil {
 			forkedFromRemote = remote
+		} else {
+			// use the first remote added to .git/config file, which, usually, is
+			// the one from which the repo was clonned
+			remotesStr, err := git.GetLocalRemotesFromFile()
+			if err == nil {
+				remotes := strings.Split(remotesStr, "\n")
+				// remotes format: remote.<name>.<url|fetch>
+				remoteName := strings.Split(remotes[0], ".")[1]
+				forkedFromRemote = remoteName
+			} else {
+				log.Println("No default remote found")
+			}
 		}
 	}
 
