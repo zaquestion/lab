@@ -44,7 +44,7 @@ func Test_issueNoteMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			body, err := noteMsg(test.Msgs)
+			body, err := noteMsg(test.Msgs, false, "\n")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -55,7 +55,7 @@ func Test_issueNoteMsg(t *testing.T) {
 
 func Test_issueNoteText(t *testing.T) {
 	t.Parallel()
-	text, err := noteText()
+	text, err := noteText("\n")
 	if err != nil {
 		t.Fatal(err)
 	}

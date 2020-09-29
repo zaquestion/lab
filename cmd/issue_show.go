@@ -56,7 +56,7 @@ var issueShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(discussions, since, int(issueNum))
+			PrintDiscussions(discussions, since, "issues", int(issueNum))
 		}
 	},
 }
@@ -118,10 +118,10 @@ WebURL: %s
 	)
 }
 
-func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum int) {
+func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr string, idNum int) {
 	NewAccessTime := time.Now().UTC()
 
-	issueEntry := fmt.Sprintf("issue%d", issueNum)
+	issueEntry := fmt.Sprintf("%s%d", idstr, idNum)
 	// if specified on command line use that, o/w use config, o/w Now
 	var (
 		CompareTime time.Time
@@ -163,6 +163,8 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 					indentHeader = "    "
 				}
 			}
+
+			noteBody := strings.Replace(note.Body, "\n", "\n"+indentHeader, -1)
 			printit := color.New().PrintfFunc()
 			printit(`
 %s-----------------------------------`, indentHeader)
@@ -171,12 +173,12 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, issueNum i
 				printit = color.New(color.Bold).PrintfFunc()
 			}
 			printit(`
-%s%s %s at %s
+%s#%d: %s %s at %s
 
 %s%s
 `,
-				indentHeader, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
-				indentNote, note.Body)
+				indentHeader, note.ID, note.Author.Username, commented, time.Time(*note.UpdatedAt).String(),
+				indentNote, noteBody)
 		}
 	}
 

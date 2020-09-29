@@ -906,3 +906,31 @@ func Labels(labels []string) *gitlab.Labels {
 	l := gitlab.Labels(labels)
 	return &l
 }
+
+// AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
+func AddMRDiscussionNote(project string, mrNum int, discussionID string, opts *gitlab.AddMergeRequestDiscussionNoteOptions) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	note, _, err := lab.Discussions.AddMergeRequestDiscussionNote(p.ID, mrNum, discussionID, opts)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
+// AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
+func AddIssueDiscussionNote(project string, issueNum int, discussionID string, opts *gitlab.AddIssueDiscussionNoteOptions) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	note, _, err := lab.Discussions.AddIssueDiscussionNote(p.ID, issueNum, discussionID, opts)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
