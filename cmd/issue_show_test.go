@@ -36,7 +36,7 @@ Assignees: zaquestion, lab-testing
 Author: lab-testing
 Milestone: 1.0
 Due Date: 2018-01-01 00:00:00 +0000 UTC
-Time Stats: Estimated 1w, Spent 1d
+Time Stats: Estimated 40h, Spent 8h
 Labels: bug
 WebURL: https://gitlab.com/zaquestion/test/-/issues/1
 `)
