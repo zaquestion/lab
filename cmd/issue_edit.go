@@ -283,7 +283,7 @@ func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
 	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
 	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
 	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	flags.StringSliceP("unassign", "", []string{}, "Remove an assigne by username")
+	flags.StringSliceP("unassign", "", []string{}, "Remove an assignee by username")
 	flags.Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	return flags
 }
