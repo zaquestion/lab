@@ -277,19 +277,14 @@ func same(a, b []string) bool {
 	return true
 }
 
-// issueEditCmdAddFlags adds various flags to the `lab issue edit` command
-func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
-	flags.StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
-	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
-	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	flags.StringSliceP("unassign", "", []string{}, "Remove an assignee by username")
-	flags.Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	return flags
-}
-
 func init() {
-	issueEditCmdAddFlags(issueEditCmd.Flags())
+	issueEditCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueEditCmd.Flags().StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
+	issueEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
+	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "Add an assignee by username")
+	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "Remove an assignee by username")
+	issueEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+
 	issueCmd.AddCommand(issueEditCmd)
 	carapace.Gen(issueEditCmd).PositionalCompletion(
 		action.Remotes(),
