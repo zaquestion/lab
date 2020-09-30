@@ -283,3 +283,17 @@ func GetLocalRemotes() (string, error) {
 
 	return string(remotes), nil
 }
+
+// GetLocalRemotesFromFile returns a string of local remote names and URLs based
+// on their placement within .git/config file, which holds a different ordering
+// compared to the alternatives presented by Remotes() and GetLocalRemotes().
+func GetLocalRemotesFromFile() (string, error) {
+	cmd := New("config", "--local", "--name-only", "--get-regex", "^remote.*")
+	cmd.Stdout = nil
+	remotes, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return string(remotes), nil
+}

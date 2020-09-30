@@ -160,7 +160,7 @@ func parseArgsRemoteInt(args []string) (string, int64, error) {
 			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
 		}
 	}
-	if err != nil || remote == "" {
+	if remote == "" {
 		remote = forkedFromRemote
 	}
 	rn, err := git.PathWithNameSpace(remote)
@@ -253,9 +253,9 @@ func setCommandPrefix(scmd *cobra.Command) {
 
 var (
 	// Will be updated to upstream in Execute() if "upstream" remote exists
-	forkedFromRemote = "origin"
+	forkedFromRemote = ""
 	// Will be updated to lab.User() in Execute() if forkedFrom is "origin"
-	forkRemote = "origin"
+	forkRemote = ""
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -265,21 +265,40 @@ func Execute() {
 	if err == nil {
 		forkedFromRemote = "upstream"
 	}
+	_, err = gitconfig.Local("remote.origin.url")
+	if err == nil {
+		forkedFromRemote = "origin"
+	}
+
 	if forkedFromRemote == "" {
-		// use the remote tracked by the branch if set
-		masterRemote, err := gitconfig.Local("branch.master.remote")
-		if err == nil {
-			forkedFromRemote = masterRemote
+		// use the remote tracked by the default branch if set
+		if remote, err := gitconfig.Local("branch.main.remote"); err == nil {
+			forkedFromRemote = remote
+		} else if remote, err = gitconfig.Local("branch.master.remote"); err == nil {
+			forkedFromRemote = remote
+		} else {
+			// use the first remote added to .git/config file, which, usually, is
+			// the one from which the repo was clonned
+			remotesStr, err := git.GetLocalRemotesFromFile()
+			if err == nil {
+				remotes := strings.Split(remotesStr, "\n")
+				// remotes format: remote.<name>.<url|fetch>
+				remoteName := strings.Split(remotes[0], ".")[1]
+				forkedFromRemote = remoteName
+			} else {
+				log.Println("No default remote found")
+			}
 		}
 	}
 
-	if forkedFromRemote == "origin" {
-		// Check if the user fork exists
-		_, err := gitconfig.Local("remote." + lab.User() + ".url")
-		if err == nil {
-			forkRemote = lab.User()
-		}
+	// Check if the user fork exists
+	_, err = gitconfig.Local("remote." + lab.User() + ".url")
+	if err == nil {
+		forkRemote = lab.User()
+	} else {
+		forkRemote = forkedFromRemote
 	}
+
 	// Check if the user is calling a lab command or if we should passthrough
 	// NOTE: The help command won't be found by Find, which we are counting on
 	cmd, _, err := RootCmd.Find(os.Args[1:])

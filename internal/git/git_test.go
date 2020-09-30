@@ -4,8 +4,11 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -228,6 +231,39 @@ func TestRemoteBranches(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Contains(t, res, "master", "remote branches should contain 'master' [%v]", res)
+}
+
+// Make sure the git command follow the expected behavior.
+func TestGetLocalRemotesFromFile(t *testing.T) {
+	repo := copyTestRepo()
+	gitconfig := repo + "/.git/config"
+
+	// First get the remotes directly from file
+	cmd := exec.Command("grep", "^\\[remote.*", gitconfig)
+	cmd.Dir = repo
+	grep, err := cmd.Output()
+	if err != nil {
+		t.Log(string(grep))
+		t.Error(err)
+	}
+	// And get the remote names
+	re := regexp.MustCompile(`\[remote\s+"(.*)".*`)
+	reMatches := re.FindAllStringSubmatch(string(grep), -1)
+
+	// Second, get result from local function
+	res, err := GetLocalRemotesFromFile()
+	if err != nil {
+		t.Log(string(res))
+		t.Error(err)
+	}
+	remotesList := strings.Split(string(res), "\n")
+
+	for i, match := range reMatches {
+		// GetLocalRemotesFromFile return both .url and .fetch
+		// info, but we only need to check one of them.
+		remoteName := strings.Split(remotesList[i*2], ".")
+		require.Equal(t, match[1], remoteName[1])
+	}
 }
 
 // copyTestRepo creates a copy of the testdata directory (contains a Git repo) in
