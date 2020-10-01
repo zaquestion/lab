@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -52,26 +53,31 @@ func Test_projectCreateCmd(t *testing.T) {
 	}
 }
 
-func Test_determinePath(t *testing.T) {
+func Test_determineNamespacePath(t *testing.T) {
 	t.Parallel()
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
 	}
 	tests := []struct {
-		desc     string
-		args     []string
-		expected string
+		desc              string
+		args              []string
+		expectedNamespace string
+		expectedPath      string
 	}{
-		{"arguemnt", []string{"new_project"}, "new_project"},
-		{"git working dir", []string{}, filepath.Base(wd)},
+		{"arg", []string{"new_project"}, "", "new_project"},
+		{"git working dir", []string{}, "", filepath.Base(wd)},
+		{"namespace", []string{"group/new_project"}, "group", "new_project"},
+		{"namespace", []string{"company/group/new_project"}, "company/group", "new_project"},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
-			require.Equal(t, test.expected, determinePath(test.args, ""))
+			group, path := determineNamespacePath(test.args, "")
+			assert.Equal(t, test.expectedNamespace, group)
+			assert.Equal(t, test.expectedPath, path)
 		})
 	}
 }

@@ -936,9 +936,9 @@ func (s JobSorter) Less(i, j int) bool {
 	return time.Time(*s.Jobs[i].CreatedAt).Before(time.Time(*s.Jobs[j].CreatedAt))
 }
 
-// NamespaceSearch searches for a namespace on GitLab
-func NamespaceSearch(query string) ([]*gitlab.Namespace, error) {
-	list, _, err := lab.Namespaces.SearchNamespace(query)
+// GroupSearch searches for a namespace on GitLab
+func GroupSearch(query string) ([]*gitlab.Group, error) {
+	list, _, err := lab.Groups.SearchGroup(query)
 	if err != nil {
 		return nil, err
 	}

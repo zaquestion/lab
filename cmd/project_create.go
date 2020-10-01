@@ -33,6 +33,7 @@ lab project create myproject               # user/myproject named myproject
 lab project create myproject -n "new proj" # user/myproject named "new proj"
 lab project create -n "new proj"           # user/new-proj named "new proj"
 
+lab project create mygroup/myproject       # mygroup/myproject named myproject
 lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 	Args:             cobra.MaximumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
@@ -43,19 +44,26 @@ lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 			group, _ = cmd.Flags().GetString("group")
 		)
 
-		path := determinePath(args, name)
+		g, path := determineNamespacePath(args, name)
 		if path == "" && name == "" {
 			log.Fatal("path or name must be set")
+		}
+		if g != "" && group != "" {
+
+			log.Fatalf("group can be passed by flag or in path not both\n%s", labUsageFormat(cmd))
+		}
+		if g != "" {
+			group = g
 		}
 
 		var namespaceID *int
 		if group != "" {
-			list, err := lab.NamespaceSearch(group)
+			list, err := lab.GroupSearch(group)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			if len(list) < 0 {
+			if len(list) == 0 {
 				log.Fatalf("no namespace found with such name: %s", group)
 			}
 
@@ -102,10 +110,15 @@ lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 	},
 }
 
-func determinePath(args []string, name string) string {
+func determineNamespacePath(args []string, name string) (string, string) {
 	var path string
 	if len(args) > 0 {
-		path = args[0]
+		ps := strings.Split(args[0], "/")
+		if len(ps) == 1 {
+			return "", ps[0]
+		} else {
+			return strings.Join(ps[:len(ps)-1], "/"), ps[len(ps)-1]
+		}
 	}
 	if path == "" && name == "" && git.InsideGitRepo() {
 		wd, err := git.WorkingDir()
@@ -115,7 +128,7 @@ func determinePath(args []string, name string) string {
 		p := strings.Split(wd, "/")
 		path = p[len(p)-1]
 	}
-	return path
+	return "", path
 }
 
 func init() {
