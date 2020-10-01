@@ -58,16 +58,11 @@ lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 
 		var namespaceID *int
 		if group != "" {
-			list, err := lab.GroupSearch(group)
+			groupObj, err := lab.GroupSearch(group)
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			if len(list) == 0 {
-				log.Fatalf("no namespace found with such name: %s", group)
-			}
-
-			namespaceID = &list[0].ID
+			namespaceID = &groupObj.ID
 		}
 
 		// set the default visibility

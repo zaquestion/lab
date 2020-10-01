@@ -937,13 +937,34 @@ func (s JobSorter) Less(i, j int) bool {
 }
 
 // GroupSearch searches for a namespace on GitLab
-func GroupSearch(query string) ([]*gitlab.Group, error) {
-	list, _, err := lab.Groups.SearchGroup(query)
+func GroupSearch(query string) (*gitlab.Group, error) {
+	if query == "" {
+		return nil, errors.New("query is empty")
+	}
+	groups := strings.Split(query, "/")
+	list, _, err := lab.Groups.SearchGroup(groups[0])
+	if err != nil {
+		return nil, err
+	}
+	// if we found a group and we aren't looking for a subgroup
+	if len(list) > 0 && len(groups) == 1 {
+		return list[0], nil
+	}
+	list, _, err = lab.Groups.ListDescendantGroups(list[0].ID, &gitlab.ListDescendantGroupsOptions{
+		Search: gitlab.String(groups[len(groups)-1]),
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return list, nil
+	for _, g := range list {
+		fmt.Println(g.FullPath)
+		if g.FullPath == query {
+			return g, nil
+		}
+	}
+
+	return nil, errors.Errorf("Group '%s' not found", query)
 }
 
 // CIJobs returns a list of jobs in the pipeline with given id. The jobs are
@@ -1080,12 +1101,6 @@ func UserIDFromUsername(username string) (int, error) {
 		return -1, err
 	}
 	return us[0].ID, nil
-}
-
-// Labels converts a []string into a non-nil *gitlab.Labels.
-func Labels(labels []string) *gitlab.Labels {
-	l := gitlab.Labels(labels)
-	return &l
 }
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
