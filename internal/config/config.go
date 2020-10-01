@@ -84,13 +84,13 @@ func New(confpath string, r io.Reader) error {
 var readPassword = func(reader bufio.Reader) (string, string, error) {
 	var loadToken string
 
-	tokenURL, err := url.Parse(viper.GetString("core.host"))
+	tokenURL, err := url.Parse(MainConfig.GetString("core.host"))
 	if err != nil {
 		return "", "", err
 	}
 	tokenURL.Path = "profile/personal_access_tokens"
 
-	fmt.Printf("Create a token here: %s\nEnter default GitLab token (scope: api), or leave blank to provide a command to load the token: ", tokenURL.String())
+	fmt.Printf("Create a token with scope 'api' here: %s\nEnter default GitLab token, or leave blank to provide a command to load the token: ", tokenURL.String())
 	byteToken, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", "", err
