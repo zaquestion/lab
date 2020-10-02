@@ -4,23 +4,26 @@ release:
     owner: zaquestion
     name: lab
   name_template: '{{.Tag}}'
-brew:
-  description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
-  homepage: "https://github.com/zaquestion/lab"
-  github:
-    owner: zaquestion
-    name: homebrew-tap
-  commit_author:
-    name: goreleaserbot
-    email: goreleaser@carlosbecker.com
-  install: bin.install "lab"
-  test: |
-    system "git", "init"
-    %w[haunted house].each { |f| touch testpath/f }
-    system "git", "add", "haunted", "house"
-    system "git", "commit", "-a", "-m", "Initial Commit"
-    lab_env_config = "LAB_CORE_HOST=foo LAB_CORE_USER=bar LAB_CORE_TOKEN=baz"
-    assert_equal "haunted\nhouse", shell_output("#{lab_env_config} #{bin}/lab ls-files").strip
+
+brews:
+  -
+    description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
+    homepage: "https://github.com/zaquestion/lab"
+    tap:
+      owner: zaquestion
+      name: homebrew-tap
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@carlosbecker.com
+    install: bin.install "lab"
+    test: |
+      system "git", "init"
+      %w[haunted house].each { |f| touch testpath/f }
+      system "git", "add", "haunted", "house"
+      system "git", "commit", "-a", "-m", "Initial Commit"
+      lab_env_config = "LAB_CORE_HOST=foo LAB_CORE_USER=bar LAB_CORE_TOKEN=baz"
+      assert_equal "haunted\nhouse", shell_output("#{lab_env_config} #{bin}/lab ls-files").strip
+
 scoop:
   bucket:
     owner: zaquestion
@@ -46,10 +49,11 @@ builds:
   main: .
   ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
   binary: lab
-archive:
-  format: tar.gz
-  name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{
-    .Arm }}{{ end }}'
+archives:
+  -
+    format: tar.gz
+    name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{
+      .Arm }}{{ end }}'
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
 checksum:
