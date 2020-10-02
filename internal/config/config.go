@@ -224,7 +224,7 @@ func GetToken() string {
 	return token
 }
 
-// LoadMainConfig() loads the main config file and returns a tuple of
+// LoadMainConfig loads the main config file and returns a tuple of
 //  host, user, token, ca_file, skipVerify
 func LoadMainConfig() (string, string, string, string, bool) {
 	// The lab config heirarchy is:
@@ -267,7 +267,7 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	ConvertHCLtoTOML(confpath, labconfpath, "lab")
 	ConvertHCLtoTOML(".", ".", "lab")
 	var labgitDir string
-	gitDir, err := git.GitDir()
+	gitDir, err := git.Dir()
 	if err == nil {
 		labgitDir = gitDir + "/lab"
 		ConvertHCLtoTOML(gitDir, labgitDir, "lab")
@@ -309,11 +309,11 @@ func LoadMainConfig() (string, string, string, string, bool) {
 
 	host = MainConfig.GetString("core.host")
 	token = GetToken()
-	ca_file := MainConfig.GetString("tls.ca_file")
+	caFile := MainConfig.GetString("tls.ca_file")
 	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
 	user = getUser(host, token, tlsSkipVerify)
 
-	return host, user, token, ca_file, tlsSkipVerify
+	return host, user, token, caFile, tlsSkipVerify
 }
 
 // default path of worktree lab.toml file

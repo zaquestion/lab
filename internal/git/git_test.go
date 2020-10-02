@@ -40,7 +40,7 @@ func TestGitDir(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir, err := GitDir()
+	dir, err := Dir()
 	if err != nil {
 		t.Fatal(err)
 	}

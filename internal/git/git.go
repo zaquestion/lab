@@ -45,8 +45,8 @@ func New(args ...string) *exec.Cmd {
 	return cmd
 }
 
-// GitDir returns the full path to the .git directory
-func GitDir() (string, error) {
+// Dir returns the full path to the .git directory
+func Dir() (string, error) {
 	cmd := New("rev-parse", "-q", "--git-dir")
 	cmd.Stdout = nil
 	cmd.Stderr = nil
