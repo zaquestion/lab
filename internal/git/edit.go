@@ -29,7 +29,7 @@ func EditFile(filePrefix, message string) (string, error) {
 		err error
 	)
 	if InsideGitRepo() {
-		dir, err = GitDir()
+		dir, err = Dir()
 		if err != nil {
 			return "", err
 		}

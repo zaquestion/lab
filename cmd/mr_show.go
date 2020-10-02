@@ -88,11 +88,11 @@ func findLocalRemote(ProjectID int) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	remotes_str, err := git.GetLocalRemotes()
+	remotesStr, err := git.GetLocalRemotes()
 	if err != nil {
 		log.Fatal(err)
 	}
-	remotes := strings.Split(remotes_str, "\n")
+	remotes := strings.Split(remotesStr, "\n")
 
 	// find the matching local remote for this project
 	for r := range remotes {
