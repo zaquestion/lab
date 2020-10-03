@@ -264,11 +264,32 @@ func TestGetLocalRemotesFromFile(t *testing.T) {
 	}
 	remotesList := strings.Split(string(res), "\n")
 
+	// Create an array (the ordering matters) to place all unique
+	// remote names
+	var remoteNames []string
+	for _, remote := range remotesList {
+		if len(remote) == 0 {
+			continue
+		}
+
+		name := strings.Split(remote, ".")[1]
+		// Check if name is unique
+		var found bool
+		for _, placedName := range remoteNames {
+			if name == placedName {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+		remoteNames = append(remoteNames, name)
+	}
+
+	// Check if remote exists and is in order
 	for i, match := range reMatches {
-		// GetLocalRemotesFromFile return both .url and .fetch
-		// info, but we only need to check one of them.
-		remoteName := strings.Split(remotesList[i*2], ".")
-		require.Equal(t, match[1], remoteName[1])
+		require.Equal(t, match[1], remoteNames[i])
 	}
 }
 
