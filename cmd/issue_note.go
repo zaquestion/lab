@@ -74,14 +74,14 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		ReplyNote(rn, isMR, int(idNum), reply, quote, filename, linebreak)
+		replyNote(rn, isMR, int(idNum), reply, quote, filename, linebreak)
 		return
 	}
 
-	CreateNote(rn, isMR, int(idNum), msgs, filename, linebreak)
+	createNote(rn, isMR, int(idNum), msgs, filename, linebreak)
 }
 
-func CreateNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
+func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
 
 	var err error
 
@@ -172,7 +172,7 @@ func noteText(body string) (string, error) {
 	return b.String(), nil
 }
 
-func ReplyNote(rn string, isMR bool, idNum int, reply int, quote bool, filename string, linebreak bool) {
+func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, filename string, linebreak bool) {
 
 	var (
 		discussions []*gitlab.Discussion
