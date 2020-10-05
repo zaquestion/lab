@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -142,7 +141,7 @@ func Test_issueEditGetTitleAndDescription(t *testing.T) {
 				Title:       "old title",
 				Description: "old body",
 			},
-			Args:                []string{"-m", "new title", "-m", "new body 1", "-m", "new body 2"},
+			Args:                []string{"new title", "new body 1", "new body 2"},
 			ExpectedTitle:       "new title",
 			ExpectedDescription: "new body 1\n\nnew body 2",
 		},
@@ -152,7 +151,7 @@ func Test_issueEditGetTitleAndDescription(t *testing.T) {
 				Title:       "old title",
 				Description: "old body",
 			},
-			Args:                []string{"-m", "new title"},
+			Args:                []string{"new title"},
 			ExpectedTitle:       "new title",
 			ExpectedDescription: "old body",
 		},
@@ -171,13 +170,11 @@ func Test_issueEditGetTitleAndDescription(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			flags := issueEditCmdAddFlags(pflag.NewFlagSet(test.Name, pflag.ContinueOnError))
-			flags.Parse(test.Args)
-
-			title, body, err := issueEditGetTitleDescription(test.Issue, flags)
+			title, body, err := editGetTitleDescription(test.Issue.Title, test.Issue.Description, test.Args, len(test.Args))
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			assert.Equal(t, test.ExpectedTitle, title)
 			assert.Equal(t, test.ExpectedDescription, body)
 		})
@@ -186,7 +183,7 @@ func Test_issueEditGetTitleAndDescription(t *testing.T) {
 
 func Test_issueEditText(t *testing.T) {
 	t.Parallel()
-	text, err := issueEditText("old title", "old body")
+	text, err := editText("old title", "old body")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,8 +191,8 @@ func Test_issueEditText(t *testing.T) {
 
 old body
 
-# Edit the title and/or description of this issue. The first
-# block of text is the title and the rest is the description.`, text)
+# Edit the title and/or description. The first block of text
+# is the title and the rest is the description.`, text)
 
 }
 

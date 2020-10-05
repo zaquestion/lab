@@ -52,7 +52,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal(err)
 		}
 
-		labels, labelsChanged, err := issueEditGetLabels(issue, labels, unlabels)
+		labels, labelsChanged, err := editGetLabels(issue.Labels, labels, unlabels)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,7 +69,8 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal(err)
 		}
 
-		assigneeIDs, assigneesChanged, err := issueEditGetAssignees(issue, assignees, unassignees)
+		currentAssignees := issueGetCurrentAssignees(issue)
+		assigneeIDs, assigneesChanged, err := getUpdateAssignees(currentAssignees, assignees, unassignees)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,7 +80,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		title, body, err := issueEditGetTitleDescription(issue, msgs, cmd.Flags().NFlag())
+		title, body, err := editGetTitleDescription(issue.Title, issue.Description, msgs, cmd.Flags().NFlag())
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -119,27 +120,32 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 	},
 }
 
-// issueEditGetLabels returns a string slice of issues based on the current
-// issue labels and flags from the command line, and a bool indicating whether
+// editGetLabels returns a string slice of labels based on the current
+// labels and flags from the command line, and a bool indicating whether
 // the labels have changed
-func issueEditGetLabels(issue *gitlab.Issue, labels []string, unlabels []string) ([]string, bool, error) {
+func editGetLabels(idLabels []string, labels []string, unlabels []string) ([]string, bool, error) {
 	// add the new labels to the current labels, then remove the "unlabels"
-	labels = difference(union(issue.Labels, labels), unlabels)
+	labels = difference(union(idLabels, labels), unlabels)
 
-	return labels, !same(issue.Labels, labels), nil
+	return labels, !same(idLabels, labels), nil
 }
 
-// issueEditGetAssignees returns an int slice of assignee IDs based on the
-// current issue assignees and flags from the command line, and a bool
-// indicating whether the assignees have changed
-func issueEditGetAssignees(issue *gitlab.Issue, assignees []string, unassignees []string) ([]int, bool, error) {
+// issueGetCurrentAssignees returns a string slice of the current assignees'
+// usernames
+func issueGetCurrentAssignees(issue *gitlab.Issue) []string {
 	currentAssignees := make([]string, len(issue.Assignees))
 	if len(issue.Assignees) > 0 && issue.Assignees[0].Username != "" {
 		for i, a := range issue.Assignees {
 			currentAssignees[i] = a.Username
 		}
 	}
+	return currentAssignees
+}
 
+// GetUpdateAssignees returns an int slice of assignee IDs based on the
+// current assignees and flags from the command line, and a bool
+// indicating whether the assignees have changed
+func getUpdateAssignees(currentAssignees []string, assignees []string, unassignees []string) ([]int, bool, error) {
 	// add the new assignees to the current assignees, then remove the "unassignees"
 	assignees = difference(union(currentAssignees, assignees), unassignees)
 	assigneesChanged := !same(currentAssignees, assignees)
@@ -160,12 +166,9 @@ func issueEditGetAssignees(issue *gitlab.Issue, assignees []string, unassignees 
 	return assigneeIDs, assigneesChanged, nil
 }
 
-// issueEditGetTitleDescription returns a title and description for an issue
-// based on the current issue title and description and various flags from the
-// command line
-func issueEditGetTitleDescription(issue *gitlab.Issue, msgs []string, nFlag int) (string, string, error) {
-	title, body := issue.Title, issue.Description
-
+// editGetTitleDescription returns a title and description based on the current
+// issue title and description and various flags from the command line
+func editGetTitleDescription(title string, body string, msgs []string, nFlag int) (string, string, error) {
 	if len(msgs) > 0 {
 		title = msgs[0]
 
@@ -183,20 +186,20 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, msgs []string, nFlag int)
 		return title, body, nil
 	}
 
-	text, err := issueEditText(title, body)
+	text, err := editText(title, body)
 	if err != nil {
 		return "", "", err
 	}
-	return git.Edit("ISSUE_EDIT", text)
+	return git.Edit("EDIT", text)
 }
 
-// issueEditText returns an issue editing template that is suitable for loading
+// editText returns an issue editing template that is suitable for loading
 // into an editor
-func issueEditText(title string, body string) (string, error) {
+func editText(title string, body string) (string, error) {
 	const tmpl = `{{.InitMsg}}
 
-{{.CommentChar}} Edit the title and/or description of this issue. The first
-{{.CommentChar}} block of text is the title and the rest is the description.`
+{{.CommentChar}} Edit the title and/or description. The first block of text
+{{.CommentChar}} is the title and the rest is the description.`
 
 	msg := &struct {
 		InitMsg     string

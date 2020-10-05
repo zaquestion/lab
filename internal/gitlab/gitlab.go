@@ -270,6 +270,20 @@ func MRCreateDiscussion(project string, mrNum int, opts *gitlab.CreateMergeReque
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
+// MRUpdate edits an merge request on a GitLab project
+func MRUpdate(project string, mrNum int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	issue, _, err := lab.MergeRequests.UpdateMergeRequest(p.ID, mrNum, opts)
+	if err != nil {
+		return "", err
+	}
+	return issue.WebURL, nil
+}
+
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
 	p, err := FindProject(project)
