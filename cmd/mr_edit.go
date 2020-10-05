@@ -5,6 +5,7 @@ import (
 	"log"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ import (
 )
 
 var mrEditCmd = &cobra.Command{
-	Use:     "edit [remote] <id>",
+	Use:     "edit [remote] <id>[:<comment_id>",
 	Aliases: []string{"update"},
 	Short:   "Edit or update an MR",
 	Long:    ``,
@@ -22,19 +23,45 @@ var mrEditCmd = &cobra.Command{
 lab MR update <id>                              # same as above
 lab MR edit <id> -m "new title"                 # update title
 lab MR edit <id> -m "new title" -m "new desc"   # update title & description
-lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR`,
+lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR
+lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, mrNum, err := parseArgs(args)
+		rn, idString, err := parseArgsRemoteString(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		mr, err := lab.MRGet(rn, int(mrNum))
+		var (
+			mrNum      int = 0
+			commentNum int = 0
+		)
+
+		if strings.Contains(idString, ":") {
+			ids := strings.Split(idString, ":")
+			mrNum, _ = strconv.Atoi(ids[0])
+			commentNum, _ = strconv.Atoi(ids[1])
+		} else {
+			mrNum, _ = strconv.Atoi(idString)
+		}
+
+		mr, err := lab.MRGet(rn, mrNum)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		linebreak, err := cmd.Flags().GetBool("force-linebreak")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Edit a comment on the MR
+		if commentNum != 0 {
+			replyNote(rn, true, mrNum, commentNum, true, true, "", linebreak)
+			return
+		}
+
+		// get the labels to add
 		labels, err := cmd.Flags().GetStringSlice("label")
 		if err != nil {
 			log.Fatal(err)
@@ -88,7 +115,6 @@ lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR`,
 			log.Fatal("aborting: no changes")
 		}
 
-		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 		if linebreak {
 			body = textToMarkdown(body)
 		}

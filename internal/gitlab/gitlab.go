@@ -921,10 +921,14 @@ func Labels(labels []string) *gitlab.Labels {
 }
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
-func AddMRDiscussionNote(project string, mrNum int, discussionID string, opts *gitlab.AddMergeRequestDiscussionNoteOptions) (string, error) {
+func AddMRDiscussionNote(project string, mrNum int, discussionID string, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return "", err
+	}
+
+	opts := &gitlab.AddMergeRequestDiscussionNoteOptions{
+		Body: &body,
 	}
 
 	note, _, err := lab.Discussions.AddMergeRequestDiscussionNote(p.ID, mrNum, discussionID, opts)
@@ -935,10 +939,14 @@ func AddMRDiscussionNote(project string, mrNum int, discussionID string, opts *g
 }
 
 // AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
-func AddIssueDiscussionNote(project string, issueNum int, discussionID string, opts *gitlab.AddIssueDiscussionNoteOptions) (string, error) {
+func AddIssueDiscussionNote(project string, issueNum int, discussionID string, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return "", err
+	}
+
+	opts := &gitlab.AddIssueDiscussionNoteOptions{
+		Body: &body,
 	}
 
 	note, _, err := lab.Discussions.AddIssueDiscussionNote(p.ID, issueNum, discussionID, opts)
@@ -946,4 +954,36 @@ func AddIssueDiscussionNote(project string, issueNum int, discussionID string, o
 		return "", err
 	}
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
+func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+	opts := &gitlab.UpdateIssueDiscussionNoteOptions{
+		Body: &body,
+	}
+
+	note, _, err := lab.Discussions.UpdateIssueDiscussionNote(p.ID, issueNum, discussionID, noteID, opts)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
+func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+	opts := &gitlab.UpdateMergeRequestDiscussionNoteOptions{
+		Body: &body,
+	}
+
+	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, issueNum, discussionID, noteID, opts)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }

@@ -18,7 +18,7 @@ import (
 )
 
 var issueEditCmd = &cobra.Command{
-	Use:     "edit [remote] <id>",
+	Use:     "edit [remote] <id>[:<comment_id>]",
 	Aliases: []string{"update"},
 	Short:   "Edit or update an issue",
 	Long:    ``,
@@ -26,18 +26,44 @@ var issueEditCmd = &cobra.Command{
 lab issue update <id>                              # same as above
 lab issue edit <id> -m "new title"                 # update title
 lab issue edit <id> -m "new title" -m "new desc"   # update title & description
-lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
+lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue
+lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, issueNum, err := parseArgs(args)
+
+		rn, idString, err := parseArgsRemoteString(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		issue, err := lab.IssueGet(rn, int(issueNum))
+		var (
+			issueNum   int = 0
+			commentNum int = 0
+		)
+
+		if strings.Contains(idString, ":") {
+			ids := strings.Split(idString, ":")
+			issueNum, _ = strconv.Atoi(ids[0])
+			commentNum, _ = strconv.Atoi(ids[1])
+		} else {
+			issueNum, _ = strconv.Atoi(idString)
+		}
+
+		issue, err := lab.IssueGet(rn, issueNum)
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		linebreak, err := cmd.Flags().GetBool("force-linebreak")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Edit a comment on the Issue
+		if commentNum != 0 {
+			replyNote(rn, false, issueNum, commentNum, true, false, "", linebreak)
+			return
 		}
 
 		// get the labels to add
@@ -94,7 +120,6 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal("aborting: no changes")
 		}
 
-		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 		if linebreak {
 			body = textToMarkdown(body)
 		}
@@ -112,7 +137,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			opts.AssigneeIDs = assigneeIDs
 		}
 
-		issueURL, err := lab.IssueUpdate(rn, int(issueNum), opts)
+		issueURL, err := lab.IssueUpdate(rn, issueNum, opts)
 		if err != nil {
 			log.Fatal(err)
 		}
