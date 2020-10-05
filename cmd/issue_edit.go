@@ -11,7 +11,6 @@ import (
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
@@ -31,29 +30,56 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		// get remote and issue from cmd arguments
 		rn, issueNum, err := parseArgs(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// get existing issue
 		issue, err := lab.IssueGet(rn, int(issueNum))
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		labels, labelsChanged, err := issueEditGetLabels(issue, cmd.Flags())
+		// get the labels to add
+		labels, err := cmd.Flags().GetStringSlice("label")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		assigneeIDs, assigneesChanged, err := issueEditGetAssignees(issue, cmd.Flags())
+		// get the labels to remove
+		unlabels, err := cmd.Flags().GetStringSlice("unlabel")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		title, body, err := issueEditGetTitleDescription(issue, cmd.Flags())
+		labels, labelsChanged, err := issueEditGetLabels(issue, labels, unlabels)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get the assignees to add
+		assignees, err := cmd.Flags().GetStringSlice("assign")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get the assignees to remove
+		unassignees, err := cmd.Flags().GetStringSlice("unassign")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		assigneeIDs, assigneesChanged, err := issueEditGetAssignees(issue, assignees, unassignees)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get all of the "message" flags
+		msgs, err := cmd.Flags().GetStringArray("message")
+		if err != nil {
+			log.Fatal(err)
+		}
+		title, body, err := issueEditGetTitleDescription(issue, msgs, cmd.Flags().NFlag())
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -96,19 +122,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 // issueEditGetLabels returns a string slice of issues based on the current
 // issue labels and flags from the command line, and a bool indicating whether
 // the labels have changed
-func issueEditGetLabels(issue *gitlab.Issue, flags *pflag.FlagSet) ([]string, bool, error) {
-	// get the labels to add
-	labels, err := flags.GetStringSlice("label")
-	if err != nil {
-		return []string{}, false, err
-	}
-
-	// get the labels to remove
-	unlabels, err := flags.GetStringSlice("unlabel")
-	if err != nil {
-		return []string{}, false, err
-	}
-
+func issueEditGetLabels(issue *gitlab.Issue, labels []string, unlabels []string) ([]string, bool, error) {
 	// add the new labels to the current labels, then remove the "unlabels"
 	labels = difference(union(issue.Labels, labels), unlabels)
 
@@ -118,24 +132,12 @@ func issueEditGetLabels(issue *gitlab.Issue, flags *pflag.FlagSet) ([]string, bo
 // issueEditGetAssignees returns an int slice of assignee IDs based on the
 // current issue assignees and flags from the command line, and a bool
 // indicating whether the assignees have changed
-func issueEditGetAssignees(issue *gitlab.Issue, flags *pflag.FlagSet) ([]int, bool, error) {
+func issueEditGetAssignees(issue *gitlab.Issue, assignees []string, unassignees []string) ([]int, bool, error) {
 	currentAssignees := make([]string, len(issue.Assignees))
 	if len(issue.Assignees) > 0 && issue.Assignees[0].Username != "" {
 		for i, a := range issue.Assignees {
 			currentAssignees[i] = a.Username
 		}
-	}
-
-	// get the assignees to add
-	assignees, err := flags.GetStringSlice("assign")
-	if err != nil {
-		return []int{}, false, err
-	}
-
-	// get the assignees to remove
-	unassignees, err := flags.GetStringSlice("unassign")
-	if err != nil {
-		return []int{}, false, err
 	}
 
 	// add the new assignees to the current assignees, then remove the "unassignees"
@@ -161,14 +163,8 @@ func issueEditGetAssignees(issue *gitlab.Issue, flags *pflag.FlagSet) ([]int, bo
 // issueEditGetTitleDescription returns a title and description for an issue
 // based on the current issue title and description and various flags from the
 // command line
-func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (string, string, error) {
+func issueEditGetTitleDescription(issue *gitlab.Issue, msgs []string, nFlag int) (string, string, error) {
 	title, body := issue.Title, issue.Description
-
-	// get all of the "message" flags
-	msgs, err := flags.GetStringArray("message")
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	if len(msgs) > 0 {
 		title = msgs[0]
@@ -183,7 +179,7 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (st
 
 	// if other flags were given (eg label), then skip the editor and return
 	// what we already have
-	if flags.NFlag() != 0 {
+	if nFlag != 0 {
 		return title, body, nil
 	}
 
