@@ -518,10 +518,11 @@ func getAppOutput(output []byte) []string {
 	return lines
 }
 
-func setConfigValues(repo string, configVal string, gitVal string) {
+func setConfigValues(repo string, configVal string, gitVal string) error {
 	err := os.Rename(repo+"/lab.toml", "/home/travis/.config/lab/lab.toml")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 
 	configfile, err := os.OpenFile("/home/travis/.config/lab/lab.toml", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -547,6 +548,8 @@ func setConfigValues(repo string, configVal string, gitVal string) {
 		log.Fatal(err)
 	}
 	gitfile.Close()
+
+	return nil
 }
 
 // There isn't a really good way to test the config override
@@ -554,7 +557,10 @@ func setConfigValues(repo string, configVal string, gitVal string) {
 func Test_config_gitConfig_FF(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	setConfigValues(repo, "false", "false")
+	err := setConfigValues(repo, "false", "false")
+	if err != nil {
+		t.Skip(err)
+	}
 	os.Remove(repo + "/lab.toml")
 
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
@@ -577,7 +583,10 @@ func Test_config_gitConfig_FF(t *testing.T) {
 func Test_config_gitConfig_FT(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	setConfigValues(repo, "false", "true")
+	err := setConfigValues(repo, "false", "true")
+	if err != nil {
+		t.Skip(err)
+	}
 	os.Remove(repo + "/lab.toml")
 
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
@@ -601,7 +610,10 @@ func Test_config_gitConfig_FT(t *testing.T) {
 func Test_config_gitConfig_TF(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	setConfigValues(repo, "true", "false")
+	err := setConfigValues(repo, "true", "false")
+	if err != nil {
+		t.Skip(err)
+	}
 	os.Remove(repo + "/lab.toml")
 
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
@@ -625,7 +637,10 @@ func Test_config_gitConfig_TF(t *testing.T) {
 func Test_config_gitConfig_TT(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	setConfigValues(repo, "true", "true")
+	err := setConfigValues(repo, "true", "true")
+	if err != nil {
+		t.Skip(err)
+	}
 	os.Remove(repo + "/lab.toml")
 
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1")
@@ -658,7 +673,10 @@ func Test_config_gitConfig_TT(t *testing.T) {
 func Test_flag_config_TT(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	setConfigValues(repo, "true", "true")
+	err := setConfigValues(repo, "true", "true")
+	if err != nil {
+		t.Skip(err)
+	}
 	os.Remove(repo + "/lab.toml")
 
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments")
@@ -682,7 +700,10 @@ func Test_flag_config_TT(t *testing.T) {
 func Test_flag_config_TF(t *testing.T) {
 	repo := copyTestRepo(t)
 
-	setConfigValues(repo, "false", "false")
+	err := setConfigValues(repo, "false", "false")
+	if err != nil {
+		t.Skip(err)
+	}
 	os.Remove(repo + "/lab.toml")
 
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments")
