@@ -90,9 +90,12 @@ func Test_mrCmd(t *testing.T) {
 	})
 }
 
-func Test_mrCmd_file(t *testing.T) {
+func Test_mrCmd_MR_description_and_options(t *testing.T) {
 	repo := copyTestRepo(t)
-	var mrID string
+	var (
+		mrID      string
+		commentID string
+	)
 	t.Run("prepare", func(t *testing.T) {
 		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'Fancy Description' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
 		cmd.Dir = repo
@@ -103,7 +106,7 @@ func Test_mrCmd_file(t *testing.T) {
 			//t.Fatal(err)
 		}
 	})
-	t.Run("create", func(t *testing.T) {
+	t.Run("create MR from file", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
 		git.Dir = repo
 		b, err := git.CombinedOutput()
@@ -132,6 +135,59 @@ func Test_mrCmd_file(t *testing.T) {
 		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/merge_requests/")
 		t.Log(mrID)
 
+	})
+	t.Run("update MR description", func(t *testing.T) {
+		update := exec.Command(labBinaryPath, "mr", "edit", "lab-testing", mrID, "-m", "Updated Description", "-m", "Updated body of text describing this merge request.")
+		update.Dir = repo
+		b, err := update.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		cmd := exec.Command(labBinaryPath, "mr", "show", "lab-testing", mrID)
+		cmd.Dir = repo
+		b, err = cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		out := string(b)
+
+		require.Contains(t, out, "Updated Description")
+		require.Contains(t, out, "Updated body of text describing this merge request.")
+		require.NotContains(t, out, "Fancy")
+	})
+	t.Run("add MR comment", func(t *testing.T) {
+		addComment := exec.Command(labBinaryPath, "mr", "note", "lab-testing", mrID, "-m", "Fancy comment on this merge request.")
+		addComment.Dir = repo
+		b, err := addComment.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		out := string(b)
+		s := strings.Split(out, "_")
+		commentID = s[2]
+		s = strings.Split(commentID, "\n")
+		commentID = s[0]
+
+		t.Log("commentID =", commentID)
+
+		url := "https://gitlab.com/lab-testing/test/merge_requests/" + mrID + "#note_" + commentID
+		require.Contains(t, out, url)
+	})
+	t.Run("show MR with comment", func(t *testing.T) {
+		showComment := exec.Command(labBinaryPath, "mr", "show", "lab-testing", mrID, "--comments")
+		showComment.Dir = repo
+		b, err := showComment.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		out := string(b)
+		t.Log("commentID =", commentID)
+		_commentID := "#" + commentID + ": lab-testing"
+		require.Contains(t, out, _commentID)
 	})
 	t.Run("delete", func(t *testing.T) {
 		if mrID == "" {
