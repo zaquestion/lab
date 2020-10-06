@@ -26,6 +26,10 @@
 [remote "origin-https"]
 	url = https://gitlab.com/zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin-pushurl"]
+	url = garbageurl
+	pushurl = https://gitlab.com/zaquestion/test.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "origin-https-token"]
 	url = https://token@gitlab.com/zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
