@@ -74,14 +74,14 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		ReplyNote(rn, isMR, int(idNum), reply, quote, filename, linebreak)
+		replyNote(rn, isMR, int(idNum), reply, quote, true, filename, linebreak)
 		return
 	}
 
-	CreateNote(rn, isMR, int(idNum), msgs, filename, linebreak)
+	createNote(rn, isMR, int(idNum), msgs, filename, linebreak)
 }
 
-func CreateNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
+func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
 
 	var err error
 
@@ -172,7 +172,7 @@ func noteText(body string) (string, error) {
 	return b.String(), nil
 }
 
-func ReplyNote(rn string, isMR bool, idNum int, reply int, quote bool, filename string, linebreak bool) {
+func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bool, filename string, linebreak bool) {
 
 	var (
 		discussions []*gitlab.Discussion
@@ -211,7 +211,9 @@ func ReplyNote(rn string, isMR bool, idNum int, reply int, quote bool, filename 
 				if quote {
 					noteBody = note.Body
 					noteBody = strings.Replace(noteBody, "\n", "\n>", -1)
-					noteBody = ">" + noteBody + "\n"
+					if !update {
+						noteBody = ">" + noteBody + "\n"
+					}
 				}
 				body, err = noteMsg([]string{}, isMR, noteBody)
 				if err != nil {
@@ -228,16 +230,18 @@ func ReplyNote(rn string, isMR bool, idNum int, reply int, quote bool, filename 
 				body = textToMarkdown(body)
 			}
 
-			if isMR {
-				opts := &gitlab.AddMergeRequestDiscussionNoteOptions{
-					Body: &body,
+			if update {
+				if isMR {
+					NoteURL, err = lab.UpdateMRDiscussionNote(rn, idNum, discussion.ID, note.ID, body)
+				} else {
+					NoteURL, err = lab.UpdateIssueDiscussionNote(rn, idNum, discussion.ID, note.ID, body)
 				}
-				NoteURL, err = lab.AddMRDiscussionNote(rn, idNum, discussion.ID, opts)
 			} else {
-				opts := &gitlab.AddIssueDiscussionNoteOptions{
-					Body: &body,
+				if isMR {
+					NoteURL, err = lab.AddMRDiscussionNote(rn, idNum, discussion.ID, body)
+				} else {
+					NoteURL, err = lab.AddIssueDiscussionNote(rn, idNum, discussion.ID, body)
 				}
-				NoteURL, err = lab.AddIssueDiscussionNote(rn, idNum, discussion.ID, opts)
 			}
 			if err != nil {
 				log.Fatal(err)

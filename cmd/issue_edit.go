@@ -11,7 +11,6 @@ import (
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
@@ -19,7 +18,7 @@ import (
 )
 
 var issueEditCmd = &cobra.Command{
-	Use:     "edit [remote] <id>",
+	Use:     "edit [remote] <id>[:<comment_id>]",
 	Aliases: []string{"update"},
 	Short:   "Edit or update an issue",
 	Long:    ``,
@@ -27,33 +26,87 @@ var issueEditCmd = &cobra.Command{
 lab issue update <id>                              # same as above
 lab issue edit <id> -m "new title"                 # update title
 lab issue edit <id> -m "new title" -m "new desc"   # update title & description
-lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
+lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue
+lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		// get remote and issue from cmd arguments
-		rn, issueNum, err := parseArgs(args)
+
+		rn, idString, err := parseArgsRemoteString(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// get existing issue
-		issue, err := lab.IssueGet(rn, int(issueNum))
+		var (
+			issueNum   int = 0
+			commentNum int = 0
+		)
+
+		if strings.Contains(idString, ":") {
+			ids := strings.Split(idString, ":")
+			issueNum, _ = strconv.Atoi(ids[0])
+			commentNum, _ = strconv.Atoi(ids[1])
+		} else {
+			issueNum, _ = strconv.Atoi(idString)
+		}
+
+		issue, err := lab.IssueGet(rn, issueNum)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		labels, labelsChanged, err := issueEditGetLabels(issue, cmd.Flags())
+		linebreak, err := cmd.Flags().GetBool("force-linebreak")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		assigneeIDs, assigneesChanged, err := issueEditGetAssignees(issue, cmd.Flags())
+		// Edit a comment on the Issue
+		if commentNum != 0 {
+			replyNote(rn, false, issueNum, commentNum, true, false, "", linebreak)
+			return
+		}
+
+		// get the labels to add
+		labels, err := cmd.Flags().GetStringSlice("label")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		title, body, err := issueEditGetTitleDescription(issue, cmd.Flags())
+		// get the labels to remove
+		unlabels, err := cmd.Flags().GetStringSlice("unlabel")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		labels, labelsChanged, err := editGetLabels(issue.Labels, labels, unlabels)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get the assignees to add
+		assignees, err := cmd.Flags().GetStringSlice("assign")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get the assignees to remove
+		unassignees, err := cmd.Flags().GetStringSlice("unassign")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		currentAssignees := issueGetCurrentAssignees(issue)
+		assigneeIDs, assigneesChanged, err := getUpdateAssignees(currentAssignees, assignees, unassignees)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get all of the "message" flags
+		msgs, err := cmd.Flags().GetStringArray("message")
+		if err != nil {
+			log.Fatal(err)
+		}
+		title, body, err := editGetTitleDescription(issue.Title, issue.Description, msgs, cmd.Flags().NFlag())
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -67,7 +120,6 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			log.Fatal("aborting: no changes")
 		}
 
-		linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 		if linebreak {
 			body = textToMarkdown(body)
 		}
@@ -85,7 +137,7 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 			opts.AssigneeIDs = assigneeIDs
 		}
 
-		issueURL, err := lab.IssueUpdate(rn, int(issueNum), opts)
+		issueURL, err := lab.IssueUpdate(rn, issueNum, opts)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,51 +145,32 @@ lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue`,
 	},
 }
 
-// issueEditGetLabels returns a string slice of issues based on the current
-// issue labels and flags from the command line, and a bool indicating whether
+// editGetLabels returns a string slice of labels based on the current
+// labels and flags from the command line, and a bool indicating whether
 // the labels have changed
-func issueEditGetLabels(issue *gitlab.Issue, flags *pflag.FlagSet) ([]string, bool, error) {
-	// get the labels to add
-	labels, err := flags.GetStringSlice("label")
-	if err != nil {
-		return []string{}, false, err
-	}
-
-	// get the labels to remove
-	unlabels, err := flags.GetStringSlice("unlabel")
-	if err != nil {
-		return []string{}, false, err
-	}
-
+func editGetLabels(idLabels []string, labels []string, unlabels []string) ([]string, bool, error) {
 	// add the new labels to the current labels, then remove the "unlabels"
-	labels = difference(union(issue.Labels, labels), unlabels)
+	labels = difference(union(idLabels, labels), unlabels)
 
-	return labels, !same(issue.Labels, labels), nil
+	return labels, !same(idLabels, labels), nil
 }
 
-// issueEditGetAssignees returns an int slice of assignee IDs based on the
-// current issue assignees and flags from the command line, and a bool
-// indicating whether the assignees have changed
-func issueEditGetAssignees(issue *gitlab.Issue, flags *pflag.FlagSet) ([]int, bool, error) {
+// issueGetCurrentAssignees returns a string slice of the current assignees'
+// usernames
+func issueGetCurrentAssignees(issue *gitlab.Issue) []string {
 	currentAssignees := make([]string, len(issue.Assignees))
 	if len(issue.Assignees) > 0 && issue.Assignees[0].Username != "" {
 		for i, a := range issue.Assignees {
 			currentAssignees[i] = a.Username
 		}
 	}
+	return currentAssignees
+}
 
-	// get the assignees to add
-	assignees, err := flags.GetStringSlice("assign")
-	if err != nil {
-		return []int{}, false, err
-	}
-
-	// get the assignees to remove
-	unassignees, err := flags.GetStringSlice("unassign")
-	if err != nil {
-		return []int{}, false, err
-	}
-
+// GetUpdateAssignees returns an int slice of assignee IDs based on the
+// current assignees and flags from the command line, and a bool
+// indicating whether the assignees have changed
+func getUpdateAssignees(currentAssignees []string, assignees []string, unassignees []string) ([]int, bool, error) {
 	// add the new assignees to the current assignees, then remove the "unassignees"
 	assignees = difference(union(currentAssignees, assignees), unassignees)
 	assigneesChanged := !same(currentAssignees, assignees)
@@ -158,18 +191,9 @@ func issueEditGetAssignees(issue *gitlab.Issue, flags *pflag.FlagSet) ([]int, bo
 	return assigneeIDs, assigneesChanged, nil
 }
 
-// issueEditGetTitleDescription returns a title and description for an issue
-// based on the current issue title and description and various flags from the
-// command line
-func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (string, string, error) {
-	title, body := issue.Title, issue.Description
-
-	// get all of the "message" flags
-	msgs, err := flags.GetStringArray("message")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+// editGetTitleDescription returns a title and description based on the current
+// issue title and description and various flags from the command line
+func editGetTitleDescription(title string, body string, msgs []string, nFlag int) (string, string, error) {
 	if len(msgs) > 0 {
 		title = msgs[0]
 
@@ -183,24 +207,24 @@ func issueEditGetTitleDescription(issue *gitlab.Issue, flags *pflag.FlagSet) (st
 
 	// if other flags were given (eg label), then skip the editor and return
 	// what we already have
-	if flags.NFlag() != 0 {
+	if nFlag != 0 {
 		return title, body, nil
 	}
 
-	text, err := issueEditText(title, body)
+	text, err := editText(title, body)
 	if err != nil {
 		return "", "", err
 	}
-	return git.Edit("ISSUE_EDIT", text)
+	return git.Edit("EDIT", text)
 }
 
-// issueEditText returns an issue editing template that is suitable for loading
+// editText returns an issue editing template that is suitable for loading
 // into an editor
-func issueEditText(title string, body string) (string, error) {
+func editText(title string, body string) (string, error) {
 	const tmpl = `{{.InitMsg}}
 
-{{.CommentChar}} Edit the title and/or description of this issue. The first
-{{.CommentChar}} block of text is the title and the rest is the description.`
+{{.CommentChar}} Edit the title and/or description. The first block of text
+{{.CommentChar}} is the title and the rest is the description.`
 
 	msg := &struct {
 		InitMsg     string
@@ -277,19 +301,14 @@ func same(a, b []string) bool {
 	return true
 }
 
-// issueEditCmdAddFlags adds various flags to the `lab issue edit` command
-func issueEditCmdAddFlags(flags *pflag.FlagSet) *pflag.FlagSet {
-	flags.StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	flags.StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
-	flags.StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
-	flags.StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	flags.StringSliceP("unassign", "", []string{}, "Remove an assignee by username")
-	flags.Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	return flags
-}
-
 func init() {
-	issueEditCmdAddFlags(issueEditCmd.Flags())
+	issueEditCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueEditCmd.Flags().StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
+	issueEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
+	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "Add an assignee by username")
+	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "Remove an assignee by username")
+	issueEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+
 	issueCmd.AddCommand(issueEditCmd)
 	carapace.Gen(issueEditCmd).PositionalCompletion(
 		action.Remotes(),
