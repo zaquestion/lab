@@ -17,6 +17,7 @@ import (
 var (
 	mrShowPatch        bool
 	mrShowPatchReverse bool
+	mrShowNoColorDiff  bool
 )
 
 var mrShowCmd = &cobra.Command{
@@ -164,6 +165,7 @@ func init() {
 	mrShowCmd.Flags().StringP("since", "s", "", "Show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "Show MR patches")
 	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "Reverse order when showing MR patches (chronological instead of anti-chronological)")
+	mrShowCmd.Flags().BoolVarP(&mrShowNoColorDiff, "no-color-diff", "", false, "Show color diffs in comments")
 	mrCmd.AddCommand(mrShowCmd)
 	carapace.Gen(mrShowCmd).PositionalCompletion(
 		action.Remotes(),
