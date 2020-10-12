@@ -74,7 +74,7 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		replyNote(rn, isMR, int(idNum), reply, quote, true, filename, linebreak)
+		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak)
 		return
 	}
 
