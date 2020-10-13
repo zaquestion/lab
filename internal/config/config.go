@@ -77,6 +77,7 @@ func New(confpath string, r io.Reader) error {
 	err = MainConfig.ReadInConfig()
 	if err != nil {
 		log.Fatal(err)
+		UserConfigError()
 	}
 	return nil
 }
@@ -191,7 +192,8 @@ func getUser(host, token string, skipVerify bool) string {
 	lab, _ := gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"))
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		UserConfigError()
 	}
 
 	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
@@ -212,7 +214,8 @@ func GetToken() string {
 		args := strings.Split(MainConfig.GetString("core.load_token"), " ")
 		_token, err := exec.Command(args[0], args[1:]...).Output()
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
+			UserConfigError()
 		}
 		token = string(_token)
 		// tools like pass and a simple bash script add a '\n' to
@@ -358,4 +361,9 @@ func WriteConfigEntry(desc string, value interface{}, configpath string, confign
 	targetConfig := LoadConfig(configpath, configname)
 	targetConfig.Set(desc, value)
 	targetConfig.WriteConfig()
+}
+
+func UserConfigError() {
+	fmt.Println("Error: User authentication failed.  This is likely due to a misconfigured Personal Access Token.  Verify the token or token_load config settings before attemping to authenticate.")
+	os.Exit(1)
 }
