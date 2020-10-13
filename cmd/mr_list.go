@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
+	"github.com/zaquestion/lab/internal/config"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -33,7 +34,8 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
+			config.UserConfigError()
 		}
 		for _, mr := range mrs {
 			fmt.Printf("#%d %s\n", mr.IID, mr.Title)
