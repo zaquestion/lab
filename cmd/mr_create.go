@@ -230,8 +230,18 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 }
 
 func determineSourceRemote(branch string) string {
-	// Check if the branch is being tracked
-	r, err := gitconfig.Local("branch." + branch + ".remote")
+	// There is a precendence of options that should be considered here:
+	// branch.<name>.pushRemote > remote.pushDefault > branch.<name>.remote
+	// This rule is placed in git-config(1) manpage
+	r, err := gitconfig.Local("branch." + branch + ".pushRemote")
+	if err == nil {
+		return r
+	}
+	r, err = gitconfig.Local("remote.pushDefault")
+	if err == nil {
+		return r
+	}
+	r, err = gitconfig.Local("branch." + branch + ".remote")
 	if err == nil {
 		return r
 	}
