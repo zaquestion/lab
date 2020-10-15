@@ -40,7 +40,7 @@ func Test_ciTrace(t *testing.T) {
 			desc: "noargs",
 			args: []string{},
 			assertContains: func(t *testing.T, out string) {
-				assert.Contains(t, out, "Showing logs for deploy10")
+				assert.Contains(t, out, "Showing logs for build1")
 				assert.Contains(t, out, "Checking out 09b519cb as ci_test_pipeline...")
 				assert.Contains(t, out, "For example you might run an update here or install a build dependency")
 				assert.Contains(t, out, "$ echo \"Or perhaps you might print out some debugging details\"")
