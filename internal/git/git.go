@@ -319,3 +319,16 @@ func GetUnifiedDiff(BaseSHA string, HeadSHA string, oldPath string, newPath stri
 	}
 	return string(diff), nil
 }
+
+func NumberCommits(sha1, sha2 string) int {
+	cmd := New("log", "--oneline", fmt.Sprintf("%s...%s", sha1, sha2))
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	CmdOut, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("There are no commits between %s and %s", sha2, sha2)
+		log.Fatal(err)
+	}
+	numLines := strings.Count(string(CmdOut), "\n")
+	return numLines
+}

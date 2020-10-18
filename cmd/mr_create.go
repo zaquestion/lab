@@ -252,10 +252,19 @@ func determineSourceRemote(branch string) string {
 }
 
 func mrText(base, head, sourceRemote, forkedFromRemote string, coverLetterFormat bool) (string, error) {
-	lastCommitMsg, err := git.LastCommitMessage()
-	if err != nil {
-		return "", err
+	var (
+		commitMsg string
+		err       error
+	)
+	remoteBase := fmt.Sprintf("%s/%s", forkedFromRemote, base)
+	commitMsg = ""
+	if git.NumberCommits(remoteBase, head) == 1 {
+		commitMsg, err = git.LastCommitMessage()
+		if err != nil {
+			return "", err
+		}
 	}
+
 	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
 
 {{if .Tmpl}}{{.Tmpl}}{{end}}
@@ -269,8 +278,6 @@ func mrText(base, head, sourceRemote, forkedFromRemote string, coverLetterFormat
 {{.CommitLogs}}{{end}}`
 
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
-
-	remoteBase := fmt.Sprintf("%s/%s", forkedFromRemote, base)
 
 	commitLogs, err := git.Log(remoteBase, head)
 	if err != nil {
@@ -299,7 +306,7 @@ func mrText(base, head, sourceRemote, forkedFromRemote string, coverLetterFormat
 		Head        string
 		CommitLogs  string
 	}{
-		InitMsg:     lastCommitMsg,
+		InitMsg:     commitMsg,
 		Tmpl:        mrTmpl,
 		CommentChar: commentChar,
 		Base:        forkedFromRemote + ":" + base,
