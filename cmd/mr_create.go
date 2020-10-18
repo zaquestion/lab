@@ -43,6 +43,7 @@ func init() {
 	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
 	mrCreateCmd.Flags().StringP("file", "F", "", "Use the given file as the Description")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "Do not comment changelog and diffstat")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
@@ -169,7 +170,8 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	} else if len(msgs) > 0 {
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
-		msg, err := mrText(targetBranch, branch, sourceRemote, forkedFromRemote)
+		coverLetterFormat, _ := cmd.Flags().GetBool("cover-letter")
+		msg, err := mrText(targetBranch, branch, sourceRemote, forkedFromRemote, coverLetterFormat)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -249,7 +251,7 @@ func determineSourceRemote(branch string) string {
 	return forkRemote
 }
 
-func mrText(base, head, sourceRemote, forkedFromRemote string) (string, error) {
+func mrText(base, head, sourceRemote, forkedFromRemote string, coverLetterFormat bool) (string, error) {
 	lastCommitMsg, err := git.LastCommitMessage()
 	if err != nil {
 		return "", err
@@ -269,14 +271,20 @@ func mrText(base, head, sourceRemote, forkedFromRemote string) (string, error) {
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 
 	remoteBase := fmt.Sprintf("%s/%s", forkedFromRemote, base)
+
 	commitLogs, err := git.Log(remoteBase, head)
 	if err != nil {
 		return "", err
 	}
-	startRegexp := regexp.MustCompilePOSIX("^")
-	commentChar := git.CommentChar()
 	commitLogs = strings.TrimSpace(commitLogs)
-	commitLogs = startRegexp.ReplaceAllString(commitLogs, fmt.Sprintf("%s ", commentChar))
+	commentChar := git.CommentChar()
+
+	if !coverLetterFormat {
+		startRegexp := regexp.MustCompilePOSIX("^")
+		commitLogs = startRegexp.ReplaceAllString(commitLogs, fmt.Sprintf("%s ", commentChar))
+	} else {
+		commitLogs = "\n" + strings.TrimSpace(commitLogs)
+	}
 
 	t, err := template.New("tmpl").Parse(tmpl)
 	if err != nil {
