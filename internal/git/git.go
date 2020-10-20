@@ -102,7 +102,7 @@ func Log(sha1, sha2 string) (string, error) {
 	cmd := New("-c", "log.showSignature=false",
 		"log",
 		"--no-color",
-		"--format=%h (%aN, %ar)%n%w(78,3,3)%s%n",
+		"--format=%h (%aN)%n%w(78,3,3)%s%n",
 		"--cherry",
 		fmt.Sprintf("%s...%s", sha1, sha2))
 	cmd.Stdout = nil
@@ -111,7 +111,13 @@ func Log(sha1, sha2 string) (string, error) {
 		return "", errors.Errorf("Can't load git log %s..%s", sha1, sha2)
 	}
 
-	return string(outputs), nil
+	diffCmd := New("diff", "--stat", sha1)
+	diffCmd.Stdout = nil
+	diffOutput, err := diffCmd.Output()
+	if err != nil {
+		return "", errors.Errorf("Can't load diffstat")
+	}
+	return string(outputs) + string(diffOutput), nil
 }
 
 // CurrentBranch returns the currently checked out branch
@@ -312,4 +318,17 @@ func GetUnifiedDiff(BaseSHA string, HeadSHA string, oldPath string, newPath stri
 		return "", err
 	}
 	return string(diff), nil
+}
+
+func NumberCommits(sha1, sha2 string) int {
+	cmd := New("log", "--oneline", fmt.Sprintf("%s...%s", sha1, sha2))
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	CmdOut, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("There are no commits between %s and %s", sha2, sha2)
+		log.Fatal(err)
+	}
+	numLines := strings.Count(string(CmdOut), "\n")
+	return numLines
 }
