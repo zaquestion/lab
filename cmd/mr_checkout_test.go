@@ -8,10 +8,14 @@ import (
 )
 
 func Test_mrCheckoutCmdRun(t *testing.T) {
-	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command(labBinaryPath, "mr", "checkout", "1")
+	// make sure the branch does not exist
+	cmd := exec.Command("git", "branch", "-D", "mrtest")
+	cmd.Dir = repo
+	cmd.CombinedOutput()
+
+	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -41,10 +45,14 @@ func Test_mrCheckoutCmdRun(t *testing.T) {
 }
 
 func Test_mrCheckoutCmd_track(t *testing.T) {
-	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command(labBinaryPath, "mr", "checkout", "1", "-t", "-b", "mrtest_track")
+	// make sure the branch does not exist
+	cmd := exec.Command("git", "branch", "-D", "mrtest")
+	cmd.Dir = repo
+	cmd.CombinedOutput()
+
+	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "-t", "-b", "mrtest_track")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -83,10 +91,14 @@ func Test_mrCheckoutCmd_track(t *testing.T) {
 }
 
 func Test_mrCheckoutCmdRunWithDifferentName(t *testing.T) {
-	t.Parallel()
 	repo := copyTestRepo(t)
 
-	cmd := exec.Command(labBinaryPath, "mr", "checkout", "1", "-b", "mrtest_custom_name")
+	// make sure the branch does not exist
+	cmd := exec.Command("git", "branch", "-D", "mrtest")
+	cmd.Dir = repo
+	cmd.CombinedOutput()
+
+	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "-b", "mrtest_custom_name")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -113,4 +125,31 @@ func Test_mrCheckoutCmdRunWithDifferentName(t *testing.T) {
 	eLog := string(log)
 	require.Contains(t, eLog, "Test file for MR test")
 	require.Contains(t, eLog, "54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0")
+}
+
+func Test_mrDoubleCheckoutCmdRun(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	// make sure the branch does not exist
+	cmd := exec.Command("git", "branch", "-D", "mrtest")
+	cmd.Dir = repo
+	cmd.CombinedOutput()
+
+	first := exec.Command(labBinaryPath, "mr", "checkout", "1")
+	first.Dir = repo
+	b, err := first.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+
+	second := exec.Command(labBinaryPath, "mr", "checkout", "1")
+	second.Dir = repo
+	log, err := second.CombinedOutput()
+	eLog := string(log)
+	if err == nil {
+		t.Log(eLog)
+		t.Fatal(err)
+	}
+	require.Contains(t, eLog, "ERROR: mr 1 branch mrtest already exists")
 }
