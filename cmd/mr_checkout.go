@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -75,6 +76,11 @@ var checkoutCmd = &cobra.Command{
 				}
 			}
 			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", mr.Author.Username, mr.SourceBranch)
+		}
+
+		if err := git.New("show-ref", "--verify", "--quiet", "refs/heads/"+fetchToRef).Run(); err == nil {
+			fmt.Println("ERROR: mr", mrID, "branch", fetchToRef, "already exists.")
+			os.Exit(1)
 		}
 
 		// https://docs.gitlab.com/ce/user/project/merge_requests/#checkout-merge-requests-locally
