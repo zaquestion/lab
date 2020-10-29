@@ -139,6 +139,21 @@ func parseArgs(args []string) (string, int64, error) {
 	return parseArgsRemoteInt(args)
 }
 
+// parseArgsWithGitBranchMR returns a remote name and a number if parsed.
+// If no number is specified, the MR id associated with the current
+// branch is returned.
+func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
+	s, i, err := parseArgsRemoteInt(args)
+	if i == 0 {
+		i = int64(getCurrentBranchMR(s))
+		if i == 0 {
+			fmt.Println("Error: Cannot determine MR id.")
+			os.Exit(1)
+		}
+	}
+	return s, i, err
+}
+
 // parseArgsRemoteInt is similar to parseArgsStringInt except that it uses the
 // string argument as a remote and returns the project name for that remote
 func parseArgsRemoteInt(args []string) (string, int64, error) {

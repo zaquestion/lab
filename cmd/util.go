@@ -9,7 +9,10 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/config"
+	git "github.com/zaquestion/lab/internal/git"
+	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var (
@@ -56,6 +59,35 @@ func flagConfig(fs *flag.FlagSet) {
 			f.Value.Set(configString)
 		}
 	})
+}
+
+// getCurrentBranchMR returns the MR ID associated with the current branch.
+// If a MR ID cannot be found, the function returns 0.
+func getCurrentBranchMR(rn string) int {
+	var num int = 0
+
+	currentBranch, err := git.CurrentBranch()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 10,
+		},
+		Labels:       lab.Labels(mrLabels),
+		State:        &mrState,
+		OrderBy:      gitlab.String("updated_at"),
+		SourceBranch: gitlab.String(currentBranch),
+	}, -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(mrs) > 0 {
+		num = mrs[0].IID
+	}
+	return num
 }
 
 // getMainConfig returns the merged config of ~/.config/lab/lab.toml and
