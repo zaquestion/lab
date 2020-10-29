@@ -34,16 +34,16 @@ var mrCreateCmd = &cobra.Command{
 }
 
 func init() {
-	mrCreateCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	mrCreateCmd.Flags().StringSliceP("assignee", "a", []string{}, "Set assignee by username; can be specified multiple times for multiple assignees")
-	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "Add label <label>; can be specified multiple times for multiple labels")
-	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "Remove source branch from remote after merge")
-	mrCreateCmd.Flags().BoolP("squash", "s", false, "Squash commits when merging")
-	mrCreateCmd.Flags().Bool("allow-collaboration", false, "Allow commits from other members")
-	mrCreateCmd.Flags().Int("milestone", -1, "Set milestone by milestone ID")
-	mrCreateCmd.Flags().StringP("file", "F", "", "Use the given file as the Description")
+	mrCreateCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	mrCreateCmd.Flags().StringSliceP("assignee", "a", []string{}, "set assignee by username; can be specified multiple times for multiple assignees")
+	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "add label <label>; can be specified multiple times for multiple labels")
+	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "remove source branch from remote after merge")
+	mrCreateCmd.Flags().BoolP("squash", "s", false, "squash commits when merging")
+	mrCreateCmd.Flags().Bool("allow-collaboration", false, "allow commits from other members")
+	mrCreateCmd.Flags().Int("milestone", -1, "set milestone by milestone ID")
+	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Description")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "Do not comment changelog and diffstat")
+	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "do not comment changelog and diffstat")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)

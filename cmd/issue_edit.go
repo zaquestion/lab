@@ -302,11 +302,11 @@ func same(a, b []string) bool {
 }
 
 func init() {
-	issueEditCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	issueEditCmd.Flags().StringSliceP("label", "l", []string{}, "Add the given label(s) to the issue")
-	issueEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the issue")
-	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "Remove an assignee by username")
+	issueEditCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueEditCmd.Flags().StringSliceP("label", "l", []string{}, "add the given label(s) to the issue")
+	issueEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "remove the given label(s) from the issue")
+	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
+	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	issueEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
 	issueCmd.AddCommand(issueEditCmd)

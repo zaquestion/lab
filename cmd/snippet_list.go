@@ -63,8 +63,8 @@ func snippetList(args []string) ([]*gitlab.Snippet, error) {
 }
 
 func init() {
-	snippetListCmd.Flags().IntVarP(&snippetListConfig.Number, "number", "n", 10, "Number of snippets to return")
-	snippetListCmd.Flags().BoolVarP(&snippetListConfig.All, "all", "a", false, "List all snippets")
+	snippetListCmd.Flags().IntVarP(&snippetListConfig.Number, "number", "n", 10, "number of snippets to return")
+	snippetListCmd.Flags().BoolVarP(&snippetListConfig.All, "all", "a", false, "list all snippets")
 
 	snippetCmd.AddCommand(snippetListCmd)
 	carapace.Gen(snippetListCmd).PositionalCompletion(

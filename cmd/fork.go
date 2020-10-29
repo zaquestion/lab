@@ -89,6 +89,6 @@ func determineForkRemote(project string) string {
 }
 
 func init() {
-	forkCmd.Flags().BoolP("skip-clone", "s", false, "Skip clone after remote fork")
+	forkCmd.Flags().BoolP("skip-clone", "s", false, "skip clone after remote fork")
 	RootCmd.AddCommand(forkCmd)
 }

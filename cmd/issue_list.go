@@ -69,16 +69,16 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 func init() {
 	issueListCmd.Flags().StringSliceVarP(
 		&issueLabels, "label", "l", []string{},
-		"Filter issues by label")
+		"filter issues by label")
 	issueListCmd.Flags().StringVarP(
 		&issueState, "state", "s", "opened",
-		"Filter issues by state (opened/closed)")
+		"filter issues by state (opened/closed)")
 	issueListCmd.Flags().IntVarP(
 		&issueNumRet, "number", "n", 10,
-		"Number of issues to return")
+		"number of issues to return")
 	issueListCmd.Flags().BoolVarP(
 		&issueAll, "all", "a", false,
-		"List all issues on the project")
+		"list all issues on the project")
 
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{

@@ -15,7 +15,7 @@ import (
 )
 
 var mrEditCmd = &cobra.Command{
-	Use:     "edit [remote] <id>[:<comment_id>",
+	Use:     "edit [remote] <id>[:<comment_id>]",
 	Aliases: []string{"update"},
 	Short:   "Edit or update an MR",
 	Long:    ``,
@@ -153,11 +153,11 @@ func mrGetCurrentAssignees(mr *gitlab.MergeRequest) []string {
 }
 
 func init() {
-	mrEditCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	mrEditCmd.Flags().StringSliceP("label", "l", []string{}, "Add the given label(s) to the merge request")
-	mrEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "Remove the given label(s) from the merge request")
-	mrEditCmd.Flags().StringSliceP("assign", "a", []string{}, "Add an assignee by username")
-	mrEditCmd.Flags().StringSliceP("unassign", "", []string{}, "Remove an assigne by username")
+	mrEditCmd.Flags().StringSliceP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	mrEditCmd.Flags().StringSliceP("label", "l", []string{}, "add the given label(s) to the merge request")
+	mrEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "remove the given label(s) from the merge request")
+	mrEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
+	mrEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
 	mrCmd.AddCommand(mrEditCmd)

@@ -160,12 +160,12 @@ WebURL: %s
 }
 
 func init() {
-	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
-	mrShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the merge request")
-	mrShowCmd.Flags().StringP("since", "s", "", "Show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
-	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "Show MR patches")
-	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "Reverse order when showing MR patches (chronological instead of anti-chronological)")
-	mrShowCmd.Flags().BoolVarP(&mrShowNoColorDiff, "no-color-diff", "", false, "Show color diffs in comments")
+	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "don't use markdown renderer to print the issue description")
+	mrShowCmd.Flags().BoolP("comments", "c", false, "show comments for the merge request")
+	mrShowCmd.Flags().StringP("since", "s", "", "show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
+	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "show MR patches")
+	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "reverse order when showing MR patches (chronological instead of anti-chronological)")
+	mrShowCmd.Flags().BoolVarP(&mrShowNoColorDiff, "no-color-diff", "", false, "show color diffs in comments")
 	mrCmd.AddCommand(mrShowCmd)
 	carapace.Gen(mrShowCmd).PositionalCompletion(
 		action.Remotes(),

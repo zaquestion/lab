@@ -96,8 +96,8 @@ func determinePath(args []string, name string) string {
 func init() {
 	projectCreateCmd.Flags().StringP("name", "n", "", "name of the new project")
 	projectCreateCmd.Flags().StringP("description", "d", "", "description of the new project")
-	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make project private: visible only to project members")
-	projectCreateCmd.Flags().BoolVar(&public, "public", false, "Make project public: visible without any authentication")
-	projectCreateCmd.Flags().BoolVar(&internal, "internal", false, "Make project internal: visible to any authenticated user (default)")
+	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "make project private: visible only to project members")
+	projectCreateCmd.Flags().BoolVar(&public, "public", false, "make project public: visible without any authentication")
+	projectCreateCmd.Flags().BoolVar(&internal, "internal", false, "make project internal: visible to any authenticated user (default)")
 	projectCmd.AddCommand(projectCreateCmd)
 }

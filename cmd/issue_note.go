@@ -252,10 +252,10 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 }
 
 func init() {
-	issueNoteCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	issueNoteCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
+	issueNoteCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	issueNoteCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 	issueNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	issueNoteCmd.Flags().Bool("quote", false, "Quote note in reply (used with --reply only)")
+	issueNoteCmd.Flags().Bool("quote", false, "quote note in reply (used with --reply only)")
 
 	issueCmd.AddCommand(issueNoteCmd)
 	carapace.Gen(issueNoteCmd).PositionalCompletion(

@@ -36,8 +36,8 @@ var mrCmd = &cobra.Command{
 }
 
 func init() {
-	mrCmd.Flags().BoolP("list", "l", false, "List merge requests on a remote")
-	mrCmd.Flags().BoolP("browse", "b", false, "View merge request <id> in a browser")
-	mrCmd.Flags().StringP("close", "d", "", "Close merge request <id> on remote")
+	mrCmd.Flags().BoolP("list", "l", false, "list merge requests on a remote")
+	mrCmd.Flags().BoolP("browse", "b", false, "view merge request <id> in a browser")
+	mrCmd.Flags().StringP("close", "d", "", "close merge request <id> on remote")
 	RootCmd.AddCommand(mrCmd)
 }

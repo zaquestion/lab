@@ -112,8 +112,8 @@ func mrDiscussionText() (string, error) {
 }
 
 func init() {
-	mrCreateDiscussionCmd.Flags().StringSliceP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	mrCreateDiscussionCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
+	mrCreateDiscussionCmd.Flags().StringSliceP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	mrCreateDiscussionCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 
 	mrCmd.AddCommand(mrCreateDiscussionCmd)
 	carapace.Gen(mrCreateDiscussionCmd).PositionalCompletion(

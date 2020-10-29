@@ -92,10 +92,10 @@ func init() {
 	listCmd.Flags().StringVarP(
 		&mrTargetBranch, "target-branch", "t", "",
 		"filter merge requests by target branch")
-	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "List all MRs on the project")
-	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "List only MRs assigned to me")
+	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "list all MRs on the project")
+	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().StringVar(
-		&mrAssignee, "assignee", "", "List only MRs assigned to $username")
+		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
