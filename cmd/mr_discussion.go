@@ -26,7 +26,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, mrNum, err := parseArgs(args)
+		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			log.Fatal(err)
 		}

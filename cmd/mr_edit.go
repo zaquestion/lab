@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -25,7 +26,6 @@ lab MR edit <id> -m "new title"                 # update title
 lab MR edit <id> -m "new title" -m "new desc"   # update title & description
 lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR
 lab MR edit <id>:<comment_id>                   # update a comment on MR`,
-	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, idString, err := parseArgsRemoteString(args)
 		if err != nil {
@@ -43,6 +43,14 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			commentNum, _ = strconv.Atoi(ids[1])
 		} else {
 			mrNum, _ = strconv.Atoi(idString)
+		}
+
+		if mrNum == 0 {
+			mrNum = getCurrentBranchMR(rn)
+			if mrNum == 0 {
+				fmt.Println("Error: Cannot determine MR id.")
+				os.Exit(1)
+			}
 		}
 
 		mr, err := lab.MRGet(rn, mrNum)

@@ -18,7 +18,7 @@ var mrCloseCmd = &cobra.Command{
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, id, err := parseArgs(args)
+		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			log.Fatal(err)
 		}
