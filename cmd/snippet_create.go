@@ -169,10 +169,10 @@ func snipText(tmpl string) (string, error) {
 }
 
 func init() {
-	snippetCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "Make snippet private; visible only to project members (default: internal)")
-	snippetCreateCmd.Flags().BoolVar(&public, "public", false, "Make snippet public; can be accessed without any authentication (default: internal)")
-	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) Name snippet to add code highlighting, e.g. potato.go for GoLang")
-	snippetCreateCmd.Flags().StringArrayP("message", "m", []string{"-"}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	snippetCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "make snippet private; visible only to project members (default: internal)")
+	snippetCreateCmd.Flags().BoolVar(&public, "public", false, "make snippet public; can be accessed without any authentication (default: internal)")
+	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) name snippet to add code highlighting, e.g. potato.go for GoLang")
+	snippetCreateCmd.Flags().StringArrayP("message", "m", []string{"-"}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	snippetCmd.Flags().AddFlagSet(snippetCreateCmd.Flags())
 
 	snippetCmd.AddCommand(snippetCreateCmd)

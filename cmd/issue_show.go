@@ -329,9 +329,9 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 }
 
 func init() {
-	issueShowCmd.Flags().BoolP("no-markdown", "M", false, "Don't use markdown renderer to print the issue description")
-	issueShowCmd.Flags().BoolP("comments", "c", false, "Show comments for the issue")
-	issueShowCmd.Flags().StringP("since", "s", "", "Show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
+	issueShowCmd.Flags().BoolP("no-markdown", "M", false, "don't use markdown renderer to print the issue description")
+	issueShowCmd.Flags().BoolP("comments", "c", false, "show comments for the issue")
+	issueShowCmd.Flags().StringP("since", "s", "", "show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	issueCmd.AddCommand(issueShowCmd)
 
 	carapace.Gen(issueShowCmd).PositionalCompletion(

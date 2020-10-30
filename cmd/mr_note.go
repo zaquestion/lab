@@ -17,10 +17,10 @@ var mrNoteCmd = &cobra.Command{
 }
 
 func init() {
-	mrNoteCmd.Flags().StringArrayP("message", "m", []string{}, "Use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	mrNoteCmd.Flags().StringP("file", "F", "", "Use the given file as the message")
+	mrNoteCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	mrNoteCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 	mrNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	mrNoteCmd.Flags().Bool("quote", false, "Quote note in reply (used with --reply only)")
+	mrNoteCmd.Flags().Bool("quote", false, "quote note in reply (used with --reply only)")
 
 	mrCmd.AddCommand(mrNoteCmd)
 	carapace.Gen(mrNoteCmd).PositionalCompletion(
