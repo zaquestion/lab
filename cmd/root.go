@@ -107,16 +107,8 @@ func init() {
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 }
 
-// TODO: this parseArgs thing has gotten way THE FUCK out of hand. Please fix.
-
-// parseArgsStr returns a string and a number if parsed. Many commands accept a
-// string to operate on (remote or search) and number such as a page id
+// parseArgsStr returns a string and a number if parsed.
 func parseArgsStr(args []string) (string, int64, error) {
-	return parseArgsStringInt(args)
-}
-
-// parseArgsStringInt returns a string and a number if parsed.
-func parseArgsStringInt(args []string) (string, int64, error) {
 	if len(args) == 2 {
 		n, err := strconv.ParseInt(args[1], 0, 64)
 		if err != nil {
@@ -134,11 +126,6 @@ func parseArgsStringInt(args []string) (string, int64, error) {
 	return "", 0, nil
 }
 
-// parseArgs returns a remote name and a number if parsed
-func parseArgs(args []string) (string, int64, error) {
-	return parseArgsRemoteInt(args)
-}
-
 // parseArgsWithGitBranchMR returns a remote name and a number if parsed.
 // If no number is specified, the MR id associated with the current
 // branch is returned.
@@ -154,12 +141,13 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 	return s, i, err
 }
 
-// parseArgsRemoteInt is similar to parseArgsStringInt except that it uses the
-// string argument as a remote and returns the project name for that remote
-func parseArgsRemoteInt(args []string) (string, int64, error) {
+// parseArgs is similar to parseArgsStr except that it uses the string argument
+// as a remote and returns the project name for that remote
+func parseArgs(args []string) (string, int64, error) {
 	if !git.InsideGitRepo() {
 		return "", 0, nil
 	}
+
 	remote, num, err := parseArgsStr(args)
 	if err != nil {
 		return "", 0, err
@@ -224,23 +212,6 @@ func parseArgsRemoteString(args []string) (string, string, error) {
 		return "", "", err
 	}
 	return remote, str, nil
-}
-
-// parseArgsRemoteRef returns a remote name and a ref name (default: current branch).
-// Like parseArgsRemoteString where second argument defaults to current branch.
-func parseArgsRemoteRef(args []string) (string, string, error) {
-	rn, name, err := parseArgsRemoteString(args)
-	if err != nil {
-		return "", "", err
-	}
-	if name == "" {
-		name, err = git.CurrentBranch()
-		if err != nil {
-			return "", "", err
-		}
-	}
-
-	return rn, name, nil
 }
 
 // setCommandPrefix returns a concatenated value of some of the commandline.
