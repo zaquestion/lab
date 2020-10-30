@@ -220,7 +220,7 @@ func Fork(project string) (string, error) {
 	// See if a fork already exists
 	target, err := FindProject(parts[1])
 	if err == nil {
-		return target.SSHURLToRepo, nil
+		return target.HTTPURLToRepo, nil
 	} else if err != nil && err != ErrProjectNotFound {
 		return "", err
 	}
@@ -235,7 +235,7 @@ func Fork(project string) (string, error) {
 		return "", err
 	}
 
-	return fork.SSHURLToRepo, nil
+	return fork.HTTPURLToRepo, nil
 }
 
 // MRCreate opens a merge request on GitLab
