@@ -54,6 +54,14 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		idNum, _ = strconv.Atoi(idString)
 	}
 
+	if isMR && idNum == 0 {
+		idNum = getCurrentBranchMR(rn)
+		if idNum == 0 {
+			fmt.Println("Error: Cannot determine MR id.")
+			os.Exit(1)
+		}
+	}
+
 	msgs, err := cmd.Flags().GetStringArray("message")
 	if err != nil {
 		log.Fatal(err)

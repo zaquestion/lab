@@ -25,7 +25,7 @@ var mrThumbUpCmd = &cobra.Command{
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, id, err := parseArgs(args)
+		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			log.Fatal(err)
 		}

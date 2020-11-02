@@ -8,9 +8,7 @@ import (
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
-	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -21,7 +19,7 @@ var mrBrowseCmd = &cobra.Command{
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, num, err := parseArgs(args)
+		rn, num, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -32,30 +30,7 @@ var mrBrowseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		hostURL.Path = path.Join(hostURL.Path, rn, "merge_requests")
-		if num > 0 {
-			hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
-		} else {
-			currentBranch, err := git.CurrentBranch()
-			if err != nil {
-				log.Fatal(err)
-			}
-			mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
-				ListOptions: gitlab.ListOptions{
-					PerPage: 10,
-				},
-				Labels:       lab.Labels(mrLabels),
-				State:        &mrState,
-				OrderBy:      gitlab.String("updated_at"),
-				SourceBranch: gitlab.String(currentBranch),
-			}, -1)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if len(mrs) > 0 {
-				num = int64(mrs[0].IID)
-				hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
-			}
-		}
+		hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
 
 		err = browse(hostURL.String())
 		if err != nil {
