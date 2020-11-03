@@ -20,7 +20,6 @@ import (
 
 var mrCreateDiscussionCmd = &cobra.Command{
 	Use:              "discussion [remote] <id>",
-	Aliases:          []string{"comment"},
 	Short:            "Start a discussion on an MR on GitLab",
 	Long:             ``,
 	Args:             cobra.MinimumNArgs(1),
