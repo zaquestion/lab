@@ -14,7 +14,7 @@ var projectBrowseCmd = &cobra.Command{
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, _, err := parseArgs(args)
+		rn, _, err := parseArgsRemoteAndID(args)
 
 		p, err := lab.FindProject(rn)
 		if err != nil {

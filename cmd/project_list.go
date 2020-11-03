@@ -24,7 +24,7 @@ var projectListCmd = &cobra.Command{
 	Short:            "List your projects",
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		search, _, err := parseArgsStr(args)
+		search, _, err := parseArgsStringAndID(args)
 		if err != nil {
 			log.Fatal(err)
 		}

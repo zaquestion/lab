@@ -35,7 +35,7 @@ var snippetListCmd = &cobra.Command{
 }
 
 func snippetList(args []string) ([]*gitlab.Snippet, error) {
-	rn, _, err := parseArgs(args)
+	rn, _, err := parseArgsRemoteAndID(args)
 	if err != nil {
 		return nil, err
 	}

@@ -36,7 +36,7 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		isMR = true
 	}
 
-	rn, idString, err := parseArgsRemoteString(args)
+	rn, idString, err := parseArgsRemoteAndProject(args)
 	if err != nil {
 		log.Fatal(err)
 	}

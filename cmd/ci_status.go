@@ -33,7 +33,7 @@ lab ci status --wait`,
 			err     error
 		)
 
-		rn, refName, err = parseArgsRemoteString(args)
+		rn, refName, err = parseArgsRemoteAndProject(args)
 		if err != nil {
 			log.Fatal(err)
 		}

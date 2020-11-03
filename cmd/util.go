@@ -99,14 +99,14 @@ func getMainConfig() *viper.Viper {
 	return config.MainConfig
 }
 
-// parseArgs is used by commands to parse command line arguments.
+// parseArgsRemoteAndID is used by commands to parse command line arguments.
 // This function returns a remote name and number.
-func parseArgs(args []string) (string, int64, error) {
+func parseArgsRemoteAndID(args []string) (string, int64, error) {
 	if !git.InsideGitRepo() {
 		return "", 0, nil
 	}
 
-	remote, num, err := parseArgsStr(args)
+	remote, num, err := parseArgsStringAndID(args)
 	if err != nil {
 		return "", 0, err
 	}
@@ -131,11 +131,11 @@ func parseArgs(args []string) (string, int64, error) {
 	return rn, num, nil
 }
 
-// parseArgsRemoteString is used by commands to parse command line arguments.
-// This function returns a remote name and the project name.  If no
-// remote name is given, the function returns "" and the project name of
-// the default remote (ie 'origin').
-func parseArgsRemoteString(args []string) (string, string, error) {
+// parseArgsRemoteAndProject is used by commands to parse command line
+// arguments.  This function returns a remote name and the project name.  If no
+// remote name is given, the function returns "" and the project name of the
+// default remote (ie 'origin').
+func parseArgsRemoteAndProject(args []string) (string, string, error) {
 	if !git.InsideGitRepo() {
 		return "", "", nil
 	}
@@ -171,9 +171,9 @@ func parseArgsRemoteString(args []string) (string, string, error) {
 	return remote, str, nil
 }
 
-// parseArgsStr is used by commands to parse command line arguments.
+// parseArgsStringAndID is used by commands to parse command line arguments.
 // This function returns a string and number.
-func parseArgsStr(args []string) (string, int64, error) {
+func parseArgsStringAndID(args []string) (string, int64, error) {
 	if len(args) == 2 {
 		n, err := strconv.ParseInt(args[1], 0, 64)
 		if err != nil {
@@ -195,7 +195,7 @@ func parseArgsStr(args []string) (string, int64, error) {
 // If no number is specified, the MR id associated with the current
 // branch is returned.
 func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
-	s, i, err := parseArgs(args)
+	s, i, err := parseArgsRemoteAndID(args)
 	if i == 0 {
 		i = int64(getCurrentBranchMR(s))
 		if i == 0 {

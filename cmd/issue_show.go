@@ -30,7 +30,7 @@ var issueShowCmd = &cobra.Command{
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		rn, issueNum, err := parseArgs(args)
+		rn, issueNum, err := parseArgsRemoteAndID(args)
 		if err != nil {
 			log.Fatal(err)
 		}

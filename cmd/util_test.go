@@ -51,7 +51,7 @@ func Test_getCurrentBranchMR(t *testing.T) {
 	assert.Equal(t, 1, mrNum)
 }
 
-func Test_parseArgsStr(t *testing.T) {
+func Test_parseArgsStringAndID(t *testing.T) {
 	tests := []struct {
 		Name           string
 		Args           []string
@@ -120,7 +120,7 @@ func Test_parseArgsStr(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			s, i, err := parseArgsStr(test.Args)
+			s, i, err := parseArgsStringAndID(test.Args)
 			if err != nil {
 				assert.EqualError(t, err, test.ExpectedErr)
 			}
@@ -130,7 +130,7 @@ func Test_parseArgsStr(t *testing.T) {
 	}
 }
 
-func Test_parseArgs(t *testing.T) {
+func Test_parseArgsRemoteAndID(t *testing.T) {
 	tests := []struct {
 		Name           string
 		Args           []string
@@ -199,7 +199,7 @@ func Test_parseArgs(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			s, i, err := parseArgs(test.Args)
+			s, i, err := parseArgsRemoteAndID(test.Args)
 			if err != nil {
 				assert.EqualError(t, err, test.ExpectedErr)
 			}
@@ -209,7 +209,7 @@ func Test_parseArgs(t *testing.T) {
 	}
 }
 
-func Test_parseArgsRemoteString(t *testing.T) {
+func Test_parseArgsRemoteAndProject(t *testing.T) {
 	tests := []struct {
 		Name           string
 		Args           []string
@@ -264,7 +264,7 @@ func Test_parseArgsRemoteString(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			r, s, err := parseArgsRemoteString(test.Args)
+			r, s, err := parseArgsRemoteAndProject(test.Args)
 			if err != nil {
 				assert.EqualError(t, err, test.ExpectedErr)
 			}

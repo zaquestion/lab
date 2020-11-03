@@ -49,7 +49,7 @@ var mrThumbDownCmd = &cobra.Command{
 	Short:   "Thumbs down merge request",
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, id, err := parseArgs(args)
+		rn, id, err := parseArgsRemoteAndID(args)
 		if err != nil {
 			log.Fatal(err)
 		}

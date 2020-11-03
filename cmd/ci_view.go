@@ -54,7 +54,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			err     error
 		)
 
-		rn, refName, err = parseArgsRemoteString(args)
+		rn, refName, err = parseArgsRemoteAndProject(args)
 		if err != nil {
 			log.Fatal(err)
 		}
