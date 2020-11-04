@@ -32,7 +32,7 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		rn, idString, err := parseArgsRemoteString(args)
+		rn, idString, err := parseArgsRemoteAndProject(args)
 		if err != nil {
 			log.Fatal(err)
 		}

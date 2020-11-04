@@ -41,7 +41,7 @@ lab issue list remote "search terms"  # search "remote" for issues with "search 
 }
 
 func issueList(args []string) ([]*gitlab.Issue, error) {
-	rn, issueSearch, err := parseArgsRemoteString(args)
+	rn, issueSearch, err := parseArgsRemoteAndProject(args)
 	if err != nil {
 		return nil, err
 	}

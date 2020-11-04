@@ -44,7 +44,7 @@ var listCmd = &cobra.Command{
 }
 
 func mrList(args []string) ([]*gitlab.MergeRequest, error) {
-	rn, _, err := parseArgs(args)
+	rn, _, err := parseArgsRemoteAndID(args)
 	if err != nil {
 		return nil, err
 	}

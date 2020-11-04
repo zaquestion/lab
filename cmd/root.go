@@ -6,12 +6,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"syscall"
 	"text/template"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/git"
@@ -105,165 +103,6 @@ func init() {
 	RootCmd.SetHelpCommand(helpCmd)
 	RootCmd.SetHelpFunc(helpFunc)
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
-}
-
-// TODO: this parseArgs thing has gotten way THE FUCK out of hand. Please fix.
-
-// parseArgsStr returns a string and a number if parsed. Many commands accept a
-// string to operate on (remote or search) and number such as a page id
-func parseArgsStr(args []string) (string, int64, error) {
-	return parseArgsStringInt(args)
-}
-
-// parseArgsStringInt returns a string and a number if parsed.
-func parseArgsStringInt(args []string) (string, int64, error) {
-	if len(args) == 2 {
-		n, err := strconv.ParseInt(args[1], 0, 64)
-		if err != nil {
-			return args[0], 0, err
-		}
-		return args[0], n, nil
-	}
-	if len(args) == 1 {
-		n, err := strconv.ParseInt(args[0], 0, 64)
-		if err != nil {
-			return args[0], 0, nil
-		}
-		return "", n, nil
-	}
-	return "", 0, nil
-}
-
-// parseArgs returns a remote name and a number if parsed
-func parseArgs(args []string) (string, int64, error) {
-	return parseArgsRemoteInt(args)
-}
-
-// parseArgsWithGitBranchMR returns a remote name and a number if parsed.
-// If no number is specified, the MR id associated with the current
-// branch is returned.
-func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
-	s, i, err := parseArgsRemoteInt(args)
-	if i == 0 {
-		i = int64(getCurrentBranchMR(s))
-		if i == 0 {
-			fmt.Println("Error: Cannot determine MR id.")
-			os.Exit(1)
-		}
-	}
-	return s, i, err
-}
-
-// parseArgsRemoteInt is similar to parseArgsStringInt except that it uses the
-// string argument as a remote and returns the project name for that remote
-func parseArgsRemoteInt(args []string) (string, int64, error) {
-	if !git.InsideGitRepo() {
-		return "", 0, nil
-	}
-	remote, num, err := parseArgsStr(args)
-	if err != nil {
-		return "", 0, err
-	}
-	ok, err := git.IsRemote(remote)
-	if err != nil {
-		return "", 0, err
-	} else if !ok && remote != "" {
-		switch len(args) {
-		case 1:
-			return "", 0, errors.Errorf("%s is not a valid remote or number", args[0])
-		default:
-			return "", 0, errors.Errorf("%s is not a valid remote", args[0])
-		}
-	}
-	if remote == "" {
-		remote = forkedFromRemote
-	}
-	rn, err := git.PathWithNameSpace(remote)
-	if err != nil {
-		return "", 0, err
-	}
-	return rn, num, nil
-}
-
-// parseArgsRemoteString returns a remote name and a string if parsed.
-// If there is an error, it returns two empty strings.
-// If no remote is given, it returns the project name of the default remote
-// (ie 'origin').
-// If no second argument is given, it returns "" as second return value.
-func parseArgsRemoteString(args []string) (string, string, error) {
-	if !git.InsideGitRepo() {
-		return "", "", nil
-	}
-
-	remote, str := forkedFromRemote, ""
-
-	if len(args) == 1 {
-		ok, err := git.IsRemote(args[0])
-		if err != nil {
-			return "", "", err
-		}
-		if ok {
-			remote = args[0]
-		} else {
-			str = args[0]
-		}
-	} else if len(args) > 1 {
-		remote, str = args[0], args[1]
-	}
-
-	ok, err := git.IsRemote(remote)
-	if err != nil {
-		return "", "", err
-	}
-	if !ok {
-		return "", "", errors.Errorf("%s is not a valid remote", remote)
-	}
-
-	remote, err = git.PathWithNameSpace(remote)
-	if err != nil {
-		return "", "", err
-	}
-	return remote, str, nil
-}
-
-// parseArgsRemoteRef returns a remote name and a ref name (default: current branch).
-// Like parseArgsRemoteString where second argument defaults to current branch.
-func parseArgsRemoteRef(args []string) (string, string, error) {
-	rn, name, err := parseArgsRemoteString(args)
-	if err != nil {
-		return "", "", err
-	}
-	if name == "" {
-		name, err = git.CurrentBranch()
-		if err != nil {
-			return "", "", err
-		}
-	}
-
-	return rn, name, nil
-}
-
-// setCommandPrefix returns a concatenated value of some of the commandline.
-// For example, 'lab mr show' would return 'mr_show.', and 'lab issue list'
-// would return 'issue_list.'
-func setCommandPrefix(scmd *cobra.Command) {
-	for _, command := range RootCmd.Commands() {
-		if CommandPrefix != "" {
-			break
-		}
-		commandName := strings.Split(command.Use, " ")[0]
-		if scmd == command {
-			CommandPrefix = commandName + "."
-			break
-		}
-		for _, subcommand := range command.Commands() {
-			subCommandName := commandName + "_" + strings.Split(subcommand.Use, " ")[0]
-			if scmd == subcommand {
-				CommandPrefix = subCommandName + "."
-				break
-			}
-		}
-	}
 }
 
 var (

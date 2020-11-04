@@ -32,7 +32,7 @@ var checkoutCmd = &cobra.Command{
 	Args:             cobra.RangeArgs(1, 2),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, mrID, err := parseArgs(args)
+		rn, mrID, err := parseArgsRemoteAndID(args)
 		if err != nil {
 			log.Fatal(err)
 		}

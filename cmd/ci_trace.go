@@ -32,7 +32,7 @@ var ciTraceCmd = &cobra.Command{
 			jobName string
 			err     error
 		)
-		rn, jobName, err = parseArgsRemoteString(args)
+		rn, jobName, err = parseArgsRemoteAndProject(args)
 		if err != nil {
 			log.Fatal(err)
 		}

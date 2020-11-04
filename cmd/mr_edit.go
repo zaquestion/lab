@@ -27,7 +27,7 @@ lab MR edit <id> -m "new title" -m "new desc"   # update title & description
 lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR
 lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, idString, err := parseArgsRemoteString(args)
+		rn, idString, err := parseArgsRemoteAndProject(args)
 		if err != nil {
 			log.Fatal(err)
 		}

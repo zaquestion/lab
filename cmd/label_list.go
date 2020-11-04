@@ -22,7 +22,7 @@ lab label search "search term"       # same as above
 lab label list remote "search term"  # search "remote" for labels with "search term"`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, labelSearch, err := parseArgsRemoteString(args)
+		rn, labelSearch, err := parseArgsRemoteAndProject(args)
 		if err != nil {
 			log.Fatal(err)
 		}
