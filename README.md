@@ -33,7 +33,7 @@ Dependencies
 
 ### Homebrew
 ```
-brew install zaquestion/tap/lab
+brew install lab
 ```
 
 ### NixOS
