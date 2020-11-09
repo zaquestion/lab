@@ -64,8 +64,7 @@ func helpFunc(cmd *cobra.Command, args []string) {
 	}
 	rootCmd := cmd.Root()
 	// Show help for sub/commands -- any commands that isn't "lab" or "help"
-	if cmd, _, err := rootCmd.Find(args); err == nil &&
-		cmd != rootCmd && strings.Split(cmd.Use, " ")[0] != "help" {
+	if cmd, _, err := rootCmd.Find(args); err == nil {
 		// Cobra will check parent commands for a helpFunc and we only
 		// want the root command to actually use this custom help func.
 		// Here we trick cobra into thinking that there is no help func
