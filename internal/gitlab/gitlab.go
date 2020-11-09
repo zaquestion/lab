@@ -412,6 +412,15 @@ func MRApprove(pid interface{}, id int) error {
 	return nil
 }
 
+// MRUnapprove Unapproves a previously approved mr on a GitLab project
+func MRUnapprove(pid interface{}, id int) error {
+	_, err := lab.MergeRequestApprovals.UnapproveMergeRequest(pid, id, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MRThumbUp places a thumb up/down on a merge request
 func MRThumbUp(pid interface{}, id int) error {
 	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(pid, id, &gitlab.CreateAwardEmojiOptions{
