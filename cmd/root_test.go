@@ -109,54 +109,30 @@ Date:   Sun Apr 1 19:40:47 2018 -0700
 
 func TestRootNoArg(t *testing.T) {
 	cmd := exec.Command(labBinaryPath)
-	b, _ := cmd.CombinedOutput()
-	assert.Contains(t, string(b), "usage: git [--version] [--help] [-C <path>]")
-	assert.Contains(t, string(b), `These GitLab commands are provided by lab:
-
-  ci            Work with GitLab CI pipelines and jobs`)
-}
-
-func TestGitHelp(t *testing.T) {
-	cmd := exec.Command(labBinaryPath)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
+		t.Log(string(b))
 		t.Fatal(err)
 	}
-	expected := string(b)
-	expected = expected[:strings.LastIndex(strings.TrimSpace(expected), "\n")]
+	assert.Contains(t, string(b), `A Git Wrapper for GitLab
 
-	tests := []struct {
-		desc string
-		Cmds []string
-	}{
-		{
-			desc: "help arg",
-			Cmds: []string{"help"},
-		},
-		{
-			desc: "no arg",
-			Cmds: []string{},
-		},
+Usage:
+  lab [flags]
+  lab [command]`)
+}
+
+func TestRootHelp(t *testing.T) {
+	cmd := exec.Command(labBinaryPath, "help")
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
 	}
+	res := string(b)
+	assert.Contains(t, res, `Show the help for lab
 
-	for _, test := range tests {
-		t.Run(test.desc, func(t *testing.T) {
-			cmd := exec.Command(labBinaryPath)
-			if len(test.Cmds) >= 1 {
-				cmd = exec.Command(labBinaryPath, test.Cmds...)
-			}
-			b, _ := cmd.CombinedOutput()
-			res := string(b)
-			res = res[:strings.LastIndex(strings.TrimSpace(res), "\n")]
-			t.Log(expected)
-			t.Log(res)
-			assert.Equal(t, expected, res)
-			assert.Contains(t, res, "usage: git [--version] [--help] [-C <path>]")
-			assert.Contains(t, res, `These GitLab commands are provided by lab:
-
-  ci            Work with GitLab CI pipelines and jobs`)
-		})
-	}
+Usage:
+  lab help [command [subcommand...]] [flags]`)
 }
 
 type fatalLogger interface {
