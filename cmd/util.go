@@ -78,7 +78,7 @@ func getCurrentBranchMR(rn string) int {
 		ListOptions: gitlab.ListOptions{
 			PerPage: 10,
 		},
-		Labels:       lab.Labels(mrLabels),
+		Labels:       mrLabels,
 		State:        &mrState,
 		OrderBy:      gitlab.String("updated_at"),
 		SourceBranch: gitlab.String(currentBranch),

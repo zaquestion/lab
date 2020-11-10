@@ -37,7 +37,7 @@ var cloneCmd = &cobra.Command{
 		// failed over ssh
 		err = retry.Do(func() error {
 			return git.New(append([]string{"clone", path}, args[1:]...)...).Run()
-		}, retry.Attempts(3), retry.Delay(time.Second), retry.Units(time.Nanosecond))
+		}, retry.Attempts(3), retry.Delay(time.Second))
 		if err != nil {
 			log.Fatal(err)
 		}

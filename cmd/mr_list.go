@@ -72,7 +72,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		ListOptions: gitlab.ListOptions{
 			PerPage: mrNumRet,
 		},
-		Labels:       lab.Labels(mrLabels),
+		Labels:       mrLabels,
 		State:        &mrState,
 		TargetBranch: &mrTargetBranch,
 		OrderBy:      gitlab.String("updated_at"),

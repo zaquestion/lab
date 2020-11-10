@@ -111,7 +111,7 @@ func init() {
 	mrCmd.AddCommand(checkoutCmd)
 	carapace.Gen(checkoutCmd).PositionalCompletion(
 		carapace.ActionCallback(func(args []string) carapace.Action {
-			return action.MergeRequests(mrList).Callback([]string{"origin"})
+			return action.MergeRequests(mrList).Invoke([]string{"origin"}).ToA()
 		}),
 	)
 }
