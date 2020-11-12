@@ -12,10 +12,9 @@ var Version string
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:              "version",
-	Short:            "",
-	Long:             ``,
-	PersistentPreRun: LabPersistentPreRun,
+	Use:   "version",
+	Short: "",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		git := git.New("version")
 		git.Stdout = nil
