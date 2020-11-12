@@ -154,6 +154,7 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 			t.Fatal(err)
 		}
 		out := string(b)
+		out = stripansi.Strip(out)
 
 		require.Contains(t, out, "Updated Description")
 		require.Contains(t, out, "Updated body of text describing this merge request.")

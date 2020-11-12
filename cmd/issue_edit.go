@@ -130,7 +130,7 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 		}
 
 		if labelsChanged {
-			opts.Labels = lab.Labels(labels)
+			opts.Labels = labels
 		}
 
 		if assigneesChanged {

@@ -120,34 +120,29 @@ Command-specific flags can be set in the config files.
 ```
 # Completions
 
-`lab` provides completions for bash, elvish, fish, powershell and zsh.
+`lab` provides completions for [Bash], [Elvish], [Fish], [Powershell], [Xonsh] and [Zsh].
+Scripts can be directly sourced (though using pre-generated versions is recommended to avoid shell startup delay):
 
-### Bash
+```sh
+# bash (~/.bashrc)
+source <(lab completion)
 
-`lab completion bash` will generate a bash completion script. Save this script and source it in your `.bashrc`:
+# elvish (~/.elvish/rc.elv)
+eval (lab completion|slurp)
 
-```bash
-source "/path/to/lab-completions.bash"
-```
+# fish (~/.config/fish/config.fish)
+lab completion | source
 
-### Elvish
+# powershell (~/.config/powershell/Microsoft.PowerShell_profile.ps1)
+Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+lab completion | Out-String | Invoke-Expression
 
-`lab completion elvish` will generate an elvish completion script. Save this script to `~/.elvish/lib/lab.elv` and add `use lab` to your startup script at `~/.elvish/rc.elv`
+# xonsh (~/.config/xonsh/rc.xsh)
+COMPLETIONS_CONFIRM=True
+exec($(lab completion xonsh))
 
-### Fish
-
-`lab completion fish` will generate a fish completion script. Save this script to `~/.config/fish/completions/lab.fish`.
-
-### Powershell
-
-`lab completion powershell` will generate a powershell completion script. Save this script to `~/.config/powershell/lab-completions.ps1` and add `Get-Content ~/.config/powershell/lab-completions.ps1 | Out-String | Invoke-Expression` to your profile script at `~/.config/powershell/Microsoft.PowerShell_profile.ps1` (you might want to enable menu completion as well with `Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete`).
-
-### Zsh
-
-`lab completion zsh` will generate a zsh completion script. zsh completions are denoted with the syntax `_command-name`, so save the output of `lab completion` to a file name `_lab`. Place the file in your `$FPATH`, or create an new directory and add it to your `$FPATH`.
-
-```zsh
-fpath=(/path/to/script_directory $fpath)
+# zsh (~/.zshrc)
+source <(lab completion zsh)
 ```
 
 # Aliasing
@@ -184,3 +179,13 @@ Enter GitLab host (default: https://gitlab.com):
       content="US" about="https://github.com/zaquestion/lab">
   United States</span>.
 </p>
+
+
+
+
+[Bash]:https://www.gnu.org/software/bash/
+[Elvish]:https://elv.sh/
+[Fish]:https://fishshell.com/
+[Powershell]:https://microsoft.com/powershell
+[Xonsh]:https://xon.sh/
+[Zsh]:https://www.zsh.org/

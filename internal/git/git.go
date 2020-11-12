@@ -188,7 +188,7 @@ func RemoteAdd(name, url, dir string) error {
 		cmd = New("fetch", name)
 		cmd.Dir = dir
 		return cmd.Run()
-	}, retry.Attempts(3), retry.Delay(time.Second), retry.Units(time.Nanosecond))
+	}, retry.Attempts(3), retry.Delay(time.Second))
 	if err != nil {
 		return err
 	}
