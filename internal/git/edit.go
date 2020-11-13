@@ -41,12 +41,12 @@ func EditFile(filePrefix, message string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(filePath)
 
 	// Write generated/template message to file
 	if _, err := os.Stat(filePath); os.IsNotExist(err) && message != "" {
 		err = ioutil.WriteFile(filePath, []byte(message), 0644)
 		if err != nil {
+			fmt.Printf("ERROR(WriteFile): Saved file contents written to %s\n", filePath)
 			return "", err
 		}
 	}
@@ -54,14 +54,17 @@ func EditFile(filePrefix, message string) (string, error) {
 	cmd := editorCMD(editorPath, filePath)
 	err = cmd.Run()
 	if err != nil {
+		fmt.Printf("ERROR(cmd): Saved file contents written to %s\n", filePath)
 		return "", err
 	}
 
 	contents, err := ioutil.ReadFile(filePath)
 	if err != nil {
+		fmt.Printf("ERROR(ReadFile): Saved file contents written to %s\n", filePath)
 		return "", err
 	}
 
+	os.Remove(filePath)
 	return removeComments(string(contents))
 }
 
