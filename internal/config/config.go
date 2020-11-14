@@ -25,9 +25,8 @@ import (
 
 const defaultGitLabHost = "https://gitlab.com"
 
-var (
-	MainConfig *viper.Viper
-)
+// MainConfig represents the loaded config
+var MainConfig *viper.Viper
 
 // New prompts the user for the default config values to use with lab, and save
 // them to the provided confpath (default: ~/.config/lab.hcl)
@@ -126,7 +125,7 @@ func CI() (string, string, string) {
 	return ciHost, ciUser, ciToken
 }
 
-// ConvertHCLtoTOML() converts an .hcl file to a .toml file
+// ConvertHCLtoTOML converts an .hcl file to a .toml file
 func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 	oldconfig := oldpath + "/" + file + ".hcl"
 	newconfig := newpath + "/" + file + ".toml"
@@ -363,6 +362,7 @@ func WriteConfigEntry(desc string, value interface{}, configpath string, confign
 	targetConfig.WriteConfig()
 }
 
+// UserConfigError returns a default error message about authentication
 func UserConfigError() {
 	fmt.Println("Error: User authentication failed.  This is likely due to a misconfigured Personal Access Token.  Verify the token or token_load config settings before attemping to authenticate.")
 	os.Exit(1)
