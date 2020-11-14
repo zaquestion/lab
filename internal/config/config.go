@@ -309,8 +309,16 @@ func LoadMainConfig() (string, string, string, string, bool) {
 		}
 	}
 
-	host = MainConfig.GetString("core.host")
-	token = GetToken()
+	if !MainConfig.IsSet("core.host") {
+		host = defaultGitLabHost
+	} else {
+		host = MainConfig.GetString("core.host")
+	}
+
+	if token = GetToken(); token == "" {
+		UserConfigError()
+	}
+
 	caFile := MainConfig.GetString("tls.ca_file")
 	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
 	user = getUser(host, token, tlsSkipVerify)
