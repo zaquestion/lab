@@ -996,3 +996,66 @@ func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, n
 	}
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
+
+func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
+
+	var retArray []int
+
+	p, err := FindProject(project)
+	if err != nil {
+		return retArray, err
+	}
+
+	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(p.ID, issueNum, nil, nil)
+	if err != nil {
+		return retArray, err
+	}
+
+	for _, mr := range mrs {
+		retArray = append(retArray, mr.IID)
+	}
+
+	return retArray, nil
+}
+
+func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
+
+	var retArray []int
+
+	p, err := FindProject(project)
+	if err != nil {
+		return retArray, err
+	}
+
+	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(p.ID, issueNum, nil, nil)
+	if err != nil {
+		return retArray, err
+	}
+
+	for _, mr := range mrs {
+		retArray = append(retArray, mr.IID)
+	}
+
+	return retArray, nil
+}
+
+func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
+	var retArray []int
+
+	p, err := FindProject(project)
+	if err != nil {
+		return retArray, err
+	}
+
+	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(p.ID, mrNum, nil, nil)
+	if err != nil {
+		return retArray, err
+	}
+
+	for _, issue := range issues {
+		retArray = append(retArray, issue.IID)
+	}
+
+	return retArray, nil
+
+}
