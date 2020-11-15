@@ -39,6 +39,7 @@ Assignee: zaquestion
 Author: zaquestion
 Milestone: 1.0
 Labels: documentation
+Issues Closed by this MR: 
 WebURL: https://gitlab.com/zaquestion/test/-/merge_requests/1
 `)
 

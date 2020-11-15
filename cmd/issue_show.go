@@ -101,6 +101,15 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 		issue.Description, _ = r.Render(issue.Description)
 	}
 
+	relatedMRs, err := lab.ListMRsRelatedToIssue(project, issue.IID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	closingMRs, err := lab.ListMRsClosingIssue(project, issue.IID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf(`
 #%d %s
 ===================================
@@ -114,11 +123,16 @@ Milestone: %s
 Due Date: %s
 Time Stats: %s
 Labels: %s
+Related MRs: %s
+MRs that will close this Issue: %s
 WebURL: %s
 `,
 		issue.IID, issue.Title, issue.Description, project, state, strings.Join(assignees, ", "),
 		issue.Author.Username, milestone, dueDate, timestats,
-		strings.Join(issue.Labels, ", "), issue.WebURL,
+		strings.Join(issue.Labels, ", "),
+		strings.Trim(strings.Replace(fmt.Sprint(relatedMRs), " ", ",", -1), "[]"),
+		strings.Trim(strings.Replace(fmt.Sprint(closingMRs), " ", ",", -1), "[]"),
+		issue.WebURL,
 	)
 }
 
