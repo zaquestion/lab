@@ -140,6 +140,11 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		mr.Description, _ = r.Render(mr.Description)
 	}
 
+	closingIssues, err := lab.ListIssuesClosedOnMerge(project, mr.IID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf(`
 #%d %s
 ===================================
@@ -152,11 +157,15 @@ Assignee: %s
 Author: %s
 Milestone: %s
 Labels: %s
+Issues Closed by this MR: %s
 WebURL: %s
 `,
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
 		mr.TargetBranch, state, assignee,
-		mr.Author.Username, milestone, labels, mr.WebURL)
+		mr.Author.Username, milestone, labels,
+		strings.Trim(strings.Replace(fmt.Sprint(closingIssues), " ", ",", -1), "[]"),
+		mr.WebURL,
+	)
 }
 
 func init() {
