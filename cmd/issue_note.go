@@ -114,6 +114,18 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 			}[mr.State]
 
 			body = fmt.Sprintf("\n# This comment is being applied to %s Merge Request %d.", state, idNum)
+		} else {
+			issue, err := lab.IssueGet(rn, idNum)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			state := map[string]string{
+				"opened": "OPEN",
+				"closed": "CLOSED",
+			}[issue.State]
+
+			body = fmt.Sprintf("\n# This comment is being applied to %s Issue %d.", state, idNum)
 		}
 
 		body, err = noteMsg(msgs, isMR, body)
