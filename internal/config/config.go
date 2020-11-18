@@ -251,12 +251,12 @@ func LoadMainConfig() (string, string, string, string, bool) {
 
 	// Try to find XDG_CONFIG_HOME which is declared in XDG base directory
 	// specification and use it's location as the config directory
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
 	confpath := os.Getenv("XDG_CONFIG_HOME")
 	if confpath == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
 		confpath = path.Join(home, ".config")
 	}
 	labconfpath := confpath + "/lab"
