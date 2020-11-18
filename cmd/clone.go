@@ -32,7 +32,7 @@ var cloneCmd = &cobra.Command{
 		} else if err != nil {
 			log.Fatal(err)
 		}
-		path := project.SSHURLToRepo
+		path := labURLToRepo(project)
 		// #116 retry on the cases where we found a project but clone
 		// failed over ssh
 		err = retry.Do(func() error {
@@ -57,7 +57,8 @@ var cloneCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = git.RemoteAdd("upstream", ffProject.SSHURLToRepo, "./"+dir)
+			urlToRepo := labURLToRepo(ffProject)
+			err = git.RemoteAdd("upstream", urlToRepo, "./"+dir)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -66,5 +67,7 @@ var cloneCmd = &cobra.Command{
 }
 
 func init() {
+	// useHTTP is defined in "project_create.go"
+	cloneCmd.Flags().BoolVar(&useHTTP, "http", false, "clone using HTTP protocol instead of SSH")
 	RootCmd.AddCommand(cloneCmd)
 }

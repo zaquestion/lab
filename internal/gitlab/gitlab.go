@@ -210,8 +210,8 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
-// Fork creates a user fork of a GitLab project
-func Fork(project string) (string, error) {
+// Fork creates a user fork of a GitLab project using the specified protocol
+func Fork(project string, useHTTP bool) (string, error) {
 	if !strings.Contains(project, "/") {
 		return "", errors.New("remote must include namespace")
 	}
@@ -220,7 +220,11 @@ func Fork(project string) (string, error) {
 	// See if a fork already exists
 	target, err := FindProject(parts[1])
 	if err == nil {
-		return target.HTTPURLToRepo, nil
+		urlToRepo := target.SSHURLToRepo
+		if useHTTP {
+			urlToRepo = target.HTTPURLToRepo
+		}
+		return urlToRepo, nil
 	} else if err != nil && err != ErrProjectNotFound {
 		return "", err
 	}
@@ -234,8 +238,11 @@ func Fork(project string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	return fork.HTTPURLToRepo, nil
+	urlToRepo := fork.SSHURLToRepo
+	if useHTTP {
+		urlToRepo = fork.HTTPURLToRepo
+	}
+	return urlToRepo, nil
 }
 
 // MRCreate opens a merge request on GitLab

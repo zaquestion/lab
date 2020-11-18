@@ -239,3 +239,13 @@ func textToMarkdown(text string) string {
 func LabPersistentPreRun(cmd *cobra.Command, args []string) {
 	flagConfig(cmd.Flags())
 }
+
+// labURLToRepo returns the string representing the URL to a certain repo based
+// on the protocol used
+func labURLToRepo(project *gitlab.Project) string {
+	urlToRepo := project.SSHURLToRepo
+	if useHTTP {
+		urlToRepo = project.HTTPURLToRepo
+	}
+	return urlToRepo
+}

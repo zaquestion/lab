@@ -54,7 +54,7 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	forkRemoteURL, err := lab.Fork(project)
+	forkRemoteURL, err := lab.Fork(project, useHTTP)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +66,9 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 	}
 }
 func forkToUpstream(cmd *cobra.Command, args []string) {
-	_, err := lab.Fork(args[0])
+	// lab.Fork doesn't have access to the useHTTP var, so we need to pass
+	// this info to that, so the process works correctly.
+	_, err := lab.Fork(args[0], useHTTP)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,5 +92,7 @@ func determineForkRemote(project string) string {
 
 func init() {
 	forkCmd.Flags().BoolP("skip-clone", "s", false, "skip clone after remote fork")
+	// useHTTP is defined in "project_create.go"
+	forkCmd.Flags().BoolVar(&useHTTP, "http", false, "fork using HTTP protocol instead of SSH")
 	RootCmd.AddCommand(forkCmd)
 }

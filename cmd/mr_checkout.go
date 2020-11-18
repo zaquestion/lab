@@ -71,7 +71,8 @@ var checkoutCmd = &cobra.Command{
 				if err != nil {
 					log.Fatal(err)
 				}
-				if err := git.RemoteAdd(mr.Author.Username, mrProject.SSHURLToRepo, "."); err != nil {
+				urlToRepo := labURLToRepo(mrProject)
+				if err := git.RemoteAdd(mr.Author.Username, urlToRepo, "."); err != nil {
 					log.Fatal(err)
 				}
 			}
@@ -108,6 +109,8 @@ var checkoutCmd = &cobra.Command{
 func init() {
 	checkoutCmd.Flags().StringVarP(&mrCheckoutCfg.branch, "branch", "b", "", "checkout merge request with <branch> name")
 	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set checked out branch to track mr author remote branch, adds remote if needed")
+	// useHTTP is defined in "project_create.go"
+	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
 	mrCmd.AddCommand(checkoutCmd)
 	carapace.Gen(checkoutCmd).PositionalCompletion(
 		carapace.ActionCallback(func(args []string) carapace.Action {

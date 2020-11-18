@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 func Test_textToMarkdown(t *testing.T) {
@@ -272,4 +273,20 @@ func Test_parseArgsRemoteAndProject(t *testing.T) {
 			assert.Equal(t, test.ExpectedString, s)
 		})
 	}
+}
+
+func Test_labURLToRepo(t *testing.T) {
+	HTTPURL := "https://test"
+	SSHURL := "ssh://test"
+	project := gitlab.Project{
+		HTTPURLToRepo: HTTPURL,
+		SSHURLToRepo:  SSHURL,
+	}
+
+	urlToRepo := labURLToRepo(&project)
+	assert.Equal(t, urlToRepo, SSHURL)
+
+	useHTTP = true
+	urlToRepo = labURLToRepo(&project)
+	assert.Equal(t, urlToRepo, HTTPURL)
 }
