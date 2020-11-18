@@ -1059,3 +1059,25 @@ func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
 	return retArray, nil
 
 }
+
+func MoveIssue(project string, issueNum int, dest string) (string, error) {
+	srcProject, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	destProject, err := FindProject(dest)
+	if err != nil {
+		return "", err
+	}
+
+	opts := &gitlab.MoveIssueOptions{
+		ToProjectID: &destProject.ID,
+	}
+
+	issue, _, err := lab.Issues.MoveIssue(srcProject.ID, issueNum, opts)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
+}
