@@ -156,19 +156,28 @@ func parseArgsRemoteAndProject(args []string) (string, string, error) {
 		remote, str = args[0], args[1]
 	}
 
-	ok, err := git.IsRemote(remote)
-	if err != nil {
-		return "", "", err
-	}
-	if !ok {
-		return "", "", errors.Errorf("%s is not a valid remote", remote)
-	}
-
-	remote, err = git.PathWithNameSpace(remote)
+	remote, err := getRemoteName(remote)
 	if err != nil {
 		return "", "", err
 	}
 	return remote, str, nil
+}
+
+func getRemoteName(remote string) (string, error) {
+	ok, err := git.IsRemote(remote)
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", errors.Errorf("%s is not a valid remote", remote)
+	}
+
+	remote, err = git.PathWithNameSpace(remote)
+	if err != nil {
+		return "", err
+	}
+
+	return remote, nil
 }
 
 // parseArgsStringAndID is used by commands to parse command line arguments.
