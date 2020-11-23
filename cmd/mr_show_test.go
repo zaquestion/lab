@@ -77,7 +77,7 @@ new file mode 100644
 func Test_mrShow_diffs(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	coCmd := exec.Command(labBinaryPath, "mr", "checkout", "14")
+	coCmd := exec.Command(labBinaryPath, "mr", "checkout", "17")
 	coCmd.Dir = repo
 	coCmdOutput, err := coCmd.CombinedOutput()
 	if err != nil {
@@ -85,7 +85,7 @@ func Test_mrShow_diffs(t *testing.T) {
 		t.Error(err)
 	}
 
-	cmd := exec.Command(labBinaryPath, "mr", "show", "origin", "14", "--comments")
+	cmd := exec.Command(labBinaryPath, "mr", "show", "origin", "17", "--comments")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
