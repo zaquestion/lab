@@ -28,6 +28,29 @@ var mrApproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		comment, err := cmd.Flags().GetBool("with-comment")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if comment {
+			msgs, err := cmd.Flags().GetStringArray("message")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			filename, err := cmd.Flags().GetString("file")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			linebreak, err := cmd.Flags().GetBool("force-linebreak")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			createNote(rn, true, int(id), msgs, filename, linebreak)
+		}
+
 		err = lab.MRApprove(p.ID, int(id))
 		if err != nil {
 			log.Fatal(err)
@@ -37,6 +60,10 @@ var mrApproveCmd = &cobra.Command{
 }
 
 func init() {
+	mrApproveCmd.Flags().Bool("with-comment", false, "Add a comment with the approval")
+	mrApproveCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs (used with --with-comment only)")
+	mrApproveCmd.Flags().StringP("file", "F", "", "use the given file as the message (used with --with-comment only)")
+	mrApproveCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks (used with --with-comment only)")
 	mrCmd.AddCommand(mrApproveCmd)
 	carapace.Gen(mrApproveCmd).PositionalCompletion(
 		action.Remotes(),
