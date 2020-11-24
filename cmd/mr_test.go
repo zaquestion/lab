@@ -76,6 +76,37 @@ func Test_mrCmd(t *testing.T) {
 		require.Contains(t, outStripped, "mr description")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/-/merge_requests/%s", mrID))
 	})
+	// Users cannot approve and unapprove their own MRs.  Comment out
+	// these tests for now until a better solution can be found.
+	//
+	//t.Run("approve", func(t *testing.T) {
+	//	if mrID == "" {
+	//		t.Skip("mrID is empty, create likely failed")
+	//	}
+	//	cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "approve", mrID)
+	//	cmd.Dir = repo
+	//
+	//	//b, err := cmd.CombinedOutput()
+	//	if err != nil {
+	//		t.Log(string(b))
+	//		t.Fatal(err)
+	//	}
+	//	require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s approved", mrID))
+	//})
+	//t.Run("unapprove", func(t *testing.T) {
+	//	if mrID == "" {
+	//		t.Skip("mrID is empty, create likely failed")
+	//	}
+	//	cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "unapprove", mrID)
+	//	cmd.Dir = repo
+	//
+	//	b, err := cmd.CombinedOutput()
+	//	if err != nil {
+	//		t.Log(string(b))
+	//		t.Fatal(err)
+	//	}
+	//	require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s unapproved", mrID))
+	//})
 	t.Run("delete", func(t *testing.T) {
 		if mrID == "" {
 			t.Skip("mrID is empty, create likely failed")
