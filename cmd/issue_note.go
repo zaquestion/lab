@@ -78,11 +78,16 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 	}
 
 	if reply != 0 {
+		resolve, err := cmd.Flags().GetBool("resolve")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		quote, err := cmd.Flags().GetBool("quote")
 		if err != nil {
 			log.Fatal(err)
 		}
-		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak)
+		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak, resolve)
 		return
 	}
 
@@ -207,7 +212,7 @@ func noteText(body string) (string, error) {
 	return b.String(), nil
 }
 
-func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bool, filename string, linebreak bool) {
+func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bool, filename string, linebreak bool, resolve bool) {
 
 	var (
 		discussions []*gitlab.Discussion
@@ -257,7 +262,7 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 				}
 			}
 
-			if body == "" {
+			if body == "" && !resolve {
 				log.Fatal("aborting note due to empty note msg")
 			}
 
@@ -273,7 +278,12 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 				}
 			} else {
 				if isMR {
-					NoteURL, err = lab.AddMRDiscussionNote(rn, idNum, discussion.ID, body)
+					if body != "" {
+						NoteURL, err = lab.AddMRDiscussionNote(rn, idNum, discussion.ID, body)
+					}
+					if resolve {
+						NoteURL, err = lab.ResolveMRDiscussion(rn, idNum, discussion.ID, reply)
+					}
 				} else {
 					NoteURL, err = lab.AddIssueDiscussionNote(rn, idNum, discussion.ID, body)
 				}
@@ -291,6 +301,7 @@ func init() {
 	issueNoteCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 	issueNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	issueNoteCmd.Flags().Bool("quote", false, "quote note in reply (used with --reply only)")
+	issueNoteCmd.Flags().Bool("resolve", false, "[unused in issue note command]")
 
 	issueCmd.AddCommand(issueNoteCmd)
 	carapace.Gen(issueNoteCmd).PositionalCompletion(

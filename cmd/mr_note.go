@@ -20,6 +20,7 @@ func init() {
 	mrNoteCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 	mrNoteCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrNoteCmd.Flags().Bool("quote", false, "quote note in reply (used with --reply only)")
+	mrNoteCmd.Flags().Bool("resolve", false, "mark thread resolved (used with --reply only)")
 
 	mrCmd.AddCommand(mrNoteCmd)
 	carapace.Gen(mrNoteCmd).PositionalCompletion(
