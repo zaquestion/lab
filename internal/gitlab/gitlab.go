@@ -1129,3 +1129,20 @@ func GetMRApprovedBys(project string, mrNum int) ([]string, error) {
 
 	return retArray, err
 }
+
+func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID int) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
+		Resolved: gitlab.Bool(true),
+	}
+
+	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(p.ID, mrNum, discussionID, opts)
+	if err != nil {
+		return discussion.ID, err
+	}
+	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrNum, noteID), nil
+}
