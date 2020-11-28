@@ -1102,3 +1102,23 @@ func MoveIssue(project string, issueNum int, dest string) (string, error) {
 	}
 	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
 }
+
+func GetMRApprovedBys(project string, mrNum int) ([]string, error) {
+	var retArray []string
+
+	p, err := FindProject(project)
+	if err != nil {
+		return retArray, err
+	}
+
+	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(p.ID, mrNum)
+	if err != nil {
+		return retArray, err
+	}
+
+	for _, approvedby := range configuration.ApprovedBy {
+		retArray = append(retArray, approvedby.User.Username)
+	}
+
+	return retArray, err
+}
