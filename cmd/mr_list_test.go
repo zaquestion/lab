@@ -135,5 +135,5 @@ func Test_mrListByTargetBranch(t *testing.T) {
 	}
 
 	mrs := strings.Split(string(b), "\n")
-	require.Equal(t, "#17 test for diff output in 'lab mr show --comments'", mrs[0])
+	require.Equal(t, "#18 MR for approvals and unapprovals", mrs[0])
 }
