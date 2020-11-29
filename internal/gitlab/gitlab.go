@@ -375,9 +375,30 @@ func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) 
 		return nil, err
 	}
 
-	discussions, _, err := lab.Discussions.ListMergeRequestDiscussions(p.ID, mrNum, &gitlab.ListMergeRequestDiscussionsOptions{})
-	if err != nil {
-		return nil, err
+	discussions := []*gitlab.Discussion{}
+	opt := &gitlab.ListMergeRequestDiscussionsOptions{
+		// 100 is the maximum allowed by the API
+		PerPage: 100,
+		Page:    1,
+	}
+
+	for {
+		// get a page of discussions from the API ...
+		d, resp, err := lab.Discussions.ListMergeRequestDiscussions(p.ID, mrNum, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		// ... and add them to our collection of discussions
+		discussions = append(discussions, d...)
+
+		// if we've seen all the pages, then we can break here
+		if opt.Page >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		opt.Page = resp.NextPage
 	}
 
 	return discussions, nil
