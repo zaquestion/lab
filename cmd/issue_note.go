@@ -82,6 +82,10 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		// 'lab mr resolve' always overrides options
+		if os.Args[2] == "resolve" {
+			resolve = true
+		}
 
 		quote, err := cmd.Flags().GetBool("quote")
 		if err != nil {
