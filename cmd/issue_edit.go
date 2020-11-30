@@ -62,7 +62,7 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 
 		// Edit a comment on the Issue
 		if commentNum != 0 {
-			replyNote(rn, false, issueNum, commentNum, true, false, "", linebreak, false)
+			replyNote(rn, false, issueNum, commentNum, true, false, "", linebreak, false, nil)
 			return
 		}
 
