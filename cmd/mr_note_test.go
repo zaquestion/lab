@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -68,6 +69,54 @@ func Test_mrCreateNote_file(t *testing.T) {
 	}
 
 	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/1#note_")
+}
+
+func Test_mrReplyAndResolve(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	cmd := exec.Command(labBinaryPath, "mr", "note", "lab-testing", "1", "-m", "merge request text")
+	cmd.Dir = repo
+
+	a, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(a))
+		t.Fatal(err)
+	}
+	_noteIDs := strings.Split(string(a), "\n")
+	noteIDs := strings.Split(_noteIDs[0], "#note_")
+	noteID := noteIDs[1]
+
+	// add reply to the noteID
+	reply := exec.Command(labBinaryPath, "mr", "reply", "lab-testing", "1:"+noteID, "-m", "reply to note")
+	reply.Dir = repo
+	c, err := reply.CombinedOutput()
+	if err != nil {
+		t.Log(string(c))
+		t.Fatal(err)
+	}
+	_replyIDs := strings.Split(string(c), "\n")
+	replyIDs := strings.Split(_replyIDs[0], "#note_")
+	replyID := replyIDs[1]
+
+	show := exec.Command(labBinaryPath, "mr", "show", "lab-testing", "1", "--comments")
+	show.Dir = repo
+	d, err := show.CombinedOutput()
+	if err != nil {
+		t.Log(string(d))
+		t.Fatal(err)
+	}
+
+	resolve := exec.Command(labBinaryPath, "mr", "resolve", "lab-testing", "1:"+noteID)
+	resolve.Dir = repo
+	e, err := resolve.CombinedOutput()
+	if err != nil {
+		t.Log(string(e))
+		t.Fatal(err)
+	}
+
+	require.Contains(t, string(d), "#"+noteID+": "+"lab-testing started a discussion")
+	require.Contains(t, string(d), "#"+replyID+": "+"lab-testing commented at")
+	require.Contains(t, string(e), "Resolved")
 }
 
 func Test_mrNoteMsg(t *testing.T) {
