@@ -91,7 +91,7 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak, resolve)
+		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak, resolve, msgs)
 		return
 	}
 
@@ -216,7 +216,7 @@ func noteText(body string) (string, error) {
 	return b.String(), nil
 }
 
-func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bool, filename string, linebreak bool, resolve bool) {
+func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bool, filename string, linebreak bool, resolve bool, msgs []string) {
 
 	var (
 		discussions []*gitlab.Discussion
@@ -244,7 +244,13 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 			}
 
 			body := ""
-			if filename != "" {
+			if msgs != nil {
+				body, err = noteMsg(msgs, isMR, note.Body)
+				if err != nil {
+					_, f, l, _ := runtime.Caller(0)
+					log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+				}
+			} else if filename != "" {
 				content, err := ioutil.ReadFile(filename)
 				if err != nil {
 					log.Fatal(err)

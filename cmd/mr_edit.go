@@ -65,7 +65,7 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 
 		// Edit a comment on the MR
 		if commentNum != 0 {
-			replyNote(rn, true, mrNum, commentNum, true, true, "", linebreak, false)
+			replyNote(rn, true, mrNum, commentNum, true, true, "", linebreak, false, nil)
 			return
 		}
 
