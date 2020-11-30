@@ -290,11 +290,6 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 	for _, discussion := range discussions {
 		for i, note := range discussion.Notes {
 
-			// skip system notes
-			if note.System {
-				continue
-			}
-
 			indentHeader, indentNote := "", ""
 			commented := "commented"
 			if !time.Time(*note.CreatedAt).Equal(time.Time(*note.UpdatedAt)) {
@@ -316,6 +311,18 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 
 			noteBody := strings.Replace(note.Body, "\n", "\n"+indentHeader, -1)
 			printit := color.New().PrintfFunc()
+
+			if note.System {
+				// system notes are informational messages only
+				// and cannot have replies.  Do not output the
+				// note.ID
+				printit(`
+* %s %s at %s
+`,
+					note.Author.Username, noteBody, time.Time(*note.UpdatedAt).String())
+				continue
+			}
+
 			printit(`
 %s-----------------------------------`, indentHeader)
 

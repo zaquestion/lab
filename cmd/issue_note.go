@@ -227,6 +227,9 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 		for _, note := range discussion.Notes {
 
 			if note.System {
+				if note.ID == reply {
+					fmt.Println("ERROR: Cannot reply to note", note.ID)
+				}
 				continue
 			}
 
