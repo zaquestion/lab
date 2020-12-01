@@ -23,6 +23,7 @@ require (
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
+	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/lunixbochs/vtclean v1.0.0
 	github.com/magiconair/properties v1.8.4 // indirect
@@ -42,6 +43,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/xanzy/go-gitlab v0.39.0

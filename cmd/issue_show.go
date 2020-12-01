@@ -12,6 +12,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/charmbracelet/glamour"
 	"github.com/fatih/color"
+	"github.com/jaytaylor/html2text"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -314,7 +315,12 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				}
 			}
 
-			noteBody := strings.Replace(note.Body, "\n", "\n"+indentHeader, -1)
+			noteBody := strings.Replace(note.Body, "\n", "<br>\n"+indentHeader, -1)
+			html2textOptions := html2text.Options{
+				PrettyTables: true,
+				OmitLinks:    true,
+			}
+			noteBody, _ = html2text.FromString(noteBody, html2textOptions)
 			printit := color.New().PrintfFunc()
 			printit(`
 %s-----------------------------------`, indentHeader)
