@@ -21,6 +21,7 @@ var (
 	mrMine         bool
 	assigneeID     *int
 	mrAssignee     string
+	order          string
 )
 
 // listCmd represents the list command
@@ -68,6 +69,8 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		assigneeID = &_assigneeID
 	}
 
+	orderBy := gitlab.String(order)
+
 	return lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: mrNumRet,
@@ -75,7 +78,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		Labels:       mrLabels,
 		State:        &mrState,
 		TargetBranch: &mrTargetBranch,
-		OrderBy:      gitlab.String("updated_at"),
+		OrderBy:      orderBy,
 		AssigneeID:   assigneeID,
 	}, num)
 }
@@ -96,6 +99,7 @@ func init() {
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().StringVar(
 		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
+	listCmd.Flags().StringVar(&order, "order", "updated_at", "display order, updated_at(default) or created_at")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
