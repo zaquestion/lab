@@ -123,6 +123,10 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 	assert.Empty(t, mrs, "Expected to find no MRs for non-existent branch")
 }
 
+var (
+	latestUpdatedTestMR = "#18 MR for approvals and unapprovals"
+)
+
 func Test_mrListByTargetBranch(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
@@ -135,5 +139,77 @@ func Test_mrListByTargetBranch(t *testing.T) {
 	}
 
 	mrs := strings.Split(string(b), "\n")
-	require.Equal(t, "#18 MR for approvals and unapprovals", mrs[0])
+	require.Equal(t, latestUpdatedTestMR, mrs[0])
+}
+
+// updated,asc
+// #1
+func Test_mrListUpdatedAscending(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--number=1", "--order=updated_at", "--sort=asc")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "#3 for testings filtering with labels and lists")
+}
+
+// updatead,desc
+// #18
+func Test_mrListUpdatedDescending(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--number=1", "--order=updated_at", "--sort=desc")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Equal(t, latestUpdatedTestMR, mrs[0])
+}
+
+// created,asc
+// #1
+func Test_mrListCreatedAscending(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--number=1", "--order=created_at", "--sort=asc")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "#1 Test MR for lab list")
+}
+
+// created,desc
+// #18
+func Test_mrListCreatedDescending(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--number=1", "--order=created_at", "--sort=desc")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Equal(t, latestUpdatedTestMR, mrs[0])
 }
