@@ -11,8 +11,11 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-// private and public are defined in snippet_create.go
-var internal bool
+var (
+	// private and public are defined in snippet_create.go
+	internal bool
+	useHTTP  bool
+)
 
 // projectCreateCmd represents the create command
 var projectCreateCmd = &cobra.Command{
@@ -68,7 +71,8 @@ lab project create -n "new proj"           # user/new-proj named "new proj"`,
 			log.Fatal(err)
 		}
 		if git.InsideGitRepo() {
-			err = git.RemoteAdd("origin", p.SSHURLToRepo, ".")
+			urlToRepo := labURLToRepo(p)
+			err = git.RemoteAdd("origin", urlToRepo, ".")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -99,5 +103,6 @@ func init() {
 	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "make project private: visible only to project members")
 	projectCreateCmd.Flags().BoolVar(&public, "public", false, "make project public: visible without any authentication")
 	projectCreateCmd.Flags().BoolVar(&internal, "internal", false, "make project internal: visible to any authenticated user (default)")
+	projectCreateCmd.Flags().BoolVar(&useHTTP, "http", false, "use HTTP protocol instead of SSH")
 	projectCmd.AddCommand(projectCreateCmd)
 }

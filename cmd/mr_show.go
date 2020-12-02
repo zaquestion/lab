@@ -99,7 +99,8 @@ func findLocalRemote(ProjectID int) string {
 	for r := range remotes {
 		// The fetch and push entries can be different for a remote.
 		// Only the fetch entry is useful.
-		if strings.Contains(remotes[r], project.SSHURLToRepo+" (fetch)") {
+		if strings.Contains(remotes[r], project.SSHURLToRepo+" (fetch)") ||
+			strings.Contains(remotes[r], project.HTTPURLToRepo+" (fetch)") {
 			found := strings.Split(remotes[r], "\t")
 			remote = found[0]
 			break
@@ -107,7 +108,7 @@ func findLocalRemote(ProjectID int) string {
 	}
 
 	if remote == "" {
-		log.Fatal("remote for ", project.SSHURLToRepo, "not found in local remotes")
+		log.Fatal("remote for ", project.NameWithNamespace, "not found in local remotes")
 	}
 	return remote
 }
