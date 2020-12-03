@@ -69,9 +69,14 @@ func flagConfig(fs *flag.FlagSet) {
 func getCurrentBranchMR(rn string) int {
 	var num int = 0
 
-	currentBranch, err := git.CurrentBranch()
+	currentBranch, err := git.CurrentUpstreamBranch()
+	if currentBranch == "" {
+		// Fall back to local branch
+		currentBranch, err = git.CurrentBranch()
+	}
+
 	if err != nil {
-		log.Fatal(err)
+		return 0
 	}
 
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
