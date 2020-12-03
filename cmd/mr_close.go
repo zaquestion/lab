@@ -15,7 +15,6 @@ var mrCloseCmd = &cobra.Command{
 	Aliases:          []string{"delete"},
 	Short:            "Close merge request",
 	Long:             ``,
-	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

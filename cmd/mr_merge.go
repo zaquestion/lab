@@ -14,7 +14,6 @@ var mrMergeCmd = &cobra.Command{
 	Aliases:          []string{"delete"},
 	Short:            "Merge an open merge request",
 	Long:             `If the pipeline for the mr is still running, lab sets merge on success`,
-	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
