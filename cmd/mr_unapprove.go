@@ -15,7 +15,6 @@ var mrUnapproveCmd = &cobra.Command{
 	Aliases:          []string{},
 	Short:            "Unapprove merge request",
 	Long:             ``,
-	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
