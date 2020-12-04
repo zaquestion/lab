@@ -108,7 +108,7 @@ func findLocalRemote(ProjectID int) string {
 	}
 
 	if remote == "" {
-		log.Fatal("remote for ", project.NameWithNamespace, "not found in local remotes")
+		log.Fatal("remote for ", project.NameWithNamespace, " not found in local remotes")
 	}
 	return remote
 }
