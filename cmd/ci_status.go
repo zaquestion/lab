@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -33,15 +32,9 @@ lab ci status --wait`,
 			err     error
 		)
 
-		rn, refName, err = parseArgsRemoteAndProject(args)
+		rn, refName, err = parseArgsRemoteAndBranch(args)
 		if err != nil {
 			log.Fatal(err)
-		}
-		if refName == "" {
-			refName, err = git.CurrentBranch()
-			if err != nil {
-				log.Fatal(err)
-			}
 		}
 
 		pid := rn
