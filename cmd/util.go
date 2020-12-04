@@ -69,16 +69,21 @@ func flagConfig(fs *flag.FlagSet) {
 // getCurrentBranchMR returns the MR ID associated with the current branch.
 // If a MR ID cannot be found, the function returns 0.
 func getCurrentBranchMR(rn string) int {
-	var num int = 0
-
-	currentBranch, err := git.CurrentUpstreamBranch()
-	if currentBranch == "" {
-		// Fall back to local branch
-		currentBranch, err = git.CurrentBranch()
-	}
-
+	currentBranch, err := git.CurrentBranch()
 	if err != nil {
 		return 0
+	}
+
+	return getBranchMR(rn, currentBranch)
+}
+
+func getBranchMR(rn, branch string) int {
+	var num int = 0
+
+	mrBranch, err := git.UpstreamBranch(branch)
+	if mrBranch == "" {
+		// Fall back to local branch
+		mrBranch = branch
 	}
 
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
@@ -88,7 +93,7 @@ func getCurrentBranchMR(rn string) int {
 		Labels:       mrLabels,
 		State:        &mrState,
 		OrderBy:      gitlab.String("updated_at"),
-		SourceBranch: gitlab.String(currentBranch),
+		SourceBranch: gitlab.String(mrBranch),
 	}, -1)
 	if err != nil {
 		log.Fatal(err)
@@ -255,18 +260,40 @@ func parseArgsRemoteAndString(args []string) (string, string, error) {
 }
 
 // parseArgsWithGitBranchMR returns a remote name and a number if parsed.
-// If no number is specified, the MR id associated with the current
-// branch is returned.
+// If no number is specified, the MR id associated with the given branch
+// is returned, using the current branch as fallback.
 func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
+	var (
+		s      string
+		branch string
+		err    error
+	)
 	s, i, err := parseArgsRemoteAndID(args)
 	if i == 0 {
-		i = int64(getCurrentBranchMR(s))
+		s, branch, err = parseArgsRemoteAndString(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		if s == "" {
+			s = forkedFromRemote
+		}
+		s, err = getRemoteName(s)
+		if err != nil {
+			return "", 0, err
+		}
+
+		if branch == "" {
+			i = int64(getCurrentBranchMR(s))
+		} else {
+			i = int64(getBranchMR(s, branch))
+		}
 		if i == 0 {
 			fmt.Println("Error: Cannot determine MR id.")
 			os.Exit(1)
 		}
 	}
-	return s, i, err
+	return s, i, nil
 }
 
 // setCommandPrefix returns a concatenated value of some of the commandline.
