@@ -16,7 +16,7 @@ var issueReopenCmd = &cobra.Command{
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, id, err := parseArgsRemoteAndID(args)
+		rn, id, err := parseArgsRemoteAndIssueID(args)
 		if err != nil {
 			log.Fatal(err)
 		}

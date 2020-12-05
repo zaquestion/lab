@@ -32,23 +32,16 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		rn, idString, err := parseArgsRemoteAndProject(args)
+		commentNum, branchArgs, err := filterCommentArg(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		var (
-			issueNum   int = 0
-			commentNum int = 0
-		)
-
-		if strings.Contains(idString, ":") {
-			ids := strings.Split(idString, ":")
-			issueNum, _ = strconv.Atoi(ids[0])
-			commentNum, _ = strconv.Atoi(ids[1])
-		} else {
-			issueNum, _ = strconv.Atoi(idString)
+		rn, id, err := parseArgsRemoteAndIssueID(branchArgs)
+		if err != nil {
+			log.Fatal(err)
 		}
+		issueNum := int(id)
 
 		issue, err := lab.IssueGet(rn, issueNum)
 		if err != nil {

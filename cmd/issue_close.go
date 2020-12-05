@@ -22,7 +22,7 @@ var issueCloseCmd = &cobra.Command{
 lab issue close --duplicate 123 1234
 lab issue close --duplicate other-project#123 1234`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, id, err := parseArgsRemoteAndID(args)
+		rn, id, err := parseArgsRemoteAndIssueID(args)
 		if err != nil {
 			log.Fatal(err)
 		}

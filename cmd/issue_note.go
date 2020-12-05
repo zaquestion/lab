@@ -24,7 +24,6 @@ var issueNoteCmd = &cobra.Command{
 	Aliases:          []string{"comment", "reply"},
 	Short:            "Add a note or comment to an issue on GitLab",
 	Long:             ``,
-	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run:              NoteRunFn,
 }
@@ -55,7 +54,7 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		idNum = int(mrNum)
 		rn = s
 	} else {
-		s, issueNum, _ := parseArgsRemoteAndID(branchArgs)
+		s, issueNum, _ := parseArgsRemoteAndIssueID(branchArgs)
 		if issueNum == 0 {
 			fmt.Println("Error: Cannot determine issue id.")
 			os.Exit(1)

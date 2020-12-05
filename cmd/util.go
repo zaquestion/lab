@@ -259,6 +259,29 @@ func parseArgsRemoteAndString(args []string) (string, string, error) {
 	return remote, str, nil
 }
 
+func parseArgsRemoteAndIssueID(args []string) (string, int64, error) {
+	var (
+		rn       string
+		issueNum int64
+		mrId     int64
+		err      error
+	)
+
+	rn, issueNum, err = parseArgsRemoteAndID(args)
+	if issueNum == 0 {
+		rn, mrId, err = parseArgsWithGitBranchMR(args)
+		if mrId != 0 {
+			issues, _ := lab.ListIssuesClosedOnMerge(rn, int(mrId))
+			if len(issues) > 0 {
+				issueNum = int64(issues[0])
+			} else {
+				err = errors.Errorf("Failed to find issue for MR %d", mrId)
+			}
+		}
+	}
+	return rn, issueNum, err
+}
+
 // parseArgsWithGitBranchMR returns a remote name and a number if parsed.
 // If no number is specified, the MR id associated with the given branch
 // is returned, using the current branch as fallback.

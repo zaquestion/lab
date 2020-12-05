@@ -59,3 +59,36 @@ func Test_issueShow_updated_comments(t *testing.T) {
 
 	require.Contains(t, string(b), `updated comment at`)
 }
+
+func Test_issueShowByMR(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "edit",
+		"-m", "Test MR for lab list", "-m", "Closes #1", "1")
+	cmd.Dir = repo
+
+	err := cmd.Run()
+	if err != nil {
+		t.Error(err)
+	}
+
+	cmd = exec.Command(labBinaryPath, "issue", "show", "mrtest")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+
+	cmd = exec.Command(labBinaryPath, "mr", "edit",
+		"-m", "Test MR for lab list",
+		"-m", "This MR is to remain open for testing the `lab mr list` functionality", "1")
+	cmd.Dir = repo
+
+	_ = cmd.Run()
+
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	require.Contains(t, out, "WebURL: https://gitlab.com/zaquestion/test/-/issues/1")
+}
