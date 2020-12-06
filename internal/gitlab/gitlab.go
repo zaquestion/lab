@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -824,6 +825,14 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 	return list, nil
 }
 
+type JobSorter struct{ Jobs []*gitlab.Job }
+
+func (s JobSorter) Len() int      { return len(s.Jobs) }
+func (s JobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
+func (s JobSorter) Less(i, j int) bool {
+	return time.Time(*s.Jobs[i].CreatedAt).Before(time.Time(*s.Jobs[j].CreatedAt))
+}
+
 // CIJobs returns a list of jobs in a pipeline for a given sha. The jobs are
 // returned sorted by their CreatedAt time
 func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
@@ -851,6 +860,11 @@ func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
 			break
 		}
 	}
+
+	// ListPipelineJobs returns jobs sorted by ID in descending order,
+	// while we want them to be ordered chronologically
+	sort.Sort(JobSorter{list})
+
 	return list, nil
 }
 
