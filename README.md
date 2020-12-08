@@ -60,7 +60,7 @@ curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | sud
 ```
 NOTE: Please take care when executing scripts in this fashion. Make sure you
 trust the developer providing the script and consider peeking at the install
-script itself (ours is pretty simply ;)
+script itself (ours is pretty simple ;)
 
 ### PreBuilt Binaries
 
