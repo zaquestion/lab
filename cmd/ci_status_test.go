@@ -17,14 +17,14 @@ func Test_ciStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(labBinaryPath, "checkout", "origin/ci_test_pipeline")
+	cmd = exec.Command(labBinaryPath, "checkout", "-b", "ci_test_pipeline")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(labBinaryPath, "checkout", "-b", "ci_test_pipeline")
+	cmd = exec.Command(labBinaryPath, "branch", "-m", "local/ci_test_pipeline")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
