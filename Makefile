@@ -16,4 +16,4 @@ internal-test:
 	go get -u github.com/wadey/gocovmerge
 	gocovmerge coverage-*.out > coverage.txt && rm coverage-*.out
 
-.PHONY: deps install test internal-test
+.PHONY: build install test internal-test
