@@ -375,6 +375,24 @@ func MRClose(pid interface{}, id int) error {
 	return nil
 }
 
+// MRReopen reopen an already close mr on a GitLab project
+func MRReopen(pid interface{}, id int) error {
+	mr, _, err := lab.MergeRequests.GetMergeRequest(pid, id, nil)
+	if err != nil {
+		return err
+	}
+	if mr.State == "opened" {
+		return fmt.Errorf("mr not closed")
+	}
+	_, _, err = lab.MergeRequests.UpdateMergeRequest(pid, int(id), &gitlab.UpdateMergeRequestOptions{
+		StateEvent: gitlab.String("reopen"),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MRListDiscussions retrieves the discussions (aka notes & comments) for a merge request
 func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) {
 	p, err := FindProject(project)
