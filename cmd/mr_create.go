@@ -105,15 +105,25 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	remoteBranch, err := git.CurrentUpstreamBranch()
+	if remoteBranch == "" {
+		// Fall back to local branch
+		remoteBranch, err = git.CurrentBranch()
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	p, err := lab.FindProject(sourceProjectName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := lab.GetCommit(p.ID, branch); err != nil {
+	if _, err := lab.GetCommit(p.ID, remoteBranch); err != nil {
 		err = errors.Wrapf(
 			err,
 			"aborting MR, source branch %s not present on remote %s. did you forget to push?",
-			branch, sourceRemote)
+			remoteBranch, sourceRemote)
 		log.Fatal(err)
 	}
 

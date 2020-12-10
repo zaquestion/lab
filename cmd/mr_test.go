@@ -109,7 +109,7 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 		}
 	})
 	t.Run("create MR from file", func(t *testing.T) {
-		git := exec.Command("git", "checkout", "mrtest")
+		git := exec.Command("git", "checkout", "-b", "local/mrtest", "origin/mrtest")
 		git.Dir = repo
 		b, err := git.CombinedOutput()
 		if err != nil {

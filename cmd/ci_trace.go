@@ -32,20 +32,12 @@ var ciTraceCmd = &cobra.Command{
 			jobName string
 			err     error
 		)
-		rn, jobName, err = parseArgsRemoteAndProject(args)
+		jobName, branchArgs, err := filterJobArg(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if strings.Contains(jobName, ":") {
-			ps := strings.Split(jobName, ":")
-			refName, jobName = ps[0], ps[1]
-		} else {
-			refName, err = git.CurrentBranch()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+		rn, refName, err = parseArgsRemoteAndBranch(branchArgs)
 
 		project, err := lab.FindProject(rn)
 		if err != nil {
@@ -106,6 +98,34 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string
 		}
 	}
 	return nil
+}
+
+func filterJobArg(args []string) (string, []string, error) {
+	branchArgs := []string{}
+	jobName := ""
+
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return "", branchArgs, err
+		}
+		if ok {
+			branchArgs = append(branchArgs, args[0])
+		} else {
+			jobName = args[0]
+		}
+	} else if len(args) > 1 {
+		branchArgs = append(branchArgs, args[0])
+		jobName = args[1]
+	}
+
+	if strings.Contains(jobName, ":") {
+		ps := strings.Split(jobName, ":")
+		branchArgs = append(branchArgs, ps[0])
+		jobName = ps[1]
+	}
+
+	return jobName, branchArgs, nil
 }
 
 func init() {

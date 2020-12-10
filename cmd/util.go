@@ -69,9 +69,14 @@ func flagConfig(fs *flag.FlagSet) {
 func getCurrentBranchMR(rn string) int {
 	var num int = 0
 
-	currentBranch, err := git.CurrentBranch()
+	currentBranch, err := git.CurrentUpstreamBranch()
+	if currentBranch == "" {
+		// Fall back to local branch
+		currentBranch, err = git.CurrentBranch()
+	}
+
 	if err != nil {
-		log.Fatal(err)
+		return 0
 	}
 
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
@@ -140,27 +145,54 @@ func parseArgsRemoteAndProject(args []string) (string, string, error) {
 		return "", "", nil
 	}
 
-	remote, str := forkedFromRemote, ""
-
-	if len(args) == 1 {
-		ok, err := git.IsRemote(args[0])
-		if err != nil {
-			return "", "", err
-		}
-		if ok {
-			remote = args[0]
-		} else {
-			str = args[0]
-		}
-	} else if len(args) > 1 {
-		remote, str = args[0], args[1]
+	remote, str, err := parseArgsRemoteAndString(args)
+	if err != nil {
+		return "", "", nil
 	}
 
-	remote, err := getRemoteName(remote)
+	if remote == "" {
+		remote = forkedFromRemote
+	}
+
+	remote, err = getRemoteName(remote)
 	if err != nil {
 		return "", "", err
 	}
 	return remote, str, nil
+}
+
+// parseArgsRemoteAndBranch is used by commands to parse command line
+// arguments.  This function returns a remote name and a branch name.
+// If no branch name is given, the function returns the upstream of
+// the current branch and the corresponding remote.
+func parseArgsRemoteAndBranch(args []string) (string, string, error) {
+	if !git.InsideGitRepo() {
+		return "", "", nil
+	}
+
+	remote, branch, err := parseArgsRemoteAndString(args)
+	if branch == "" && err == nil {
+		branch, err = git.CurrentBranch()
+	}
+
+	if err != nil {
+		return "", "", err
+	}
+
+	if remote == "" {
+		remote = determineSourceRemote(branch)
+	}
+
+	remoteBranch, _ := git.UpstreamBranch(branch)
+	if remoteBranch != "" {
+		branch = remoteBranch
+	}
+
+	remote, err = getRemoteName(remote)
+	if err != nil {
+		return "", "", err
+	}
+	return remote, branch, nil
 }
 
 func getRemoteName(remote string) (string, error) {
@@ -198,6 +230,26 @@ func parseArgsStringAndID(args []string) (string, int64, error) {
 		return "", n, nil
 	}
 	return "", 0, nil
+}
+
+func parseArgsRemoteAndString(args []string) (string, string, error) {
+	remote, str := "", ""
+
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return "", "", err
+		}
+		if ok {
+			remote = args[0]
+		} else {
+			str = args[0]
+		}
+	} else if len(args) > 1 {
+		remote, str = args[0], args[1]
+	}
+
+	return remote, str, nil
 }
 
 // parseArgsWithGitBranchMR returns a remote name and a number if parsed.
