@@ -9,7 +9,7 @@
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "lab-testing"]
         url = git@gitlab.com:lab-testing/test.git
-        fetch = +refs/heads/*:refs/remotes/origin/*
+        fetch = +refs/heads/*:refs/remotes/lab-testing/*
 
 [branch "origin"]
 	remote = zaquestion
@@ -26,26 +26,26 @@
 # https://git-scm.com/docs/git-clone#_git_urls_a_id_urls_a
 [remote "origin-http"]
 	url = http://gitlab.com/zaquestion/test.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-http/*
 [remote "origin-https"]
 	url = https://gitlab.com/zaquestion/test.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-https/*
 [remote "origin-pushurl"]
 	url = garbageurl
 	pushurl = https://gitlab.com/zaquestion/test.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-pushurl/*
 [remote "origin-https-token"]
 	url = https://token@gitlab.com/zaquestion/test.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-https-token/*
 [remote "origin-git"]
 	url = git://gitlab.com/zaquestion/test.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-git/*
 [remote "origin-ssh-alt"]
 	url = ssh://gitlab.com/zaquestion/test.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-ssh-alt/*
 [remote "origin-no_dot_git"]
 	url = git@gitlab.com:zaquestion/test
-	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/heads/*:refs/remotes/origin-no_dot_git/*
 [remote "garbage"]
 	url = garbageurl
 	fetch = +refs/heads/*:refs/remotes/garbage/*
