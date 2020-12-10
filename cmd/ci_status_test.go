@@ -10,21 +10,21 @@ import (
 func Test_ciStatus(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "fetch", "origin")
+	cmd := exec.Command("git", "fetch", "origin")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(labBinaryPath, "checkout", "-b", "ci_test_pipeline")
+	cmd = exec.Command("git", "checkout", "-b", "ci_test_pipeline")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(labBinaryPath, "branch", "-m", "local/ci_test_pipeline")
+	cmd = exec.Command("git", "branch", "-m", "local/ci_test_pipeline")
 	cmd.Dir = repo
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
