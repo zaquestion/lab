@@ -39,11 +39,14 @@ var mrShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
-		if err != nil {
-			log.Fatal(err)
+		renderMarkdown := false
+		if isOutputTerminal() {
+			noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
+			if err != nil {
+				log.Fatal(err)
+			}
+			renderMarkdown = !noMarkdown
 		}
-		renderMarkdown := !noMarkdown
 
 		if mrShowPatch {
 			var remote string

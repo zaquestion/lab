@@ -11,6 +11,7 @@ import (
 func Test_mrShow(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
+
 	// a comment has been added to
 	// https://gitlab.com/zaquestion/test/-/merge_requests/1 for this test
 	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments")
@@ -23,14 +24,10 @@ func Test_mrShow(t *testing.T) {
 	}
 
 	out := string(b)
-	out = stripansi.Strip(out)
 	require.Contains(t, out, `
 #1 Test MR for lab list
 ===================================
-
-  This MR is to remain open for testing the  lab mr list  functionality       
-
-
+This MR is to remain open for testing the `+"`lab mr list`"+` functionality
 -----------------------------------
 Project: zaquestion/test
 Branches: mrtest->master
@@ -41,9 +38,7 @@ Approved By: None
 Milestone: 1.0
 Labels: documentation
 Issues Closed by this MR: 
-WebURL: https://gitlab.com/zaquestion/test/-/merge_requests/1
-`)
-
+WebURL: https://gitlab.com/zaquestion/test/-/merge_requests/1`)
 	require.Contains(t, string(b), `commented at`)
 	require.Contains(t, string(b), `updated comment at`)
 }

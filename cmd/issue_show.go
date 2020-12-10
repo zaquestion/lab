@@ -41,11 +41,14 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
-		if err != nil {
-			log.Fatal(err)
+		renderMarkdown := false
+		if isOutputTerminal() {
+			noMarkdown, _ := cmd.Flags().GetBool("no-markdown")
+			if err != nil {
+				log.Fatal(err)
+			}
+			renderMarkdown = !noMarkdown
 		}
-		renderMarkdown := !noMarkdown
 
 		printIssue(issue, rn, renderMarkdown)
 
@@ -317,7 +320,6 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 			}
 			noteBody, _ = html2text.FromString(noteBody, html2textOptions)
 			printit := color.New().PrintfFunc()
-
 			if note.System {
 				// system notes are informational messages only
 				// and cannot have replies.  Do not output the
