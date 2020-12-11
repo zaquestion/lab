@@ -123,9 +123,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 	assert.Empty(t, mrs, "Expected to find no MRs for non-existent branch")
 }
 
-var (
-	latestUpdatedTestMR = "#18 MR for approvals and unapprovals"
-)
+var latestUpdatedTestMR = "#19 MR for closing and reopening"
 
 func Test_mrListByTargetBranch(t *testing.T) {
 	t.Parallel()
