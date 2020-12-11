@@ -839,14 +839,7 @@ func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
 			PerPage: 500,
 		},
 	}
-	list, resp, err := lab.Jobs.ListPipelineJobs(pid, target, opts)
-	if err != nil {
-		return nil, err
-	}
-	if resp.CurrentPage == resp.TotalPages {
-		return list, nil
-	}
-	opts.Page = resp.NextPage
+	list := make([]*gitlab.Job, 0)
 	for {
 		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, target, opts)
 		if err != nil {
