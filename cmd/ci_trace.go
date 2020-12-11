@@ -48,16 +48,16 @@ var ciTraceCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		commitSHA = commit.ID
+		pipelineID = commit.LastPipeline.ID
 
-		err = doTrace(context.Background(), os.Stdout, projectID, commitSHA, jobName)
+		err = doTrace(context.Background(), os.Stdout, projectID, pipelineID, jobName)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
-func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string) error {
+func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, name string) error {
 	var (
 		once   sync.Once
 		offset int64
@@ -66,7 +66,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, sha, name)
+		trace, job, err := lab.CITrace(pid, pipelineID, name)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}

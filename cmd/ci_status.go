@@ -42,7 +42,7 @@ lab ci status --wait`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		commitSHA = commit.ID
+		pipelineID = commit.LastPipeline.ID
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
 
@@ -56,7 +56,7 @@ lab ci status --wait`,
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
 		for {
 			// fetch all of the CI Jobs from the API
-			jobs, err = lab.CIJobs(pid, commitSHA)
+			jobs, err = lab.CIJobs(pid, pipelineID)
 			if err != nil {
 				log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
 			}

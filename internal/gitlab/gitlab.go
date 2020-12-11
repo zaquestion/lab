@@ -833,16 +833,9 @@ func (s JobSorter) Less(i, j int) bool {
 	return time.Time(*s.Jobs[i].CreatedAt).Before(time.Time(*s.Jobs[j].CreatedAt))
 }
 
-// CIJobs returns a list of jobs in a pipeline for a given sha. The jobs are
+// CIJobs returns a list of jobs in the pipeline with given id. The jobs are
 // returned sorted by their CreatedAt time
-func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
-	pipelines, _, err := lab.Pipelines.ListProjectPipelines(pid, &gitlab.ListProjectPipelinesOptions{
-		SHA: gitlab.String(sha),
-	})
-	if len(pipelines) == 0 || err != nil {
-		return nil, err
-	}
-	target := pipelines[0].ID
+func CIJobs(pid interface{}, id int) ([]*gitlab.Job, error) {
 	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: 500,
@@ -850,7 +843,7 @@ func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
 	}
 	list := make([]*gitlab.Job, 0)
 	for {
-		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, target, opts)
+		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, id, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -874,8 +867,8 @@ func CIJobs(pid interface{}, sha string) ([]*gitlab.Job, error) {
 // 1. Last Running Job
 // 2. First Pending Job
 // 3. Last Job in Pipeline
-func CITrace(pid interface{}, sha, name string) (io.Reader, *gitlab.Job, error) {
-	jobs, err := CIJobs(pid, sha)
+func CITrace(pid interface{}, id int, name string) (io.Reader, *gitlab.Job, error) {
+	jobs, err := CIJobs(pid, id)
 	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
 	}
