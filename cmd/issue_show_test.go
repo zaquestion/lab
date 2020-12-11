@@ -21,13 +21,9 @@ func Test_issueShow(t *testing.T) {
 	}
 
 	out := string(b)
-	out = stripansi.Strip(out) // This is required because glamour adds a lot of ansi chars
-
 	require.Contains(t, out, `
 #1 test issue for lab list
 ===================================
-
-
 
 -----------------------------------
 Project: zaquestion/test

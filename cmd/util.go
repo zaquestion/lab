@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -16,6 +17,7 @@ import (
 	"github.com/zaquestion/lab/internal/config"
 	git "github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -295,6 +297,16 @@ func setCommandPrefix(scmd *cobra.Command) {
 func textToMarkdown(text string) string {
 	text = strings.Replace(text, "\n", "  \n", -1)
 	return text
+}
+
+// isOutputTerminal checks if both stdout and stderr are indeed terminals
+// to avoid some markdown rendering garbage going to other outputs that
+// don't support some control chars.
+func isOutputTerminal() bool {
+	if !terminal.IsTerminal(syscall.Stdout) || !terminal.IsTerminal(syscall.Stderr) {
+		return false
+	}
+	return true
 }
 
 func LabPersistentPreRun(cmd *cobra.Command, args []string) {
