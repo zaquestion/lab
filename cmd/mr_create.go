@@ -44,6 +44,7 @@ func init() {
 	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Description")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "do not comment changelog and diffstat")
+	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
@@ -196,6 +197,18 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 	if linebreak {
 		body = textToMarkdown(body)
+	}
+
+	draft, _ := cmd.Flags().GetBool("draft")
+	if draft {
+		isWIP := strings.EqualFold(title[0:4], "wip:")
+		isDraft := strings.EqualFold(title[0:6], "draft:") ||
+			strings.EqualFold(title[0:7], "[draft]") ||
+			strings.EqualFold(title[0:7], "(draft)")
+
+		if !isWIP && !isDraft {
+			title = "Draft: " + title
+		}
 	}
 
 	removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
