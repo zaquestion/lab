@@ -19,6 +19,8 @@ var (
 	mrNumRet       int
 	mrAll          bool
 	mrMine         bool
+	mrDraft        bool
+	mrReady        bool
 	assigneeID     *int
 	mrAssignee     string
 	order          string
@@ -74,7 +76,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 
 	sort := gitlab.String(sortedBy)
 
-	return lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
+	opts := gitlab.ListProjectMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: mrNumRet,
 		},
@@ -84,7 +86,15 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		OrderBy:      orderBy,
 		Sort:         sort,
 		AssigneeID:   assigneeID,
-	}, num)
+	}
+
+	if mrDraft && !mrReady {
+		opts.WIP = gitlab.String("yes")
+	} else if mrReady && !mrDraft {
+		opts.WIP = gitlab.String("no")
+	}
+
+	return lab.MRList(rn, opts, num)
 }
 
 func init() {
@@ -105,6 +115,8 @@ func init() {
 		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
 	listCmd.Flags().StringVar(&order, "order", "updated_at", "display order, updated_at(default) or created_at")
 	listCmd.Flags().StringVar(&sortedBy, "sort", "desc", "sort order, desc(default) or asc")
+	listCmd.Flags().BoolVarP(&mrDraft, "draft", "", false, "list MRs marked as draft")
+	listCmd.Flags().BoolVarP(&mrReady, "ready", "", false, "list MRs not marked as draft")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
