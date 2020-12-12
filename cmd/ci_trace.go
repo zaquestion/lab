@@ -37,18 +37,21 @@ var ciTraceCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		rn, refName, err = parseArgsRemoteAndBranch(branchArgs)
+		forMR, err := cmd.Flags().GetBool("merge-request")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err := getPipelineFromArgs(branchArgs, forMR)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		project, err := lab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		commit, err := lab.GetCommit(projectID, refName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pipelineID = commit.LastPipeline.ID
 
 		err = doTrace(context.Background(), os.Stdout, projectID, pipelineID, jobName)
 		if err != nil {
@@ -129,6 +132,7 @@ func filterJobArg(args []string) (string, []string, error) {
 }
 
 func init() {
+	ciTraceCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
 	ciCmd.AddCommand(ciTraceCmd)
 	carapace.Gen(ciTraceCmd).PositionalCompletion(
 		action.Remotes(),

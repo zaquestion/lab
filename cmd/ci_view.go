@@ -26,7 +26,6 @@ import (
 
 var (
 	projectID  int
-	refName    string
 	pipelineID int
 )
 
@@ -48,12 +47,16 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		a := tview.NewApplication()
 		defer recoverPanic(a)
 		var (
-			rn      string
-			refName string
-			err     error
+			rn  string
+			err error
 		)
 
-		rn, refName, err = parseArgsRemoteAndBranch(args)
+		forMR, err := cmd.Flags().GetBool("merge-request")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err = getPipelineFromArgs(args, forMR)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,11 +66,6 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		commit, err := lab.GetCommit(projectID, refName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pipelineID = commit.LastPipeline.ID
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 
@@ -626,6 +624,7 @@ func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
 }
 
 func init() {
+	ciViewCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
 	ciCmd.AddCommand(ciViewCmd)
 	carapace.Gen(ciViewCmd).PositionalCompletion(
 		action.Remotes(),

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -27,22 +28,21 @@ lab ci status --wait`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			rn      string
-			refName string
-			err     error
+			rn  string
+			err error
 		)
 
-		rn, refName, err = parseArgsRemoteAndBranch(args)
+		forMR, err := cmd.Flags().GetBool("merge-request")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err := getPipelineFromArgs(args, forMR)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		pid := rn
-		commit, err := lab.GetCommit(pid, refName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pipelineID = commit.LastPipeline.ID
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
 
@@ -65,7 +65,7 @@ lab ci status --wait`,
 			jobs = latestJobs(jobs)
 
 			if len(jobs) == 0 {
-				log.Fatal("no CI jobs found for branch ", refName, " on remote ", rn)
+				log.Fatal("no CI jobs found in pipeline ", pipelineID, " on remote ", rn)
 				return
 			}
 
@@ -96,8 +96,56 @@ lab ci status --wait`,
 	},
 }
 
+func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
+	if forMR {
+		rn, mrNum, err := parseArgsWithGitBranchMR(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		mr, err := lab.MRGet(rn, int(mrNum))
+		if err != nil {
+			return "", 0, err
+		}
+
+		if mr.Pipeline == nil {
+			return "", 0, errors.Errorf("No pipeline found for merge request %d", mrNum)
+		}
+
+		// MR pipelines may run on the source- or target project,
+		// and we don't have a proper way to know which it is
+		if strings.Contains(mr.Pipeline.WebURL, rn) {
+			return rn, mr.Pipeline.ID, nil
+		} else {
+			p, err := lab.GetProject(mr.SourceProjectID)
+			if err != nil {
+				return "", 0, err
+			}
+
+			return p.PathWithNamespace, mr.Pipeline.ID, nil
+		}
+	} else {
+		rn, refName, err := parseArgsRemoteAndBranch(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		commit, err := lab.GetCommit(rn, refName)
+		if err != nil {
+			return "", 0, err
+		}
+
+		if commit.LastPipeline == nil {
+			return "", 0, errors.Errorf("No pipeline found for %s", refName)
+		}
+
+		return rn, commit.LastPipeline.ID, nil
+	}
+}
+
 func init() {
 	ciStatusCmd.Flags().Bool("wait", false, "continuously print the status and wait to exit until the pipeline finishes. Exit code indicates pipeline status")
+	ciStatusCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
 	ciCmd.AddCommand(ciStatusCmd)
 
 	carapace.Gen(ciStatusCmd).PositionalCompletion(
