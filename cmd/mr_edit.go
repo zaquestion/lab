@@ -98,6 +98,20 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			log.Fatal(err)
 		}
 
+		draft, err := cmd.Flags().GetBool("draft")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ready, err := cmd.Flags().GetBool("ready")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if draft && ready {
+			log.Fatal("--draft and --ready cannot be used together")
+		}
+
 		currentAssignees := mrGetCurrentAssignees(mr)
 		assigneeIDs, assigneesChanged, err := getUpdateAssignees(currentAssignees, assignees, unassignees)
 		if err != nil {
@@ -116,6 +130,29 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 		}
 		if title == "" {
 			log.Fatal("aborting: empty mr title")
+		}
+
+		isWIP := strings.EqualFold(title[0:4], "wip:")
+		isDraft := strings.EqualFold(title[0:6], "draft:") ||
+			strings.EqualFold(title[0:7], "[draft]") ||
+			strings.EqualFold(title[0:7], "(draft)")
+
+		if ready {
+			if isWIP {
+				title = strings.TrimPrefix(title, title[0:4])
+			} else if isDraft {
+				if title[0] == '(' || title[0] == '[' {
+					title = strings.TrimPrefix(title, title[0:7])
+				} else {
+					title = strings.TrimPrefix(title, title[0:6])
+				}
+			}
+		}
+
+		if draft {
+			if !isWIP && !isDraft {
+				title = "Draft: " + title
+			}
 		}
 
 		abortUpdate := title == mr.Title && body == mr.Description && !labelsChanged && !assigneesChanged
@@ -167,6 +204,8 @@ func init() {
 	mrEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
 	mrEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	mrEditCmd.Flags().Bool("draft", false, "mark the merge request as draft")
+	mrEditCmd.Flags().Bool("ready", false, "mark the merge request as ready")
 
 	mrCmd.AddCommand(mrEditCmd)
 	carapace.Gen(mrEditCmd).PositionalCompletion(
