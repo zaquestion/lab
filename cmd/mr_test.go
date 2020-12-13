@@ -262,6 +262,88 @@ func Test_mrCmd_DifferingUpstreamBranchName(t *testing.T) {
 	})
 }
 
+func Test_mrCmd_Draf(t *testing.T) {
+	repo := copyTestRepo(t)
+	var mrID string
+	t.Run("prepare", func(t *testing.T) {
+		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'mr title' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			//t.Fatal(err)
+		}
+	})
+	t.Run("create", func(t *testing.T) {
+		git := exec.Command("git", "checkout", "mrtest")
+		git.Dir = repo
+		b, err := git.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+
+		cmd := exec.Command(labBinaryPath, "mr", "create", "--draft", "lab-testing", "master",
+			"-m", "Test draft merge request",
+		)
+		cmd.Dir = repo
+
+		b, _ = cmd.CombinedOutput()
+		out := string(b)
+		t.Log(out)
+		require.Contains(t, out, "https://gitlab.com/lab-testing/test/-/merge_requests")
+
+		i := strings.Index(out, "/diffs\n")
+		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/merge_requests/")
+		t.Log(mrID)
+	})
+	t.Run("list", func(t *testing.T) {
+		if mrID == "" {
+			t.Skip("mrID is empty, create likely failed")
+		}
+		cmd := exec.Command(labBinaryPath, "mr", "list", "--draft", "lab-testing")
+		cmd.Dir = repo
+
+		b, _ := cmd.CombinedOutput()
+		out := string(b)
+		t.Log(out)
+		require.Contains(t, out, "Test draft merge request")
+	})
+	t.Run("modify", func(t *testing.T) {
+		if mrID == "" {
+			t.Skip("mrID is empty, create likely failed")
+		}
+		cmd := exec.Command(labBinaryPath, "mr", "edit", "--ready", "lab-testing")
+		cmd.Dir = repo
+
+		b, _ := cmd.CombinedOutput()
+		t.Log(string(b))
+
+		cmd = exec.Command(labBinaryPath, "mr", "list", "--draft", "lab-testing")
+		cmd.Dir = repo
+
+		b, _ = cmd.CombinedOutput()
+		out := string(b)
+		t.Log(out)
+		require.NotContains(t, out, "Test draft merge request")
+	})
+	t.Run("delete", func(t *testing.T) {
+		if mrID == "" {
+			t.Skip("mrID is empty, create likely failed")
+		}
+		cmd := exec.Command(labBinaryPath, "mr", "close", "lab-testing", mrID)
+		cmd.Dir = repo
+
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(b))
+			t.Fatal(err)
+		}
+		require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s closed", mrID))
+	})
+}
+
 func Test_mrCmd_noArgs(t *testing.T) {
 	repo := copyTestRepo(t)
 	cmd := exec.Command(labBinaryPath, "mr")
