@@ -30,7 +30,7 @@ var mrReopenCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Merge Request #%d reopened\n", id)
+		fmt.Printf("Merge Request !%d reopened\n", id)
 	},
 }
 

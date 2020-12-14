@@ -159,7 +159,7 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	}
 
 	fmt.Printf(`
-#%d %s
+!%d %s
 ===================================
 %s
 -----------------------------------

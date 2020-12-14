@@ -22,8 +22,8 @@ func Test_mrListAssignedTo(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#1 Test MR for lab list")
-	require.NotContains(t, mrs, "#3")
+	require.Contains(t, mrs, "!1 Test MR for lab list")
+	require.NotContains(t, mrs, "!3")
 	require.NotContains(t, mrs, "filtering with labels and lists")
 }
 
@@ -40,7 +40,7 @@ func Test_mrList(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#1 Test MR for lab list")
+	require.Contains(t, mrs, "!1 Test MR for lab list")
 }
 
 func Test_mrListFlagLabel(t *testing.T) {
@@ -56,7 +56,7 @@ func Test_mrListFlagLabel(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#3 for testings filtering with labels and lists")
+	require.Contains(t, mrs, "!3 for testings filtering with labels and lists")
 }
 
 func Test_mrListStateMerged(t *testing.T) {
@@ -72,7 +72,7 @@ func Test_mrListStateMerged(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#4 merged merge request")
+	require.Contains(t, mrs, "!4 merged merge request")
 }
 
 func Test_mrListStateClosed(t *testing.T) {
@@ -88,7 +88,7 @@ func Test_mrListStateClosed(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#5 closed mr")
+	require.Contains(t, mrs, "!5 closed mr")
 
 }
 
@@ -105,7 +105,7 @@ func Test_mrListFivePerPage(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#1 Test MR for lab list")
+	require.Contains(t, mrs, "!1 Test MR for lab list")
 }
 
 func Test_mrFilterByTargetBranch(t *testing.T) {
@@ -123,7 +123,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 	assert.Empty(t, mrs, "Expected to find no MRs for non-existent branch")
 }
 
-var latestUpdatedTestMR = "#19 MR for closing and reopening"
+var latestUpdatedTestMR = "!19 MR for closing and reopening"
 
 func Test_mrListByTargetBranch(t *testing.T) {
 	t.Parallel()
@@ -141,7 +141,7 @@ func Test_mrListByTargetBranch(t *testing.T) {
 }
 
 // updated,asc
-// #1
+// !1
 func Test_mrListUpdatedAscending(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
@@ -155,11 +155,11 @@ func Test_mrListUpdatedAscending(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#3 for testings filtering with labels and lists")
+	require.Contains(t, mrs, "!3 for testings filtering with labels and lists")
 }
 
 // updatead,desc
-// #18
+// !18
 func Test_mrListUpdatedDescending(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
@@ -177,7 +177,7 @@ func Test_mrListUpdatedDescending(t *testing.T) {
 }
 
 // created,asc
-// #1
+// !1
 func Test_mrListCreatedAscending(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
@@ -191,11 +191,11 @@ func Test_mrListCreatedAscending(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Contains(t, mrs, "#1 Test MR for lab list")
+	require.Contains(t, mrs, "!1 Test MR for lab list")
 }
 
 // created,desc
-// #18
+// !18
 func Test_mrListCreatedDescending(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)

@@ -21,7 +21,7 @@ func Test_mrCloseReopen(t *testing.T) {
 		{
 			desc:     "close-open",
 			opt:      "close",
-			expected: "Merge Request #19 closed",
+			expected: "Merge Request !19 closed",
 		},
 		{
 			desc:     "close-closed",
@@ -31,7 +31,7 @@ func Test_mrCloseReopen(t *testing.T) {
 		{
 			desc:     "reopen-closed",
 			opt:      "reopen",
-			expected: "Merge Request #19 reopened",
+			expected: "Merge Request !19 reopened",
 		},
 	}
 

@@ -42,7 +42,7 @@ var listCmd = &cobra.Command{
 			config.UserConfigError()
 		}
 		for _, mr := range mrs {
-			fmt.Printf("#%d %s\n", mr.IID, mr.Title)
+			fmt.Printf("!%d %s\n", mr.IID, mr.Title)
 		}
 	},
 }

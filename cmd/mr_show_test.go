@@ -25,7 +25,7 @@ func Test_mrShow(t *testing.T) {
 
 	out := string(b)
 	require.Contains(t, out, `
-#1 Test MR for lab list
+!1 Test MR for lab list
 ===================================
 This MR is to remain open for testing the `+"`lab mr list`"+` functionality
 -----------------------------------

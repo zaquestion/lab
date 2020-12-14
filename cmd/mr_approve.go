@@ -54,7 +54,7 @@ var mrApproveCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Merge Request #%d approved\n", id)
+		fmt.Printf("Merge Request !%d approved\n", id)
 	},
 }
 
