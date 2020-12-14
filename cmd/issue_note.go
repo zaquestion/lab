@@ -247,7 +247,7 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 			}
 
 			body := ""
-			if msgs != nil {
+			if len(msgs) != 0 {
 				body, err = noteMsg(msgs, isMR, note.Body)
 				if err != nil {
 					_, f, l, _ := runtime.Caller(0)
