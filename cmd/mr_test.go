@@ -340,7 +340,7 @@ func Test_mrCmd_Draf(t *testing.T) {
 			t.Log(string(b))
 			t.Fatal(err)
 		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s closed", mrID))
+		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
 	})
 }
 
