@@ -37,27 +37,30 @@ var ciTraceCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		rn, refName, err = parseArgsRemoteAndBranch(branchArgs)
+		forMR, err := cmd.Flags().GetBool("merge-request")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err := getPipelineFromArgs(branchArgs, forMR)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		project, err := lab.FindProject(rn)
 		if err != nil {
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		commit, err := lab.GetCommit(projectID, refName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		commitSHA = commit.ID
 
-		err = doTrace(context.Background(), os.Stdout, projectID, commitSHA, jobName)
+		err = doTrace(context.Background(), os.Stdout, projectID, pipelineID, jobName)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
-func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string) error {
+func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, name string) error {
 	var (
 		once   sync.Once
 		offset int64
@@ -66,7 +69,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, sha, name string
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, sha, name)
+		trace, job, err := lab.CITrace(pid, pipelineID, name)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}
@@ -129,6 +132,7 @@ func filterJobArg(args []string) (string, []string, error) {
 }
 
 func init() {
+	ciTraceCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
 	ciCmd.AddCommand(ciTraceCmd)
 	carapace.Gen(ciTraceCmd).PositionalCompletion(
 		action.Remotes(),

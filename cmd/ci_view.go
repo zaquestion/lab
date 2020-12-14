@@ -25,9 +25,8 @@ import (
 )
 
 var (
-	projectID int
-	refName   string
-	commitSHA string
+	projectID  int
+	pipelineID int
 )
 
 // ciViewCmd represents the ci command
@@ -48,12 +47,16 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 		a := tview.NewApplication()
 		defer recoverPanic(a)
 		var (
-			rn      string
-			refName string
-			err     error
+			rn  string
+			err error
 		)
 
-		rn, refName, err = parseArgsRemoteAndBranch(args)
+		forMR, err := cmd.Flags().GetBool("merge-request")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err = getPipelineFromArgs(args, forMR)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,11 +66,6 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			log.Fatal(err)
 		}
 		projectID = project.ID
-		commit, err := lab.GetCommit(projectID, refName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		commitSHA = commit.ID
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 
@@ -177,7 +175,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 			a.Suspend(func() {
 				ctx, cancel := context.WithCancel(context.Background())
 				go func() {
-					err := doTrace(ctx, os.Stdout, projectID, commitSHA, curJob.Name)
+					err := doTrace(ctx, os.Stdout, projectID, pipelineID, curJob.Name)
 					if err != nil {
 						a.Stop()
 						log.Fatal(err)
@@ -336,7 +334,7 @@ func jobsView(app *tview.Application, jobsCh chan []*gitlab.Job, inputCh chan st
 			tv.SetBorderPadding(0, 0, 1, 1).SetBorder(true)
 
 			go func() {
-				err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, commitSHA, curJob.Name)
+				err := doTrace(context.Background(), vtclean.NewWriter(tview.ANSIWriter(tv), true), projectID, pipelineID, curJob.Name)
 				if err != nil {
 					app.Stop()
 					log.Fatal(err)
@@ -479,7 +477,7 @@ func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job) {
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		jobs, err := lab.CIJobs(projectID, commitSHA)
+		jobs, err := lab.CIJobs(projectID, pipelineID)
 		if len(jobs) == 0 || err != nil {
 			app.Stop()
 			log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
@@ -626,6 +624,7 @@ func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
 }
 
 func init() {
+	ciViewCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
 	ciCmd.AddCommand(ciViewCmd)
 	carapace.Gen(ciViewCmd).PositionalCompletion(
 		action.Remotes(),
