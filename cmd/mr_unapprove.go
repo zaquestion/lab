@@ -54,7 +54,7 @@ var mrUnapproveCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Merge Request #%d unapproved\n", id)
+		fmt.Printf("Merge Request !%d unapproved\n", id)
 	},
 }
 

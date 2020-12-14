@@ -39,7 +39,7 @@ var mrThumbUpCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Merge Request #%d thumb'd up\n", id)
+		fmt.Printf("Merge Request !%d thumb'd up\n", id)
 	},
 }
 
@@ -63,7 +63,7 @@ var mrThumbDownCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Merge Request #%d thumb'd down\n", id)
+		fmt.Printf("Merge Request !%d thumb'd down\n", id)
 	},
 }
 

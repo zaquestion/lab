@@ -71,7 +71,7 @@ func Test_mrCmd(t *testing.T) {
 		require.Contains(t, out, "Branches: mrtest->master\n")
 		require.Contains(t, out, "Status: Open\n")
 		require.Contains(t, out, "Assignee: lab-testing\n")
-		require.Contains(t, out, fmt.Sprintf("#%s mr title", mrID))
+		require.Contains(t, out, fmt.Sprintf("!%s mr title", mrID))
 		require.Contains(t, out, "===================================")
 		require.Contains(t, outStripped, "mr description")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/-/merge_requests/%s", mrID))
@@ -88,7 +88,7 @@ func Test_mrCmd(t *testing.T) {
 			t.Log(string(b))
 			t.Fatal(err)
 		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s closed", mrID))
+		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
 	})
 }
 
@@ -204,7 +204,7 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 			t.Log(string(b))
 			t.Fatal(err)
 		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s closed", mrID))
+		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
 	})
 }
 
@@ -258,7 +258,7 @@ func Test_mrCmd_DifferingUpstreamBranchName(t *testing.T) {
 			t.Log(string(b))
 			t.Fatal(err)
 		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request #%s closed", mrID))
+		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
 	})
 }
 

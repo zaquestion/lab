@@ -49,7 +49,7 @@ var checkoutCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if len(mrs) < 1 {
-			fmt.Printf("MR #%d not found\n", mrID)
+			fmt.Printf("MR !%d not found\n", mrID)
 			return
 		}
 

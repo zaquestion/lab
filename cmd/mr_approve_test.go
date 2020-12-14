@@ -43,7 +43,7 @@ func Test_mrApprove(t *testing.T) {
 	origOutput := string(b)
 	origOutput = stripansi.Strip(origOutput)
 
-	require.Contains(t, origOutput, `Merge Request #18 approved`)
+	require.Contains(t, origOutput, `Merge Request !18 approved`)
 }
 
 func Test_mrUnapprove(t *testing.T) {
@@ -60,5 +60,5 @@ func Test_mrUnapprove(t *testing.T) {
 	origOutput := string(b)
 	origOutput = stripansi.Strip(origOutput)
 
-	require.Contains(t, origOutput, `Merge Request #18 unapproved`)
+	require.Contains(t, origOutput, `Merge Request !18 unapproved`)
 }
