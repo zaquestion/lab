@@ -51,7 +51,7 @@ var mrShowCmd = &cobra.Command{
 		if mrShowPatch {
 			var remote string
 
-			if len(args) == 1 {
+			if len(args) < 2 {
 				remote = findLocalRemote(mr.TargetProjectID)
 			} else if len(args) == 2 {
 				remote = args[0]
