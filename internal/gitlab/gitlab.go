@@ -230,8 +230,22 @@ func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 	}
 	parts := strings.Split(data.SrcProject, "/")
 
-	// See if a fork already exists
-	target, err := FindProject(parts[1])
+	// See if a fork already exists in the destination
+	name := parts[1]
+	namespace := ""
+	if data.isCustomTargetSet() {
+		if data.TargetNamespace != "" {
+			namespace = data.TargetNamespace + "/"
+		}
+		// Project name takes precedence over path for finding a project
+		// on Gitlab through API
+		if data.TargetName != "" {
+			name = data.TargetName
+		} else if data.TargetPath != "" {
+			name = data.TargetPath
+		}
+	}
+	target, err := FindProject(namespace + name)
 	if err == nil {
 		urlToRepo := target.SSHURLToRepo
 		if useHTTP {
