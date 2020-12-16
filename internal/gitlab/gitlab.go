@@ -211,12 +211,24 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
+type ForkStruct struct {
+	SrcProject      string
+	TargetName      string
+	TargetNamespace string
+	TargetPath      string
+}
+
+// isCustomTargetSet checks if at least one destination value is set
+func (fs ForkStruct) isCustomTargetSet() bool {
+	return fs.TargetName != "" || fs.TargetNamespace != "" || fs.TargetPath != ""
+}
+
 // Fork creates a user fork of a GitLab project using the specified protocol
-func Fork(project string, useHTTP bool) (string, error) {
-	if !strings.Contains(project, "/") {
+func Fork(data ForkStruct, useHTTP bool) (string, error) {
+	if !strings.Contains(data.SrcProject, "/") {
 		return "", errors.New("remote must include namespace")
 	}
-	parts := strings.Split(project, "/")
+	parts := strings.Split(data.SrcProject, "/")
 
 	// See if a fork already exists
 	target, err := FindProject(parts[1])
@@ -230,15 +242,24 @@ func Fork(project string, useHTTP bool) (string, error) {
 		return "", err
 	}
 
-	target, err = FindProject(project)
+	target, err = FindProject(data.SrcProject)
 	if err != nil {
 		return "", err
 	}
 
-	fork, _, err := lab.Projects.ForkProject(target.ID, nil)
+	var forkOpts *gitlab.ForkProjectOptions = nil
+	if data.isCustomTargetSet() {
+		forkOpts = &gitlab.ForkProjectOptions{
+			Name:      gitlab.String(data.TargetName),
+			Namespace: gitlab.String(data.TargetNamespace),
+			Path:      gitlab.String(data.TargetPath),
+		}
+	}
+	fork, _, err := lab.Projects.ForkProject(target.ID, forkOpts)
 	if err != nil {
 		return "", err
 	}
+
 	urlToRepo := fork.SSHURLToRepo
 	if useHTTP {
 		urlToRepo = fork.HTTPURLToRepo
