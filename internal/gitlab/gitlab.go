@@ -267,6 +267,10 @@ func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 
 	var forkOpts *gitlab.ForkProjectOptions = nil
 	if data.isCustomTargetSet() {
+		// Name and/or path must be set
+		if data.TargetName == "" && data.TargetPath == "" {
+			data.TargetName = target.Name
+		}
 		forkOpts = &gitlab.ForkProjectOptions{
 			Name:      gitlab.String(data.TargetName),
 			Namespace: gitlab.String(data.TargetNamespace),
