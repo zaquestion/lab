@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -10,8 +11,11 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-var skipClone = false
-var forkData lab.ForkStruct
+var (
+	skipClone = false
+	waitFork  = true
+	forkData  lab.ForkStruct
+)
 
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
@@ -22,6 +26,8 @@ var forkCmd = &cobra.Command{
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		skipClone, _ = cmd.Flags().GetBool("skip-clone")
+		noWaitFork, _ := cmd.Flags().GetBool("no-wait")
+		waitFork = !noWaitFork
 		forkData.TargetName, _ = cmd.Flags().GetString("name")
 		forkData.TargetNamespace, _ = cmd.Flags().GetString("namespace")
 		forkData.TargetPath, _ = cmd.Flags().GetString("path")
@@ -60,9 +66,13 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	forkData.SrcProject = project
-	forkRemoteURL, err := lab.Fork(forkData, useHTTP)
+	forkRemoteURL, err := lab.Fork(forkData, useHTTP, waitFork)
 	if err != nil {
-		log.Fatal(err)
+		if err.Error() == "not finished" {
+			fmt.Println("This fork is not ready yet and might take some minutes.")
+		} else {
+			log.Fatal(err)
+		}
 	}
 
 	name := determineForkRemote(project)
@@ -75,9 +85,14 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 	forkData.SrcProject = args[0]
 	// lab.Fork doesn't have access to the useHTTP var, so we need to pass
 	// this info to that, so the process works correctly.
-	_, err := lab.Fork(forkData, useHTTP)
+	_, err := lab.Fork(forkData, useHTTP, waitFork)
 	if err != nil {
-		log.Fatal(err)
+		if err.Error() == "not finished" && !skipClone {
+			fmt.Println("This fork is not ready yet and might take some minutes.")
+			skipClone = true
+		} else {
+			log.Fatal(err)
+		}
 	}
 
 	if !skipClone {
@@ -112,6 +127,7 @@ func determineForkRemote(project string) string {
 
 func init() {
 	forkCmd.Flags().BoolP("skip-clone", "s", false, "skip clone after remote fork")
+	forkCmd.Flags().Bool("no-wait", false, "don't wait for forking operation to finish")
 	forkCmd.Flags().StringP("name", "n", "", "fork project with a different name")
 	forkCmd.Flags().StringP("namespace", "m", "", "fork project in a different namespace")
 	forkCmd.Flags().StringP("path", "p", "", "fork project with a different path")

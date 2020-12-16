@@ -224,7 +224,7 @@ func (fs ForkStruct) isCustomTargetSet() bool {
 }
 
 // Fork creates a user fork of a GitLab project using the specified protocol
-func Fork(data ForkStruct, useHTTP bool) (string, error) {
+func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 	if !strings.Contains(data.SrcProject, "/") {
 		return "", errors.New("remote must include namespace")
 	}
@@ -247,6 +247,10 @@ func Fork(data ForkStruct, useHTTP bool) (string, error) {
 		return "", err
 	}
 
+	// Now that we have the "wait" opt, don't let the user in the hope that
+	// something is running.
+	fmt.Printf("Forking %s project...\n", data.SrcProject)
+
 	var forkOpts *gitlab.ForkProjectOptions = nil
 	if data.isCustomTargetSet() {
 		forkOpts = &gitlab.ForkProjectOptions{
@@ -260,11 +264,31 @@ func Fork(data ForkStruct, useHTTP bool) (string, error) {
 		return "", err
 	}
 
+	// Busy-wait approach for checking the import_status of the fork.
+	// References:
+	//   https://docs.gitlab.com/ce/api/projects.html#fork-project
+	//   https://docs.gitlab.com/ee/api/project_import_export.html#import-status
+	status, _, err := lab.ProjectImportExport.ImportStatus(fork.ID, nil)
+	if wait {
+		for {
+			if status.ImportStatus == "finished" {
+				break
+			}
+			status, _, err = lab.ProjectImportExport.ImportStatus(fork.ID, nil)
+			if err != nil {
+				log.Fatal(err)
+			}
+			time.Sleep(2 * time.Second)
+		}
+	} else if status.ImportStatus != "finished" {
+		err = errors.New("not finished")
+	}
+
 	urlToRepo := fork.SSHURLToRepo
 	if useHTTP {
 		urlToRepo = fork.HTTPURLToRepo
 	}
-	return urlToRepo, nil
+	return urlToRepo, err
 }
 
 // MRCreate opens a merge request on GitLab
