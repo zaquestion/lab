@@ -41,8 +41,14 @@ var forkCmd = &cobra.Command{
 }
 
 func forkFromOrigin(cmd *cobra.Command, args []string) {
-	if _, err := gitconfig.Local("remote." + lab.User() + ".url"); err == nil {
-		log.Fatalf("remote: %s already exists", lab.User())
+	// Check for custom target namespace
+	remote := lab.User()
+	if forkData.TargetNamespace != "" {
+		remote = forkData.TargetNamespace
+	}
+
+	if _, err := gitconfig.Local("remote." + remote + ".url"); err == nil {
+		log.Fatalf("remote: %s already exists", remote)
 	}
 	if _, err := gitconfig.Local("remote.upstream.url"); err == nil {
 		log.Fatal("remote: upstream already exists")
@@ -81,6 +87,7 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 }
+
 func forkToUpstream(cmd *cobra.Command, args []string) {
 	forkData.SrcProject = args[0]
 	// lab.Fork doesn't have access to the useHTTP var, so we need to pass
@@ -115,9 +122,13 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 		cloneCmd.Run(nil, []string{namespace + name})
 	}
 }
+
 func determineForkRemote(project string) string {
 	name := lab.User()
-	if strings.Split(project, "/")[0] == lab.User() {
+	if forkData.TargetNamespace != "" {
+		name = forkData.TargetNamespace
+	}
+	if strings.Split(project, "/")[0] == name {
 		// #78 allow upstream remote to be added when "origin" is
 		// referring to the user fork (and the fork already exists)
 		name = "upstream"
