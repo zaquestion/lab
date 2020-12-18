@@ -148,6 +148,36 @@ func Test_fork(t *testing.T) {
 	}
 }
 
+func Test_forkWait(t *testing.T) {
+	repo := copyTestRepo(t)
+	os.Remove(path.Join(repo, ".git/config"))
+
+	cmd := exec.Command("git", "remote", "add", "origin", "git@gitlab.com:zaquestion/fork_test")
+	cmd.Dir = repo
+	err := cmd.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The default behavior is to "wait" for the fork and it's already being
+	// tested in the Test_fork() test. Here we only test the --no-wait
+	// option, which we can't effectively test because we don't have a big
+	// enough repo.
+	t.Run("fork_nowait", func(t *testing.T) {
+		cmd = exec.Command(labBinaryPath, []string{"fork", "--no-wait"}...)
+		cmd.Dir = repo
+		b, err := cmd.CombinedOutput()
+		out := string(b)
+		if err != nil {
+			t.Log(out)
+			t.Fatal(err)
+		}
+		require.Contains(t, out, "From gitlab.com:lab-testing/fork_test")
+		require.Contains(t, out, "new remote: lab-testing")
+		cleanupFork(t, "fork_test")
+	})
+}
+
 func Test_determineForkRemote(t *testing.T) {
 	tests := []struct {
 		desc     string
