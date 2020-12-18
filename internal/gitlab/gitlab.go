@@ -604,6 +604,25 @@ func IssueClose(pid interface{}, id int) error {
 	return nil
 }
 
+// IssueDuplicate closes an issue as duplicate of another
+func IssueDuplicate(pid interface{}, id int, dupId string) error {
+	// Not exposed in API, go through quick action
+	body := "/duplicate " + dupId
+
+	_, _, err := lab.Notes.CreateIssueNote(pid, id, &gitlab.CreateIssueNoteOptions{
+		Body: &body,
+	})
+	if err != nil {
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+	}
+
+	issue, _, err := lab.Issues.GetIssue(pid, id)
+	if issue == nil || issue.State != "closed" {
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+	}
+	return nil
+}
+
 // IssueReopen reopens a closed issue
 func IssueReopen(pid interface{}, id int) error {
 	issue, _, err := lab.Issues.GetIssue(pid, id)
