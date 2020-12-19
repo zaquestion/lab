@@ -604,6 +604,24 @@ func IssueClose(pid interface{}, id int) error {
 	return nil
 }
 
+// IssueReopen reopens a closed issue
+func IssueReopen(pid interface{}, id int) error {
+	issue, _, err := lab.Issues.GetIssue(pid, id)
+	if err != nil {
+		return err
+	}
+	if issue.State == "opened" {
+		return fmt.Errorf("issue not closed")
+	}
+	_, _, err = lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
+		StateEvent: gitlab.String("reopen"),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // IssueListDiscussions retrieves the discussions (aka notes & comments) for an issue
 func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, error) {
 	p, err := FindProject(project)
