@@ -262,7 +262,7 @@ func Test_mrCmd_DifferingUpstreamBranchName(t *testing.T) {
 	})
 }
 
-func Test_mrCmd_Draf(t *testing.T) {
+func Test_mrCmd_Draft(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
