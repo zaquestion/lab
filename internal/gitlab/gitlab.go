@@ -588,7 +588,14 @@ func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*
 
 // IssueClose closes an issue on a GitLab project
 func IssueClose(pid interface{}, id int) error {
-	_, _, err := lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
+	issue, _, err := lab.Issues.GetIssue(pid, id)
+	if err != nil {
+		return err
+	}
+	if issue.State == "closed" {
+		return fmt.Errorf("issue already closed")
+	}
+	_, _, err = lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
 		StateEvent: gitlab.String("close"),
 	})
 	if err != nil {
