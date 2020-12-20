@@ -72,7 +72,7 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 
 		boxes = make(map[string]*tview.TextView)
 		jobsCh := make(chan []*gitlab.Job)
-		inputCh := make(chan struct{})
+		inputCh := make(chan struct{}, 1)
 
 		screen, err := tcell.NewScreen()
 		if err != nil {
@@ -98,17 +98,22 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 }
 
 func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, inputCh chan struct{}) func(event *tcell.EventKey) *tcell.EventKey {
+	queueInputUpdate := func() {
+		if len(inputCh) == 0 {
+			inputCh <- struct{}{}
+		}
+	}
 	return func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Rune() == 'q' || event.Key() == tcell.KeyEscape {
 			switch {
 			case modalVisible:
 				modalVisible = !modalVisible
 				root.HidePage("yesno")
-				inputCh <- struct{}{}
+				queueInputUpdate()
 			case logsVisible:
 				logsVisible = !logsVisible
 				root.HidePage("logs-" + curJob.Name)
-				inputCh <- struct{}{}
+				queueInputUpdate()
 				a.ForceDraw()
 			default:
 				a.Stop()
@@ -119,7 +124,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 			curJob = navi.Navigate(jobs, event)
 			root.SendToFront("jobs-" + curJob.Name)
 			// update jobs view on input changes
-			inputCh <- struct{}{}
+			queueInputUpdate()
 		}
 		switch event.Rune() {
 		case 'c':
@@ -130,7 +135,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 			}
 			curJob = job
 			root.RemovePage("logs-" + curJob.Name)
-			inputCh <- struct{}{}
+			queueInputUpdate()
 			a.ForceDraw()
 		case 'p', 'r':
 			if modalVisible {
@@ -161,7 +166,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 					}
 				})
 			root.AddAndSwitchToPage("yesno", modal, false)
-			inputCh <- struct{}{}
+			queueInputUpdate()
 			a.ForceDraw()
 			return nil
 		case 't':
@@ -169,7 +174,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 			if !logsVisible {
 				root.HidePage("logs-" + curJob.Name)
 			}
-			inputCh <- struct{}{}
+			queueInputUpdate()
 			a.ForceDraw()
 			return nil
 		case 'T':
@@ -198,10 +203,10 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 					}
 				}
 			})
-			inputCh <- struct{}{}
+			queueInputUpdate()
 			return nil
 		}
-		inputCh <- struct{}{}
+		queueInputUpdate()
 		return event
 	}
 }
