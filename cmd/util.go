@@ -56,7 +56,7 @@ func flagConfig(fs *flag.FlagSet) {
 		}
 
 		// if set, always use the command line option (flag) value
-		if f.Value.String() != f.DefValue {
+		if f.Changed {
 			return
 		}
 		// o/w use the value in the configfile
