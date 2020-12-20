@@ -380,3 +380,30 @@ func Test_flag_config_TF(t *testing.T) {
 	// both configs set to true, comments should be output
 	require.Contains(t, string(b), `commented at`)
 }
+
+// flag (explicitly) unset, config true == no comments
+func Test_flag_config_FT(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	err := setConfigValues(repo, "true", "true")
+	if err != nil {
+		t.Skip(err)
+	}
+	os.Remove(repo + "/lab.toml")
+
+	cmd := exec.Command(labBinaryPath, "mr", "show", "1", "--comments=false")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Error(err)
+	}
+
+	out := string(b)
+	out = stripansi.Strip(out)
+
+	os.Remove("/home/travis/.config/lab/lab.toml")
+	// configs overridden on the command line, comments should not be output
+	require.NotContains(t, string(b), `commented at`)
+}
