@@ -61,4 +61,5 @@ func init() {
 	projectListCmd.Flags().BoolVar(&projectListConfig.Membership, "member", false, "limit by projects which you are a member")
 	projectListCmd.Flags().BoolVar(&projectListConfig.Starred, "starred", false, "limit by your starred projects")
 	projectListCmd.Flags().IntVarP(&projectListConfig.Number, "number", "n", 100, "number of projects to return")
+	projectListCmd.Flags().SortFlags = false
 }

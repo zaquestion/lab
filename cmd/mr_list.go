@@ -117,6 +117,7 @@ func init() {
 	listCmd.Flags().StringVar(&sortedBy, "sort", "desc", "sort order, desc(default) or asc")
 	listCmd.Flags().BoolVarP(&mrDraft, "draft", "", false, "list MRs marked as draft")
 	listCmd.Flags().BoolVarP(&mrReady, "ready", "", false, "list MRs not marked as draft")
+	listCmd.Flags().SortFlags = false
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{

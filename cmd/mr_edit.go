@@ -207,6 +207,7 @@ func init() {
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrEditCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mrEditCmd.Flags().Bool("ready", false, "mark the merge request as ready")
+	mrEditCmd.Flags().SortFlags = false
 
 	mrCmd.AddCommand(mrEditCmd)
 	carapace.Gen(mrEditCmd).PositionalCompletion(
