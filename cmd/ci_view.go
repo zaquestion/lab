@@ -43,6 +43,7 @@ var ciViewCmd = &cobra.Command{
 Supports vi style (hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
 
 Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
+	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()
 		defer recoverPanic(a)
