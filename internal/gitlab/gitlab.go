@@ -588,8 +588,52 @@ func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*
 
 // IssueClose closes an issue on a GitLab project
 func IssueClose(pid interface{}, id int) error {
-	_, _, err := lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
+	issue, _, err := lab.Issues.GetIssue(pid, id)
+	if err != nil {
+		return err
+	}
+	if issue.State == "closed" {
+		return fmt.Errorf("issue already closed")
+	}
+	_, _, err = lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
 		StateEvent: gitlab.String("close"),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// IssueDuplicate closes an issue as duplicate of another
+func IssueDuplicate(pid interface{}, id int, dupId string) error {
+	// Not exposed in API, go through quick action
+	body := "/duplicate " + dupId
+
+	_, _, err := lab.Notes.CreateIssueNote(pid, id, &gitlab.CreateIssueNoteOptions{
+		Body: &body,
+	})
+	if err != nil {
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+	}
+
+	issue, _, err := lab.Issues.GetIssue(pid, id)
+	if issue == nil || issue.State != "closed" {
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+	}
+	return nil
+}
+
+// IssueReopen reopens a closed issue
+func IssueReopen(pid interface{}, id int) error {
+	issue, _, err := lab.Issues.GetIssue(pid, id)
+	if err != nil {
+		return err
+	}
+	if issue.State == "opened" {
+		return fmt.Errorf("issue not closed")
+	}
+	_, _, err = lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
+		StateEvent: gitlab.String("reopen"),
 	})
 	if err != nil {
 		return err
