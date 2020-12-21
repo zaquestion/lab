@@ -80,7 +80,8 @@ func Test_issueReplyNote(t *testing.T) {
 	noteID := noteIDs[1]
 
 	// add reply to the noteID
-	reply := exec.Command(labBinaryPath, "issue", "reply", "lab-testing", issueID+":"+noteID, "-m", "reply to note")
+	reply := exec.Command(labBinaryPath, "issue", "reply", "lab-testing", issueID+":"+noteID,
+		"-m", "reply to note", "-m", "second reply paragraph")
 	reply.Dir = repo
 	c, err := reply.CombinedOutput()
 	if err != nil {
@@ -101,6 +102,8 @@ func Test_issueReplyNote(t *testing.T) {
 
 	require.Contains(t, string(d), "#"+noteID+": "+"lab-testing started a discussion")
 	require.Contains(t, string(d), "#"+replyID+": "+"lab-testing commented at")
+	require.Contains(t, string(d), "    reply to note")
+	require.Contains(t, string(d), "    second reply paragraph")
 }
 
 func Test_issueNoteText(t *testing.T) {

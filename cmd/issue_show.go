@@ -313,12 +313,13 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				}
 			}
 
-			noteBody := strings.Replace(note.Body, "\n", "<br>\n"+indentNote, -1)
+			noteBody := strings.Replace(note.Body, "\n", "<br>\n", -1)
 			html2textOptions := html2text.Options{
 				PrettyTables: true,
 				OmitLinks:    true,
 			}
 			noteBody, _ = html2text.FromString(noteBody, html2textOptions)
+			noteBody = strings.Replace(noteBody, "\n", "\n"+indentNote, -1)
 			printit := color.New().PrintfFunc()
 			if note.System {
 				// system notes are informational messages only
