@@ -308,6 +308,7 @@ func init() {
 	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
 	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	issueEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	issueEditCmd.Flags().SortFlags = false
 
 	issueCmd.AddCommand(issueEditCmd)
 	carapace.Gen(issueEditCmd).PositionalCompletion(
