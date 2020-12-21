@@ -123,7 +123,7 @@ func filterJobArg(args []string) (string, []string, error) {
 	}
 
 	if strings.Contains(jobName, ":") {
-		ps := strings.Split(jobName, ":")
+		ps := strings.SplitN(jobName, ":", 2)
 		branchArgs = append(branchArgs, ps[0])
 		jobName = ps[1]
 	}
