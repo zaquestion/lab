@@ -313,7 +313,7 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				}
 			}
 
-			noteBody := strings.Replace(note.Body, "\n", "<br>\n"+indentHeader, -1)
+			noteBody := strings.Replace(note.Body, "\n", "<br>\n"+indentNote, -1)
 			html2textOptions := html2text.Options{
 				PrettyTables: true,
 				OmitLinks:    true,
