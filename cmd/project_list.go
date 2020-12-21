@@ -48,6 +48,10 @@ var projectListCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		for _, p := range projects {
 			fmt.Println(p.PathWithNamespace)
 		}

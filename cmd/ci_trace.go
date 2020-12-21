@@ -53,6 +53,9 @@ var ciTraceCmd = &cobra.Command{
 		}
 		projectID = project.ID
 
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		err = doTrace(context.Background(), os.Stdout, projectID, pipelineID, jobName)
 		if err != nil {
 			log.Fatal(err)

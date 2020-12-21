@@ -50,6 +50,10 @@ lab mr list remote "search terms"  # search "remote" for merge requests with "se
 			log.Print(err)
 			config.UserConfigError()
 		}
+
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		for _, mr := range mrs {
 			fmt.Printf("!%d %s\n", mr.IID, mr.Title)
 		}

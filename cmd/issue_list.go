@@ -37,6 +37,10 @@ lab issue list remote "search terms"  # search "remote" for issues with "search 
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		for _, issue := range issues {
 			fmt.Printf("#%d %s\n", issue.IID, issue.Title)
 		}

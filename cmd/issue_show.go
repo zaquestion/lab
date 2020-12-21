@@ -42,6 +42,9 @@ var issueShowCmd = &cobra.Command{
 			renderMarkdown = !noMarkdown
 		}
 
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		printIssue(issue, rn, renderMarkdown)
 
 		showComments, _ := cmd.Flags().GetBool("comments")

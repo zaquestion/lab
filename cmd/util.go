@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"syscall"
@@ -417,6 +418,50 @@ func isOutputTerminal() bool {
 		return false
 	}
 	return true
+}
+
+type Pager struct {
+	proc   *os.Process
+	stdout int
+}
+
+// If standard output is a terminal, redirect output to an external
+// pager until the returned object's Close() method is called
+func NewPager(fs *flag.FlagSet) *Pager {
+	cmdLine, env := git.PagerCommand()
+	args := strings.Split(cmdLine, " ")
+
+	noPager, _ := fs.GetBool("no-pager")
+	if !isOutputTerminal() || noPager || args[0] == "cat" {
+		return &Pager{}
+	}
+
+	pr, pw, _ := os.Pipe()
+	defer pw.Close()
+
+	name, _ := exec.LookPath(args[0])
+	proc, _ := os.StartProcess(name, args, &os.ProcAttr{
+		Env:   env,
+		Files: []*os.File{pr, os.Stdout, os.Stderr},
+	})
+
+	savedStdout, _ := syscall.Dup(syscall.Stdout)
+	_ = syscall.Dup2(int(pw.Fd()), syscall.Stdout)
+
+	return &Pager{
+		proc:   proc,
+		stdout: savedStdout,
+	}
+}
+
+func (pager *Pager) Close() {
+	if pager.stdout > 0 {
+		_ = syscall.Dup2(pager.stdout, syscall.Stdout)
+		_ = syscall.Close(pager.stdout)
+	}
+	if pager.proc != nil {
+		pager.proc.Wait()
+	}
 }
 
 func LabPersistentPreRun(cmd *cobra.Command, args []string) {
