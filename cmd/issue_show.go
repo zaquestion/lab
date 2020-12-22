@@ -319,16 +319,22 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				OmitLinks:    true,
 			}
 			noteBody, _ = html2text.FromString(noteBody, html2textOptions)
-			noteBody = strings.Replace(noteBody, "\n", "\n"+indentNote, -1)
 			printit := color.New().PrintfFunc()
 			if note.System {
+				splitNote := strings.SplitN(noteBody, "\n", 2)
+
 				// system notes are informational messages only
 				// and cannot have replies.  Do not output the
 				// note.ID
 				printit(`
 * %s %s at %s
 `,
-					note.Author.Username, noteBody, time.Time(*note.UpdatedAt).String())
+					note.Author.Username, splitNote[0], time.Time(*note.UpdatedAt).String())
+				if len(splitNote) == 2 {
+					printit(`%s
+`,
+						splitNote[1])
+				}
 				continue
 			}
 
@@ -340,6 +346,9 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 			if time.Time(*note.UpdatedAt).After(CompareTime) {
 				printit = color.New(color.Bold).PrintfFunc()
 			}
+
+			noteBody = strings.Replace(noteBody, "\n", "\n"+indentNote, -1)
+
 			printit(`%s#%d: %s %s at %s
 
 `,
