@@ -123,7 +123,10 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 	assert.Empty(t, mrs, "Expected to find no MRs for non-existent branch")
 }
 
-var latestUpdatedTestMR = "!19 MR for closing and reopening"
+var (
+	latestCreatedTestMR = "!22 (ci) add artifacts job"
+	latestUpdatedTestMR = "!19 MR for closing and reopening"
+)
 
 func Test_mrListByTargetBranch(t *testing.T) {
 	t.Parallel()
@@ -209,5 +212,5 @@ func Test_mrListCreatedDescending(t *testing.T) {
 
 	mrs := strings.Split(string(b), "\n")
 	t.Log(mrs)
-	require.Equal(t, latestUpdatedTestMR, mrs[0])
+	require.Equal(t, latestCreatedTestMR, mrs[0])
 }
