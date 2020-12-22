@@ -212,15 +212,15 @@ func FindProject(project string) (*gitlab.Project, error) {
 }
 
 type ForkStruct struct {
-	SrcProject      string
-	TargetName      string
-	TargetNamespace string
-	TargetPath      string
+	SrcProject  string
+	TargetName  string
+	TargetGroup string
+	TargetPath  string
 }
 
 // isCustomTargetSet checks if at least one destination value is set
 func (fs ForkStruct) isCustomTargetSet() bool {
-	return fs.TargetName != "" || fs.TargetNamespace != "" || fs.TargetPath != ""
+	return fs.TargetName != "" || fs.TargetGroup != "" || fs.TargetPath != ""
 }
 
 // Fork creates a user fork of a GitLab project using the specified protocol
@@ -234,8 +234,8 @@ func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 	name := parts[1]
 	namespace := ""
 	if data.isCustomTargetSet() {
-		if data.TargetNamespace != "" {
-			namespace = data.TargetNamespace + "/"
+		if data.TargetGroup != "" {
+			namespace = data.TargetGroup + "/"
 		}
 		// Project name takes precedence over path for finding a project
 		// on Gitlab through API
@@ -273,7 +273,7 @@ func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 		}
 		forkOpts = &gitlab.ForkProjectOptions{
 			Name:      gitlab.String(data.TargetName),
-			Namespace: gitlab.String(data.TargetNamespace),
+			Namespace: gitlab.String(data.TargetGroup),
 			Path:      gitlab.String(data.TargetPath),
 		}
 	}
