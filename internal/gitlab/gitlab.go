@@ -211,15 +211,41 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
+type ForkStruct struct {
+	SrcProject      string
+	TargetName      string
+	TargetNamespace string
+	TargetPath      string
+}
+
+// isCustomTargetSet checks if at least one destination value is set
+func (fs ForkStruct) isCustomTargetSet() bool {
+	return fs.TargetName != "" || fs.TargetNamespace != "" || fs.TargetPath != ""
+}
+
 // Fork creates a user fork of a GitLab project using the specified protocol
-func Fork(project string, useHTTP bool) (string, error) {
-	if !strings.Contains(project, "/") {
+func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
+	if !strings.Contains(data.SrcProject, "/") {
 		return "", errors.New("remote must include namespace")
 	}
-	parts := strings.Split(project, "/")
+	parts := strings.Split(data.SrcProject, "/")
 
-	// See if a fork already exists
-	target, err := FindProject(parts[1])
+	// See if a fork already exists in the destination
+	name := parts[1]
+	namespace := ""
+	if data.isCustomTargetSet() {
+		if data.TargetNamespace != "" {
+			namespace = data.TargetNamespace + "/"
+		}
+		// Project name takes precedence over path for finding a project
+		// on Gitlab through API
+		if data.TargetName != "" {
+			name = data.TargetName
+		} else if data.TargetPath != "" {
+			name = data.TargetPath
+		}
+	}
+	target, err := FindProject(namespace + name)
 	if err == nil {
 		urlToRepo := target.SSHURLToRepo
 		if useHTTP {
@@ -230,20 +256,57 @@ func Fork(project string, useHTTP bool) (string, error) {
 		return "", err
 	}
 
-	target, err = FindProject(project)
+	target, err = FindProject(data.SrcProject)
 	if err != nil {
 		return "", err
 	}
 
-	fork, _, err := lab.Projects.ForkProject(target.ID, nil)
+	// Now that we have the "wait" opt, don't let the user in the hope that
+	// something is running.
+	fmt.Printf("Forking %s project...\n", data.SrcProject)
+
+	var forkOpts *gitlab.ForkProjectOptions = nil
+	if data.isCustomTargetSet() {
+		// Name and/or path must be set
+		if data.TargetName == "" && data.TargetPath == "" {
+			data.TargetName = target.Name
+		}
+		forkOpts = &gitlab.ForkProjectOptions{
+			Name:      gitlab.String(data.TargetName),
+			Namespace: gitlab.String(data.TargetNamespace),
+			Path:      gitlab.String(data.TargetPath),
+		}
+	}
+	fork, _, err := lab.Projects.ForkProject(target.ID, forkOpts)
 	if err != nil {
 		return "", err
 	}
+
+	// Busy-wait approach for checking the import_status of the fork.
+	// References:
+	//   https://docs.gitlab.com/ce/api/projects.html#fork-project
+	//   https://docs.gitlab.com/ee/api/project_import_export.html#import-status
+	status, _, err := lab.ProjectImportExport.ImportStatus(fork.ID, nil)
+	if wait {
+		for {
+			if status.ImportStatus == "finished" {
+				break
+			}
+			status, _, err = lab.ProjectImportExport.ImportStatus(fork.ID, nil)
+			if err != nil {
+				log.Fatal(err)
+			}
+			time.Sleep(2 * time.Second)
+		}
+	} else if status.ImportStatus != "finished" {
+		err = errors.New("not finished")
+	}
+
 	urlToRepo := fork.SSHURLToRepo
 	if useHTTP {
 		urlToRepo = fork.HTTPURLToRepo
 	}
-	return urlToRepo, nil
+	return urlToRepo, err
 }
 
 // MRCreate opens a merge request on GitLab
