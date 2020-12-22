@@ -49,8 +49,7 @@ lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
 			log.Fatal("path or name must be set")
 		}
 		if g != "" && group != "" {
-
-			log.Fatalf("group can be passed by flag or in path not both\n%s", labUsageFormat(cmd))
+			log.Fatalf("group can be passed by flag or in path, but not both\n%s", labUsageFormat(cmd))
 		}
 		if g != "" {
 			group = g

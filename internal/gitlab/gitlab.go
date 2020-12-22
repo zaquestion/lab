@@ -24,8 +24,12 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
-// ErrProjectNotFound is returned when a GitLab project cannot be found.
-var ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
+var (
+	// ErrProjectNotFound is returned when a GitLab project cannot be found.
+	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
+	// ErrGroupNotFound is returned when a GitLab group cannot be found.
+	ErrGroupNotFound = errors.New("gitlab group not found")
+)
 
 var (
 	lab   *gitlab.Client
@@ -945,6 +949,11 @@ func GroupSearch(query string) (*gitlab.Group, error) {
 	list, _, err := lab.Groups.SearchGroup(groups[0])
 	if err != nil {
 		return nil, err
+	}
+	// SearchGroup doesn't return error if group isn't found. We need to do
+	// it ourselves.
+	if len(list) == 0 {
+		return nil, ErrGroupNotFound
 	}
 	// if we found a group and we aren't looking for a subgroup
 	if len(list) > 0 && len(groups) == 1 {
