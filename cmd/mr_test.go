@@ -266,7 +266,7 @@ func Test_mrCmd_Draft(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'mr title' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
+		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'Test draft' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
