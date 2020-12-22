@@ -30,7 +30,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/muesli/reflow v0.2.0 // indirect
-	github.com/muesli/termenv v0.7.4 // indirect
+	github.com/muesli/termenv v0.7.4
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
