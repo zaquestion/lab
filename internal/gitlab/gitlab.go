@@ -27,6 +27,8 @@ import (
 var (
 	// ErrProjectNotFound is returned when a GitLab project cannot be found.
 	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
+	// ErrGroupNotFound is returned when a GitLab group cannot be found.
+	ErrGroupNotFound = errors.New("gitlab group not found")
 )
 
 var (
@@ -169,9 +171,7 @@ func LoadGitLabTmpl(tmplName string) string {
 	return strings.TrimSpace(string(tmpl))
 }
 
-var (
-	localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
-)
+var localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 
 // GetProject looks up a Gitlab project by ID.
 func GetProject(projectID interface{}) (*gitlab.Project, error) {
@@ -940,6 +940,42 @@ func (s JobSorter) Less(i, j int) bool {
 	return time.Time(*s.Jobs[i].CreatedAt).Before(time.Time(*s.Jobs[j].CreatedAt))
 }
 
+// GroupSearch searches for a namespace on GitLab
+func GroupSearch(query string) (*gitlab.Group, error) {
+	if query == "" {
+		return nil, errors.New("query is empty")
+	}
+	groups := strings.Split(query, "/")
+	list, _, err := lab.Groups.SearchGroup(groups[0])
+	if err != nil {
+		return nil, err
+	}
+	// SearchGroup doesn't return error if group isn't found. We need to do
+	// it ourselves.
+	if len(list) == 0 {
+		return nil, ErrGroupNotFound
+	}
+	// if we found a group and we aren't looking for a subgroup
+	if len(list) > 0 && len(groups) == 1 {
+		return list[0], nil
+	}
+	list, _, err = lab.Groups.ListDescendantGroups(list[0].ID, &gitlab.ListDescendantGroupsOptions{
+		Search: gitlab.String(groups[len(groups)-1]),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, g := range list {
+		fmt.Println(g.FullPath)
+		if g.FullPath == query {
+			return g, nil
+		}
+	}
+
+	return nil, errors.Errorf("Group '%s' not found", query)
+}
+
 // CIJobs returns a list of jobs in the pipeline with given id. The jobs are
 // returned sorted by their CreatedAt time
 func CIJobs(pid interface{}, id int) ([]*gitlab.Job, error) {
@@ -1074,12 +1110,6 @@ func UserIDFromUsername(username string) (int, error) {
 		return -1, err
 	}
 	return us[0].ID, nil
-}
-
-// Labels converts a []string into a non-nil *gitlab.Labels.
-func Labels(labels []string) *gitlab.Labels {
-	l := gitlab.Labels(labels)
-	return &l
 }
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab

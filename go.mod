@@ -46,6 +46,7 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/tcnksm/go-gitconfig v0.1.2
+	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad // indirect
 	github.com/xanzy/go-gitlab v0.39.0
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/yuin/goldmark v1.2.1 // indirect
@@ -55,6 +56,7 @@ require (
 	golang.org/x/sys v0.0.0-20201109165425-215b40eba54c // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
+	golang.org/x/tools v0.0.0-20200930213115-e57f6d466a48 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 )
