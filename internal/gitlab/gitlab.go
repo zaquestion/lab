@@ -231,7 +231,7 @@ func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 	parts := strings.Split(data.SrcProject, "/")
 
 	// See if a fork already exists in the destination
-	name := parts[1]
+	name := parts[len(parts)-1]
 	namespace := ""
 	if data.isCustomTargetSet() {
 		if data.TargetGroup != "" {
