@@ -211,38 +211,34 @@ func FindProject(project string) (*gitlab.Project, error) {
 	return target, nil
 }
 
-type ForkStruct struct {
-	SrcProject  string
-	TargetName  string
-	TargetGroup string
-	TargetPath  string
-}
-
-// isCustomTargetSet checks if at least one destination value is set
-func (fs ForkStruct) isCustomTargetSet() bool {
-	return fs.TargetName != "" || fs.TargetGroup != "" || fs.TargetPath != ""
-}
-
 // Fork creates a user fork of a GitLab project using the specified protocol
-func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
-	if !strings.Contains(data.SrcProject, "/") {
+func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bool) (string, error) {
+	if !strings.Contains(project, "/") {
 		return "", errors.New("remote must include namespace")
 	}
-	parts := strings.Split(data.SrcProject, "/")
+	parts := strings.Split(project, "/")
 
 	// See if a fork already exists in the destination
 	name := parts[len(parts)-1]
 	namespace := ""
-	if data.isCustomTargetSet() {
-		if data.TargetGroup != "" {
-			namespace = data.TargetGroup + "/"
+	if opts != nil {
+		var (
+			optName      = *(opts.Name)
+			optNamespace = *(opts.Namespace)
+			optPath      = *(opts.Path)
+		)
+
+		if optNamespace != "" {
+			namespace = optNamespace + "/"
 		}
 		// Project name takes precedence over path for finding a project
 		// on Gitlab through API
-		if data.TargetName != "" {
-			name = data.TargetName
-		} else if data.TargetPath != "" {
-			name = data.TargetPath
+		if optName != "" {
+			name = optName
+		} else if optPath != "" {
+			name = optPath
+		} else {
+			opts.Name = gitlab.String(name)
 		}
 	}
 	target, err := FindProject(namespace + name)
@@ -256,28 +252,15 @@ func Fork(data ForkStruct, useHTTP bool, wait bool) (string, error) {
 		return "", err
 	}
 
-	target, err = FindProject(data.SrcProject)
+	target, err = FindProject(project)
 	if err != nil {
 		return "", err
 	}
 
 	// Now that we have the "wait" opt, don't let the user in the hope that
 	// something is running.
-	fmt.Printf("Forking %s project...\n", data.SrcProject)
-
-	var forkOpts *gitlab.ForkProjectOptions = nil
-	if data.isCustomTargetSet() {
-		// Name and/or path must be set
-		if data.TargetName == "" && data.TargetPath == "" {
-			data.TargetName = target.Name
-		}
-		forkOpts = &gitlab.ForkProjectOptions{
-			Name:      gitlab.String(data.TargetName),
-			Namespace: gitlab.String(data.TargetGroup),
-			Path:      gitlab.String(data.TargetPath),
-		}
-	}
-	fork, _, err := lab.Projects.ForkProject(target.ID, forkOpts)
+	fmt.Printf("Forking %s project...\n", project)
+	fork, _, err := lab.Projects.ForkProject(target.ID, opts)
 	if err != nil {
 		return "", err
 	}
