@@ -36,30 +36,32 @@ func NoteRunFn(cmd *cobra.Command, args []string) {
 		isMR = true
 	}
 
-	rn, idString, err := parseArgsRemoteAndProject(args)
+	reply, branchArgs, err := filterCommentArg(args)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var (
+		rn    string
 		idNum int = 0
-		reply int = 0
 	)
 
-	if strings.Contains(idString, ":") {
-		ids := strings.Split(idString, ":")
-		idNum, _ = strconv.Atoi(ids[0])
-		reply, _ = strconv.Atoi(ids[1])
-	} else {
-		idNum, _ = strconv.Atoi(idString)
-	}
-
-	if isMR && idNum == 0 {
-		idNum = getCurrentBranchMR(rn)
-		if idNum == 0 {
+	if isMR {
+		s, mrNum, _ := parseArgsWithGitBranchMR(branchArgs)
+		if mrNum == 0 {
 			fmt.Println("Error: Cannot determine MR id.")
 			os.Exit(1)
 		}
+		idNum = int(mrNum)
+		rn = s
+	} else {
+		s, issueNum, _ := parseArgsRemoteAndID(branchArgs)
+		if issueNum == 0 {
+			fmt.Println("Error: Cannot determine issue id.")
+			os.Exit(1)
+		}
+		idNum = int(issueNum)
+		rn = s
 	}
 
 	msgs, err := cmd.Flags().GetStringArray("message")
@@ -307,6 +309,38 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 			fmt.Println(NoteURL)
 		}
 	}
+}
+
+func filterCommentArg(args []string) (int, []string, error) {
+	branchArgs := []string{}
+	idString := ""
+
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return 0, branchArgs, err
+		}
+		if ok {
+			branchArgs = append(branchArgs, args[0])
+		} else {
+			idString = args[0]
+		}
+	} else if len(args) > 1 {
+		branchArgs = append(branchArgs, args[0])
+		idString = args[1]
+	}
+
+	if strings.Contains(idString, ":") {
+		ps := strings.Split(idString, ":")
+		branchArgs = append(branchArgs, ps[0])
+		idString = ps[1]
+	} else {
+		branchArgs = append(branchArgs, idString)
+		idString = ""
+	}
+
+	idNum, _ := strconv.Atoi(idString)
+	return idNum, branchArgs, nil
 }
 
 func init() {

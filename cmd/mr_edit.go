@@ -22,36 +22,27 @@ var mrEditCmd = &cobra.Command{
 	Long:    ``,
 	Example: `lab MR edit <id>                                # update MR via $EDITOR
 lab MR update <id>                              # same as above
+lab MR update <branch-name>                     # same, but get MR ID from local branch
 lab MR edit <id> -m "new title"                 # update title
 lab MR edit <id> -m "new title" -m "new desc"   # update title & description
 lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR
 lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, idString, err := parseArgsRemoteAndProject(args)
+		commentNum, branchArgs, err := filterCommentArg(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		var (
-			mrNum      int = 0
-			commentNum int = 0
-		)
-
-		if strings.Contains(idString, ":") {
-			ids := strings.Split(idString, ":")
-			mrNum, _ = strconv.Atoi(ids[0])
-			commentNum, _ = strconv.Atoi(ids[1])
-		} else {
-			mrNum, _ = strconv.Atoi(idString)
+		rn, id, err := parseArgsWithGitBranchMR(branchArgs)
+		if err != nil {
+			log.Fatal(err)
 		}
+		mrNum := int(id)
 
 		if mrNum == 0 {
-			mrNum = getCurrentBranchMR(rn)
-			if mrNum == 0 {
-				fmt.Println("Error: Cannot determine MR id.")
-				os.Exit(1)
-			}
+			fmt.Println("Error: Cannot determine MR id.")
+			os.Exit(1)
 		}
 
 		mr, err := lab.MRGet(rn, mrNum)
