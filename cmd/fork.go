@@ -48,14 +48,14 @@ var forkCmd = &cobra.Command{
 		}
 
 		if len(args) == 1 {
-			forkToUpstream(cmd, args)
+			forkToUpstream(args[0])
 			return
 		}
-		forkFromOrigin(cmd, args)
+		forkFromOrigin()
 	},
 }
 
-func forkFromOrigin(cmd *cobra.Command, args []string) {
+func forkFromOrigin() {
 	// Check for custom target namespace
 	remote := lab.User()
 	if targetData.group != "" {
@@ -103,8 +103,7 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 	}
 }
 
-func forkToUpstream(cmd *cobra.Command, args []string) {
-	project := args[0]
+func forkToUpstream(project string) {
 	// lab.Fork doesn't have access to the useHTTP var, so we need to pass
 	// this info to that, so the process works correctly.
 	_, err := lab.Fork(project, forkOpts, useHTTP, waitFork)
