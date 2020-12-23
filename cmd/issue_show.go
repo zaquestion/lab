@@ -333,13 +333,14 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 			}
 
 			printit(`
-%s-----------------------------------`, indentHeader)
+%s-----------------------------------
+`,
+				indentHeader)
 
 			if time.Time(*note.UpdatedAt).After(CompareTime) {
 				printit = color.New(color.Bold).PrintfFunc()
 			}
-			printit(`
-%s#%d: %s %s at %s
+			printit(`%s#%d: %s %s at %s
 
 `,
 				indentHeader, note.ID, note.Author.Username, commented, time.Time(*note.UpdatedAt).String())
