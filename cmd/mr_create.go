@@ -215,7 +215,11 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	squash, _ := cmd.Flags().GetBool("squash")
 	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
 
-	labels, err := cmd.Flags().GetStringSlice("label")
+	labelTerms, err := cmd.Flags().GetStringSlice("label")
+	if err != nil {
+		log.Fatal(err)
+	}
+	labels, err := MapLabels(targetProjectName, labelTerms)
 	if err != nil {
 		log.Fatal(err)
 	}

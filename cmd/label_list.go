@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/action"
@@ -49,6 +50,39 @@ lab label list remote "search term"  # search "remote" for labels with "search t
 			fmt.Printf("%s%s\n", label.Name, description)
 		}
 	},
+}
+
+func MapLabels(rn string, labelTerms []string) ([]string, error) {
+	labels, err := lab.LabelList(rn)
+	if err != nil {
+		return nil, err
+	}
+
+	matches := make([]string, len(labelTerms))
+	for i, term := range labelTerms {
+		lowerTerm := strings.ToLower(term)
+		for _, label := range labels {
+			lowerLabel := strings.ToLower(label.Name)
+
+			// no match, or we already have an exact match
+			if !strings.Contains(lowerLabel, lowerTerm) || matches[i] == lowerLabel {
+				continue
+			}
+
+			// only allow ambiguity for exact matches
+			if matches[i] != "" && lowerTerm != lowerLabel {
+				return nil, errors.Errorf("Label '%s' is ambiguous", term)
+			}
+
+			matches[i] = label.Name
+		}
+
+		if matches[i] == "" {
+			return nil, errors.Errorf("Label '%s' not found", term)
+		}
+	}
+
+	return matches, nil
 }
 
 func init() {
