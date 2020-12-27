@@ -16,6 +16,7 @@ var (
 	mrLabels       []string
 	mrState        string
 	mrTargetBranch string
+	mrMilestone    string
 	mrNumRet       int
 	mrAll          bool
 	mrMine         bool
@@ -77,6 +78,14 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		assigneeID = &_assigneeID
 	}
 
+	if mrMilestone != "" {
+		milestone, err := lab.MilestoneGet(rn, mrMilestone)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mrMilestone = milestone.Title
+	}
+
 	orderBy := gitlab.String(order)
 
 	sort := gitlab.String(sortedBy)
@@ -88,6 +97,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		Labels:       labels,
 		State:        &mrState,
 		TargetBranch: &mrTargetBranch,
+		Milestone:    &mrMilestone,
 		OrderBy:      orderBy,
 		Sort:         sort,
 		AssigneeID:   assigneeID,
@@ -114,6 +124,8 @@ func init() {
 	listCmd.Flags().StringVarP(
 		&mrTargetBranch, "target-branch", "t", "",
 		"filter merge requests by target branch")
+	listCmd.Flags().StringVar(
+		&mrMilestone, "milestone", "", "list only MRs for the given milestone")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "list all MRs on the project")
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().StringVar(

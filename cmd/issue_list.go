@@ -12,11 +12,12 @@ import (
 )
 
 var (
-	issueLabels []string
-	issueState  string
-	issueSearch string
-	issueNumRet int
-	issueAll    bool
+	issueLabels    []string
+	issueMilestone string
+	issueState     string
+	issueSearch    string
+	issueNumRet    int
+	issueAll       bool
 )
 
 var issueListCmd = &cobra.Command{
@@ -51,13 +52,22 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		return nil, err
 	}
 
+	if issueMilestone != "" {
+		milestone, err := lab.MilestoneGet(rn, issueMilestone)
+		if err != nil {
+			return nil, err
+		}
+		issueMilestone = milestone.Title
+	}
+
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: issueNumRet,
 		},
-		Labels:  labels,
-		State:   &issueState,
-		OrderBy: gitlab.String("updated_at"),
+		Labels:    labels,
+		Milestone: &issueMilestone,
+		State:     &issueState,
+		OrderBy:   gitlab.String("updated_at"),
 	}
 
 	if issueSearch != "" {
@@ -84,6 +94,9 @@ func init() {
 	issueListCmd.Flags().BoolVarP(
 		&issueAll, "all", "a", false,
 		"list all issues on the project")
+	issueListCmd.Flags().StringVar(
+		&issueMilestone, "milestone", "",
+		"filter issues by milestone")
 
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{
