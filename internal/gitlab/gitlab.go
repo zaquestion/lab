@@ -790,6 +790,119 @@ func LabelDelete(project, name string) error {
 	return err
 }
 
+func MilestoneGet(project string, name string) (*gitlab.Milestone, error) {
+	opts := &gitlab.ListMilestonesOptions{
+		Search: &name,
+	}
+	milestones, _ := MilestoneList(project, opts)
+
+	switch len(milestones) {
+	case 1:
+		return milestones[0], nil
+	case 0:
+		return nil, errors.Errorf("Milestone '%s' not found", name)
+	default:
+		return nil, errors.Errorf("Milestone '%s' is ambiguous", name)
+	}
+}
+
+// MilestoneList gets a list of milestones on a GitLab Project
+func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.Milestone, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	milestones := []*gitlab.Milestone{}
+	opt.ListOptions.Page = 1
+	for {
+		m, resp, err := lab.Milestones.ListMilestones(p.ID, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		milestones = append(milestones, m...)
+
+		// if we've seen all the pages, then we can break here
+		if opt.Page >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	if p.Namespace.Kind != "group" {
+		return milestones, nil
+	}
+
+	// get inherited milestones from group; in the future, we'll be able to use the
+	// IncludeParentMilestones option with ListMilestones()
+	includeParents := true
+	gopt := &gitlab.ListGroupMilestonesOptions{
+		IIDs:                    opt.IIDs,
+		Title:                   opt.Title,
+		State:                   opt.State,
+		Search:                  opt.Search,
+		IncludeParentMilestones: &includeParents,
+	}
+
+	gopt.ListOptions.Page = 1
+	for {
+		groupMilestones, resp, err := lab.GroupMilestones.ListGroupMilestones(p.Namespace.ID, gopt)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, m := range groupMilestones {
+			milestones = append(milestones, &gitlab.Milestone{
+				ID:          m.ID,
+				IID:         m.IID,
+				Title:       m.Title,
+				Description: m.Description,
+				StartDate:   m.StartDate,
+				DueDate:     m.DueDate,
+				State:       m.State,
+				UpdatedAt:   m.UpdatedAt,
+				CreatedAt:   m.CreatedAt,
+				Expired:     m.Expired,
+			})
+		}
+
+		// if we've seen all the pages, then we can break here
+		if gopt.Page >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		gopt.Page = resp.NextPage
+	}
+
+	return milestones, nil
+}
+
+// MilestoneCreate creates a new project milestone
+func MilestoneCreate(project string, opts *gitlab.CreateMilestoneOptions) error {
+	p, err := FindProject(project)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = lab.Milestones.CreateMilestone(p.ID, opts)
+	return err
+}
+
+// MilestoneDelete deletes a project milestone
+func MilestoneDelete(project, name string) error {
+	milestone, err := MilestoneGet(project, name)
+	if err != nil {
+		return err
+	}
+
+	_, err = lab.Milestones.DeleteMilestone(milestone.ProjectID, milestone.ID)
+	return err
+}
+
 // ProjectSnippetCreate creates a snippet in a project
 func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
 	snip, _, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
