@@ -40,7 +40,7 @@ func init() {
 	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "remove source branch from remote after merge")
 	mrCreateCmd.Flags().BoolP("squash", "s", false, "squash commits when merging")
 	mrCreateCmd.Flags().Bool("allow-collaboration", false, "allow commits from other members")
-	mrCreateCmd.Flags().Int("milestone", -1, "set milestone by milestone ID")
+	mrCreateCmd.Flags().String("milestone", "", "set milestone by milestone title or ID")
 	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Description")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "do not comment changelog and diffstat")
@@ -224,12 +224,20 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	milestoneID, _ := cmd.Flags().GetInt("milestone")
+	milestoneArg, _ := cmd.Flags().GetString("milestone")
+	milestoneID, _ := strconv.Atoi(milestoneArg)
+
 	var milestone *int
-	if milestoneID < 0 {
-		milestone = nil
-	} else {
+	if milestoneID > 0 {
 		milestone = &milestoneID
+	} else if milestoneArg != "" {
+		ms, err := lab.MilestoneGet(targetProjectName, milestoneArg)
+		if err != nil {
+			log.Fatal(err)
+		}
+		milestone = &ms.ID
+	} else {
+		milestone = nil
 	}
 
 	if title == "" {
