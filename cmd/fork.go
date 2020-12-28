@@ -7,14 +7,20 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tcnksm/go-gitconfig"
+	"github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var (
-	skipClone = false
-	waitFork  = true
-	forkData  lab.ForkStruct
+	skipClone  = false
+	waitFork   = true
+	targetData struct {
+		project string
+		group   string
+		path    string
+	}
+	forkOpts *gitlab.ForkProjectOptions
 )
 
 // forkCmd represents the fork command
@@ -28,23 +34,32 @@ var forkCmd = &cobra.Command{
 		skipClone, _ = cmd.Flags().GetBool("skip-clone")
 		noWaitFork, _ := cmd.Flags().GetBool("no-wait")
 		waitFork = !noWaitFork
-		forkData.TargetName, _ = cmd.Flags().GetString("name")
-		forkData.TargetNamespace, _ = cmd.Flags().GetString("namespace")
-		forkData.TargetPath, _ = cmd.Flags().GetString("path")
+		targetData.project, _ = cmd.Flags().GetString("name")
+		targetData.group, _ = cmd.Flags().GetString("group")
+		targetData.path, _ = cmd.Flags().GetString("path")
+
+		if targetData.project != "" || targetData.group != "" ||
+			targetData.path != "" {
+			forkOpts = &gitlab.ForkProjectOptions{
+				Name:      gitlab.String(targetData.project),
+				Namespace: gitlab.String(targetData.group),
+				Path:      gitlab.String(targetData.path),
+			}
+		}
 
 		if len(args) == 1 {
-			forkToUpstream(cmd, args)
+			forkToUpstream(args[0])
 			return
 		}
-		forkFromOrigin(cmd, args)
+		forkFromOrigin()
 	},
 }
 
-func forkFromOrigin(cmd *cobra.Command, args []string) {
+func forkFromOrigin() {
 	// Check for custom target namespace
 	remote := lab.User()
-	if forkData.TargetNamespace != "" {
-		remote = forkData.TargetNamespace
+	if targetData.group != "" {
+		remote = targetData.group
 	}
 
 	if _, err := gitconfig.Local("remote." + remote + ".url"); err == nil {
@@ -71,8 +86,8 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	forkData.SrcProject = project
-	forkRemoteURL, err := lab.Fork(forkData, useHTTP, waitFork)
+
+	forkRemoteURL, err := lab.Fork(project, forkOpts, useHTTP, waitFork)
 	if err != nil {
 		if err.Error() == "not finished" {
 			fmt.Println("This fork is not ready yet and might take some minutes.")
@@ -88,11 +103,10 @@ func forkFromOrigin(cmd *cobra.Command, args []string) {
 	}
 }
 
-func forkToUpstream(cmd *cobra.Command, args []string) {
-	forkData.SrcProject = args[0]
+func forkToUpstream(project string) {
 	// lab.Fork doesn't have access to the useHTTP var, so we need to pass
 	// this info to that, so the process works correctly.
-	_, err := lab.Fork(forkData, useHTTP, waitFork)
+	_, err := lab.Fork(project, forkOpts, useHTTP, waitFork)
 	if err != nil {
 		if err.Error() == "not finished" && !skipClone {
 			fmt.Println("This fork is not ready yet and might take some minutes.")
@@ -106,15 +120,15 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 		// the clone may happen in a different name/path when compared to
 		// the original source project
 		namespace := ""
-		if forkData.TargetNamespace != "" {
-			namespace = forkData.TargetNamespace + "/"
+		if targetData.group != "" {
+			namespace = targetData.group + "/"
 		}
 
-		name := forkData.SrcProject
-		if forkData.TargetPath != "" {
-			name = forkData.TargetPath
-		} else if forkData.TargetName != "" {
-			name = forkData.TargetName
+		name := project
+		if targetData.path != "" {
+			name = targetData.path
+		} else if targetData.project != "" {
+			name = targetData.project
 		} else {
 			nameParts := strings.Split(name, "/")
 			name = nameParts[len(nameParts)-1]
@@ -125,8 +139,8 @@ func forkToUpstream(cmd *cobra.Command, args []string) {
 
 func determineForkRemote(project string) string {
 	name := lab.User()
-	if forkData.TargetNamespace != "" {
-		name = forkData.TargetNamespace
+	if targetData.group != "" {
+		name = targetData.group
 	}
 	if strings.Split(project, "/")[0] == name {
 		// #78 allow upstream remote to be added when "origin" is
@@ -140,7 +154,7 @@ func init() {
 	forkCmd.Flags().BoolP("skip-clone", "s", false, "skip clone after remote fork")
 	forkCmd.Flags().Bool("no-wait", false, "don't wait for forking operation to finish")
 	forkCmd.Flags().StringP("name", "n", "", "fork project with a different name")
-	forkCmd.Flags().StringP("namespace", "m", "", "fork project in a different namespace")
+	forkCmd.Flags().StringP("group", "g", "", "fork project in a different group (namespace)")
 	forkCmd.Flags().StringP("path", "p", "", "fork project with a different path")
 	// useHTTP is defined in "project_create.go"
 	forkCmd.Flags().BoolVar(&useHTTP, "http", false, "fork using HTTP protocol instead of SSH")
