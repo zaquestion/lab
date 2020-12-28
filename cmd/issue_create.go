@@ -38,6 +38,10 @@ var issueCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		milestoneName, err := cmd.Flags().GetString("milestone")
+		if err != nil {
+			log.Fatal(err)
+		}
 		templateName, err := cmd.Flags().GetString("template")
 		if err != nil {
 			log.Fatal(err)
@@ -60,6 +64,15 @@ var issueCreateCmd = &cobra.Command{
 		labels, err := MapLabels(rn, labelTerms)
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		var milestoneID *int
+		if milestoneName != "" {
+			milestone, err := lab.MilestoneGet(rn, milestoneName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			milestoneID = &milestone.ID
 		}
 
 		title, body, err := issueMsg(templateName, msgs)
@@ -86,6 +99,7 @@ var issueCreateCmd = &cobra.Command{
 			Description: &body,
 			Labels:      labels,
 			AssigneeIDs: assigneeIDs,
+			MilestoneID: milestoneID,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -148,6 +162,7 @@ func init() {
 	issueCreateCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	issueCreateCmd.Flags().StringSliceP("label", "l", []string{}, "set the given label(s) on the created issue")
 	issueCreateCmd.Flags().StringSliceP("assignees", "a", []string{}, "set assignees by username")
+	issueCreateCmd.Flags().String("milestone", "", "set milestone by title")
 	issueCreateCmd.Flags().StringP("template", "t", "default", "use the given issue template")
 	issueCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
