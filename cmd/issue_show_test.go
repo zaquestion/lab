@@ -34,7 +34,7 @@ Milestone: 1.0
 Due Date: 2018-01-01 00:00:00 +0000 UTC
 Time Stats: Estimated 40h, Spent 8h
 Labels: bug
-Related MRs: 
+Related MRs: 1
 MRs that will close this Issue: 
 WebURL: https://gitlab.com/zaquestion/test/-/issues/1
 `)
