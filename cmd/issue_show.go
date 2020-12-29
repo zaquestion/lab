@@ -11,8 +11,10 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/glamour/ansi"
 	"github.com/fatih/color"
 	"github.com/jaytaylor/html2text"
+	"github.com/muesli/termenv"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -64,7 +66,7 @@ var issueShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			PrintDiscussions(discussions, since, "issues", int(issueNum))
+			PrintDiscussions(discussions, since, "issues", int(issueNum), renderMarkdown)
 		}
 	},
 }
@@ -269,7 +271,7 @@ func displayCommitDiscussion(idNum int, note *gitlab.Note) {
 	fmt.Println("")
 }
 
-func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr string, idNum int) {
+func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr string, idNum int, renderMarkdown bool) {
 	NewAccessTime := time.Now().UTC()
 
 	issueEntry := fmt.Sprintf("%s%d", idstr, idNum)
@@ -287,6 +289,11 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 		}
 		sinceIsSet = false
 	}
+
+	mdRendererNormal, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle())
+	mdRendererBold, _ := glamour.NewTermRenderer(
+		glamour.WithStyles(getBoldStyle()))
 
 	// for available fields, see
 	// https://godoc.org/github.com/xanzy/go-gitlab#Note
@@ -313,32 +320,51 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				}
 			}
 
-			noteBody := strings.Replace(note.Body, "\n", "<br>\n"+indentHeader, -1)
+			noteBody := strings.Replace(note.Body, "\n", "<br>\n", -1)
 			html2textOptions := html2text.Options{
 				PrettyTables: true,
 				OmitLinks:    true,
 			}
 			noteBody, _ = html2text.FromString(noteBody, html2textOptions)
+			mdRenderer := mdRendererNormal
 			printit := color.New().PrintfFunc()
 			if note.System {
+				splitNote := strings.SplitN(noteBody, "\n", 2)
+
 				// system notes are informational messages only
 				// and cannot have replies.  Do not output the
 				// note.ID
 				printit(`
 * %s %s at %s
 `,
-					note.Author.Username, noteBody, time.Time(*note.UpdatedAt).String())
+					note.Author.Username, splitNote[0], time.Time(*note.UpdatedAt).String())
+				if len(splitNote) == 2 {
+					if renderMarkdown {
+						splitNote[1], _ = mdRenderer.Render(splitNote[1])
+					}
+					printit(`%s
+`,
+						splitNote[1])
+				}
 				continue
 			}
 
 			printit(`
-%s-----------------------------------`, indentHeader)
+%s-----------------------------------
+`,
+				indentHeader)
 
 			if time.Time(*note.UpdatedAt).After(CompareTime) {
+				mdRenderer = mdRendererBold
 				printit = color.New(color.Bold).PrintfFunc()
 			}
-			printit(`
-%s#%d: %s %s at %s
+
+			if renderMarkdown {
+				noteBody, _ = mdRenderer.Render(noteBody)
+			}
+			noteBody = strings.Replace(noteBody, "\n", "\n"+indentNote, -1)
+
+			printit(`%s#%d: %s %s at %s
 
 `,
 				indentHeader, note.ID, note.Author.Username, commented, time.Time(*note.UpdatedAt).String())
@@ -355,6 +381,18 @@ func PrintDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 	if sinceIsSet == false {
 		config.WriteConfigEntry(CommandPrefix+issueEntry, NewAccessTime, "", "")
 	}
+}
+
+func getBoldStyle() ansi.StyleConfig {
+	var style ansi.StyleConfig
+	if termenv.HasDarkBackground() {
+		style = glamour.DarkStyleConfig
+	} else {
+		style = glamour.LightStyleConfig
+	}
+	bold := true
+	style.Document.Bold = &bold
+	return style
 }
 
 func init() {
