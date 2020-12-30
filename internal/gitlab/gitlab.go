@@ -766,6 +766,17 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 	return labels, nil
 }
 
+// LabelCreate creates a new project label
+func LabelCreate(project string, opts *gitlab.CreateLabelOptions) error {
+	p, err := FindProject(project)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = lab.Labels.CreateLabel(p.ID, opts)
+	return err
+}
+
 // ProjectSnippetCreate creates a snippet in a project
 func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
 	snip, _, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
