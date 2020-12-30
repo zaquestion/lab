@@ -777,6 +777,19 @@ func LabelCreate(project string, opts *gitlab.CreateLabelOptions) error {
 	return err
 }
 
+// LabelDelete removes a project label
+func LabelDelete(project, name string) error {
+	p, err := FindProject(project)
+	if err != nil {
+		return err
+	}
+
+	_, err = lab.Labels.DeleteLabel(p.ID, &gitlab.DeleteLabelOptions{
+		Name: &name,
+	})
+	return err
+}
+
 // ProjectSnippetCreate creates a snippet in a project
 func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
 	snip, _, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
