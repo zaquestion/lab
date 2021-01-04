@@ -22,6 +22,8 @@ import (
 
 var (
 	CommandPrefix string
+	// http vs ssh protocol control flag
+	useHTTP bool
 )
 
 // flagConfig compares command line flags and the flags set in the config

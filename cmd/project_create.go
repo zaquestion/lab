@@ -11,12 +11,6 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-var (
-	// private and public are defined in snippet_create.go
-	internal bool
-	useHTTP  bool
-)
-
 // projectCreateCmd represents the create command
 var projectCreateCmd = &cobra.Command{
 	Use:   "create [path]",
