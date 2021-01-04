@@ -360,3 +360,37 @@ func Test_determineSourceRemote(t *testing.T) {
 	// And move back to the workdir we were before the test
 	os.Chdir(oldWd)
 }
+
+func Test_same(t *testing.T) {
+	t.Parallel()
+	assert.True(t, same([]string{}, []string{}))
+	assert.True(t, same([]string{"a"}, []string{"a"}))
+	assert.True(t, same([]string{"a", "b"}, []string{"a", "b"}))
+	assert.True(t, same([]string{"a", "b"}, []string{"b", "a"}))
+	assert.True(t, same([]string{"b", "a"}, []string{"a", "b"}))
+
+	assert.False(t, same([]string{"a"}, []string{}))
+	assert.False(t, same([]string{"a"}, []string{"c"}))
+	assert.False(t, same([]string{}, []string{"c"}))
+	assert.False(t, same([]string{"a", "b"}, []string{"a", "c"}))
+	assert.False(t, same([]string{"a", "b"}, []string{"a"}))
+	assert.False(t, same([]string{"a", "b"}, []string{"c"}))
+}
+
+func Test_union(t *testing.T) {
+	t.Parallel()
+	s := union([]string{"a", "b"}, []string{"c"})
+	assert.Equal(t, 3, len(s))
+	assert.True(t, same(s, []string{"a", "b", "c"}))
+}
+
+func Test_difference(t *testing.T) {
+	t.Parallel()
+	s := difference([]string{"a", "b"}, []string{"c"})
+	assert.Equal(t, 2, len(s))
+	assert.True(t, same(s, []string{"a", "b"}))
+
+	s = difference([]string{"a", "b"}, []string{"a", "c"})
+	assert.Equal(t, 1, len(s))
+	assert.True(t, same(s, []string{"b"}))
+}

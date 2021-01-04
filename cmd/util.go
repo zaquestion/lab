@@ -405,3 +405,56 @@ func determineSourceRemote(branch string) string {
 
 	return forkRemote
 }
+
+// union returns all the unique elements in a and b
+func union(a, b []string) []string {
+	mb := map[string]bool{}
+	ab := []string{}
+	for _, x := range b {
+		mb[x] = true
+		// add all of b's elements to ab
+		ab = append(ab, x)
+	}
+	for _, x := range a {
+		if _, ok := mb[x]; !ok {
+			// if a's elements aren't in b, add them to ab
+			// if they are, we don't need to add them
+			ab = append(ab, x)
+		}
+	}
+	return ab
+}
+
+// difference returns the elements in a that aren't in b
+func difference(a, b []string) []string {
+	mb := map[string]bool{}
+	for _, x := range b {
+		mb[x] = true
+	}
+	ab := []string{}
+	for _, x := range a {
+		if _, ok := mb[x]; !ok {
+			ab = append(ab, x)
+		}
+	}
+	return ab
+}
+
+// same returns true if a and b contain the same strings (regardless of order)
+func same(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	mb := map[string]bool{}
+	for _, x := range b {
+		mb[x] = true
+	}
+
+	for _, x := range a {
+		if _, ok := mb[x]; !ok {
+			return false
+		}
+	}
+	return true
+}
