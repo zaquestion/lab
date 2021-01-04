@@ -113,8 +113,8 @@ func init() {
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().StringVar(
 		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
-	listCmd.Flags().StringVar(&order, "order", "updated_at", "display order, updated_at(default) or created_at")
-	listCmd.Flags().StringVar(&sortedBy, "sort", "desc", "sort order, desc(default) or asc")
+	listCmd.Flags().StringVar(&order, "order", "updated_at", "display order (updated_at/created_at)")
+	listCmd.Flags().StringVar(&sortedBy, "sort", "desc", "sort order (desc/asc)")
 	listCmd.Flags().BoolVarP(&mrDraft, "draft", "", false, "list MRs marked as draft")
 	listCmd.Flags().BoolVarP(&mrReady, "ready", "", false, "list MRs not marked as draft")
 	listCmd.Flags().SortFlags = false
