@@ -299,6 +299,38 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 	return s, i, nil
 }
 
+func filterCommentArg(args []string) (int, []string, error) {
+	branchArgs := []string{}
+	idString := ""
+
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return 0, branchArgs, err
+		}
+		if ok {
+			branchArgs = append(branchArgs, args[0])
+		} else {
+			idString = args[0]
+		}
+	} else if len(args) > 1 {
+		branchArgs = append(branchArgs, args[0])
+		idString = args[1]
+	}
+
+	if strings.Contains(idString, ":") {
+		ps := strings.Split(idString, ":")
+		branchArgs = append(branchArgs, ps[0])
+		idString = ps[1]
+	} else {
+		branchArgs = append(branchArgs, idString)
+		idString = ""
+	}
+
+	idNum, _ := strconv.Atoi(idString)
+	return idNum, branchArgs, nil
+}
+
 // setCommandPrefix returns a concatenated value of some of the commandline.
 // For example, 'lab mr show' would return 'mr_show.', and 'lab issue list'
 // would return 'issue_list.'
