@@ -80,7 +80,7 @@ var mrShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			PrintDiscussions(discussions, since, "mr", int(mrNum), renderMarkdown)
+			printDiscussions(discussions, since, "mr", int(mrNum), renderMarkdown)
 		}
 	},
 }
