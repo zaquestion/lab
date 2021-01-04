@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/config"
 	git "github.com/zaquestion/lab/internal/git"
@@ -351,4 +352,24 @@ func labURLToRepo(project *gitlab.Project) string {
 		urlToRepo = project.HTTPURLToRepo
 	}
 	return urlToRepo
+}
+
+func determineSourceRemote(branch string) string {
+	// There is a precendence of options that should be considered here:
+	// branch.<name>.pushRemote > remote.pushDefault > branch.<name>.remote
+	// This rule is placed in git-config(1) manpage
+	r, err := gitconfig.Local("branch." + branch + ".pushRemote")
+	if err == nil {
+		return r
+	}
+	r, err = gitconfig.Local("remote.pushDefault")
+	if err == nil {
+		return r
+	}
+	r, err = gitconfig.Local("branch." + branch + ".remote")
+	if err == nil {
+		return r
+	}
+
+	return forkRemote
 }
