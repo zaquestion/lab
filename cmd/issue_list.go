@@ -46,11 +46,16 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		return nil, err
 	}
 
+	labels, err := MapLabels(rn, issueLabels)
+	if err != nil {
+		return nil, err
+	}
+
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: issueNumRet,
 		},
-		Labels:  issueLabels,
+		Labels:  labels,
 		State:   &issueState,
 		OrderBy: gitlab.String("updated_at"),
 	}

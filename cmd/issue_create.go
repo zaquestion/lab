@@ -34,7 +34,7 @@ var issueCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		labels, err := cmd.Flags().GetStringSlice("label")
+		labelTerms, err := cmd.Flags().GetStringSlice("label")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,6 +53,11 @@ var issueCreateCmd = &cobra.Command{
 			}
 		}
 		rn, err := git.PathWithNameSpace(remote)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		labels, err := MapLabels(rn, labelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}

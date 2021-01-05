@@ -62,13 +62,21 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 		}
 
 		// get the labels to add
-		labels, err := cmd.Flags().GetStringSlice("label")
+		labelTerms, err := cmd.Flags().GetStringSlice("label")
+		if err != nil {
+			log.Fatal(err)
+		}
+		labels, err := MapLabels(rn, labelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		// get the labels to remove
-		unlabels, err := cmd.Flags().GetStringSlice("unlabel")
+		unlabelTerms, err := cmd.Flags().GetStringSlice("unlabel")
+		if err != nil {
+			log.Fatal(err)
+		}
+		unlabels, err := MapLabels(rn, unlabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}

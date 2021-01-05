@@ -70,7 +70,7 @@ func Test_issueEditLabels(t *testing.T) {
 
 	// update the issue
 	cmd := exec.Command(labBinaryPath, "issue", "edit", "lab-testing", issueNum,
-		"-l", "critical", "--unlabel", "bug")
+		"-l", "crit", "--unlabel", "bug")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
