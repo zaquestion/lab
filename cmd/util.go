@@ -330,7 +330,8 @@ func textToMarkdown(text string) string {
 // to avoid some markdown rendering garbage going to other outputs that
 // don't support some control chars.
 func isOutputTerminal() bool {
-	if !terminal.IsTerminal(syscall.Stdout) || !terminal.IsTerminal(syscall.Stderr) {
+	if !terminal.IsTerminal(int(syscall.Stdout)) ||
+		!terminal.IsTerminal(int(syscall.Stderr)) {
 		return false
 	}
 	return true
