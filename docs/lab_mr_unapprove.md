@@ -1,9 +1,9 @@
-## lab mr approve
+## lab mr unapprove
 
-Approve merge request
+Unapprove merge request
 
 ```
-lab mr approve [remote] <id> [flags]
+lab mr unapprove [remote] <id> [flags]
 ```
 
 ### Options
@@ -11,7 +11,7 @@ lab mr approve [remote] <id> [flags]
 ```
   -F, --file string           use the given file as the message (used with --with-comment only)
       --force-linebreak       append 2 spaces to the end of each line to force markdown linebreaks (used with --with-comment only)
-  -h, --help                  help for approve
+  -h, --help                  help for unapprove
   -m, --message stringArray   use the given <msg>; multiple -m are concatenated as separate paragraphs (used with --with-comment only)
       --with-comment          Add a comment with the approval
 ```

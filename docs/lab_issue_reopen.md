@@ -1,15 +1,15 @@
-## lab issue browse
+## lab issue reopen
 
-View issue in a browser
+Reopen a closed issue
 
 ```
-lab issue browse [remote] <id> [flags]
+lab issue reopen [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for browse
+  -h, --help   help for reopen
 ```
 
 ### SEE ALSO

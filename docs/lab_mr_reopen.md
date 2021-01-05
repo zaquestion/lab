@@ -1,15 +1,15 @@
-## lab mr rebase
+## lab mr reopen
 
-Rebase an open merge request
+Reopen a closed merge request
 
 ```
-lab mr rebase [remote] <id> [flags]
+lab mr reopen [remote] <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for rebase
+  -h, --help   help for reopen
 ```
 
 ### SEE ALSO
