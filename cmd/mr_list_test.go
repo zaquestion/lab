@@ -124,7 +124,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 }
 
 var (
-	latestCreatedTestMR = "!22 (ci) add artifacts job"
+	latestCreatedTestMR = "!19 MR for closing and reopening"
 	latestUpdatedTestMR = "!19 MR for closing and reopening"
 )
 
