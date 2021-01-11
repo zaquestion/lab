@@ -84,6 +84,10 @@ func New(confpath string, r io.Reader) error {
 var readPassword = func(reader bufio.Reader) (string, string, error) {
 	var loadToken string
 
+	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) != "" {
+		return strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")), "", nil
+	}
+
 	tokenURL, err := url.Parse(MainConfig.GetString("core.host"))
 	if err != nil {
 		return "", "", err

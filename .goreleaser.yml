@@ -22,7 +22,7 @@ brews:
       system "git", "add", "haunted", "house"
       system "git", "commit", "-a", "-m", "Initial Commit"
       lab_env_config = "LAB_CORE_HOST=foo LAB_CORE_USER=bar LAB_CORE_TOKEN=baz"
-      assert_equal "haunted\nhouse", shell_output("#{lab_env_config} #{bin}/lab ls-files").strip
+      assert_match "haunted\nhouse", shell_output("#{lab_env_config} #{bin}/lab ls-files").strip
 
 scoop:
   bucket:
