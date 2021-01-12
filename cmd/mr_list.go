@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -24,6 +25,7 @@ var (
 	mrReady        bool
 	mrConflicts    bool
 	mrNoConflicts  bool
+	mrExactMatch   bool
 	assigneeID     *int
 	mrAssignee     string
 	order          string
@@ -32,11 +34,15 @@ var (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:              "list [remote]",
-	Aliases:          []string{"ls"},
-	Short:            "List merge requests",
-	Long:             ``,
-	Args:             cobra.MaximumNArgs(1),
+	Use:     "list [remote] [search]",
+	Aliases: []string{"ls", "search"},
+	Short:   "List merge requests",
+	Long:    ``,
+	Args:    cobra.MaximumNArgs(2),
+	Example: `lab mr list
+lab mr list "search terms"         # search merge requests for "search terms"
+lab mr search "search terms"       # same as above
+lab mr list remote "search terms"  # search "remote" for merge requests with "search terms"`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)
@@ -51,7 +57,7 @@ var listCmd = &cobra.Command{
 }
 
 func mrList(args []string) ([]*gitlab.MergeRequest, error) {
-	rn, _, err := parseArgsRemoteAndID(args)
+	rn, search, err := parseArgsRemoteAndProject(args)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +121,17 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		opts.WIP = gitlab.String("no")
 	}
 
+	if mrExactMatch {
+		if search == "" {
+			return nil, errors.New("Exact match requested, but no search terms provided")
+		}
+		search = "\"" + search + "\""
+	}
+
+	if search != "" {
+		opts.Search = &search
+	}
+
 	mrs, err := lab.MRList(rn, opts, num)
 	if err != nil {
 		return mrs, err
@@ -161,6 +178,7 @@ func init() {
 	listCmd.Flags().SortFlags = false
 	listCmd.Flags().BoolVar(&mrNoConflicts, "no-conflicts", false, "list only MRs that can be merged")
 	listCmd.Flags().BoolVar(&mrConflicts, "conflicts", false, "list only MRs that cannot be merged")
+	listCmd.Flags().BoolVarP(&mrExactMatch, "exact-match", "x", false, "match on the exact (case-insensitive) search terms")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
