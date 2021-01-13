@@ -22,6 +22,8 @@ var (
 	mrMine         bool
 	mrDraft        bool
 	mrReady        bool
+	mrConflicts    bool
+	mrNoConflicts  bool
 	assigneeID     *int
 	mrAssignee     string
 	order          string
@@ -90,17 +92,21 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 
 	sort := gitlab.String(sortedBy)
 
+	// if none of the flags are set, return every single MR
+	mrCheckConflicts := (mrConflicts || mrNoConflicts)
+
 	opts := gitlab.ListProjectMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: mrNumRet,
 		},
-		Labels:       labels,
-		State:        &mrState,
-		TargetBranch: &mrTargetBranch,
-		Milestone:    &mrMilestone,
-		OrderBy:      orderBy,
-		Sort:         sort,
-		AssigneeID:   assigneeID,
+		Labels:                 labels,
+		State:                  &mrState,
+		TargetBranch:           &mrTargetBranch,
+		Milestone:              &mrMilestone,
+		OrderBy:                orderBy,
+		Sort:                   sort,
+		AssigneeID:             assigneeID,
+		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
 	}
 
 	if mrDraft && !mrReady {
@@ -109,7 +115,25 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		opts.WIP = gitlab.String("no")
 	}
 
-	return lab.MRList(rn, opts, num)
+	mrs, err := lab.MRList(rn, opts, num)
+	if err != nil {
+		return mrs, err
+	}
+
+	// only return MRs that matches the Conflicts requirement
+	if mrCheckConflicts {
+		var newMrList []*gitlab.MergeRequest
+		for _, mr := range mrs {
+			if mr.HasConflicts && mrConflicts {
+				newMrList = append(newMrList, mr)
+			} else if !mr.HasConflicts && mrNoConflicts {
+				newMrList = append(newMrList, mr)
+			}
+		}
+		mrs = newMrList
+	}
+
+	return mrs, nil
 }
 
 func init() {
@@ -135,6 +159,8 @@ func init() {
 	listCmd.Flags().BoolVarP(&mrDraft, "draft", "", false, "list MRs marked as draft")
 	listCmd.Flags().BoolVarP(&mrReady, "ready", "", false, "list MRs not marked as draft")
 	listCmd.Flags().SortFlags = false
+	listCmd.Flags().BoolVar(&mrNoConflicts, "no-conflicts", false, "list only MRs that can be merged")
+	listCmd.Flags().BoolVar(&mrConflicts, "conflicts", false, "list only MRs that cannot be merged")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
