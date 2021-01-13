@@ -109,6 +109,21 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 			log.Fatal(err)
 		}
 
+		milestoneName, err := cmd.Flags().GetString("milestone")
+		if err != nil {
+			log.Fatal(err)
+		}
+		updateMilestone := cmd.Flags().Lookup("milestone").Changed
+		milestoneID := -1
+
+		if milestoneName != "" {
+			ms, err := lab.MilestoneGet(rn, milestoneName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			milestoneID = ms.ID
+		}
+
 		// get all of the "message" flags
 		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {
@@ -123,7 +138,7 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 			log.Fatal("aborting: empty issue title")
 		}
 
-		abortUpdate := title == issue.Title && body == issue.Description && !labelsChanged && !assigneesChanged
+		abortUpdate := title == issue.Title && body == issue.Description && !labelsChanged && !assigneesChanged && !updateMilestone
 		if abortUpdate {
 			log.Fatal("aborting: no changes")
 		}
@@ -143,6 +158,10 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 
 		if assigneesChanged {
 			opts.AssigneeIDs = assigneeIDs
+		}
+
+		if updateMilestone {
+			opts.MilestoneID = &milestoneID
 		}
 
 		issueURL, err := lab.IssueUpdate(rn, issueNum, opts)
@@ -315,6 +334,7 @@ func init() {
 	issueEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "remove the given label(s) from the issue")
 	issueEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
 	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
+	issueEditCmd.Flags().String("milestone", "", "set milestone")
 	issueEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	issueEditCmd.Flags().SortFlags = false
 

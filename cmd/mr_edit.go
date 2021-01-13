@@ -118,6 +118,21 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			log.Fatal(err)
 		}
 
+		milestoneName, err := cmd.Flags().GetString("milestone")
+		if err != nil {
+			log.Fatal(err)
+		}
+		updateMilestone := cmd.Flags().Lookup("milestone").Changed
+		milestoneID := -1
+
+		if milestoneName != "" {
+			ms, err := lab.MilestoneGet(rn, milestoneName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			milestoneID = ms.ID
+		}
+
 		// get all of the "message" flags
 		msgs, err := cmd.Flags().GetStringSlice("message")
 		if err != nil {
@@ -155,7 +170,7 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			}
 		}
 
-		abortUpdate := title == mr.Title && body == mr.Description && !labelsChanged && !assigneesChanged
+		abortUpdate := title == mr.Title && body == mr.Description && !labelsChanged && !assigneesChanged && !updateMilestone
 		if abortUpdate {
 			log.Fatal("aborting: no changes")
 		}
@@ -175,6 +190,10 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 
 		if assigneesChanged {
 			opts.AssigneeIDs = assigneeIDs
+		}
+
+		if updateMilestone {
+			opts.MilestoneID = &milestoneID
 		}
 
 		mrURL, err := lab.MRUpdate(rn, int(mrNum), opts)
@@ -203,6 +222,7 @@ func init() {
 	mrEditCmd.Flags().StringSliceP("unlabel", "", []string{}, "remove the given label(s) from the merge request")
 	mrEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
 	mrEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
+	mrEditCmd.Flags().String("milestone", "", "set milestone")
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrEditCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mrEditCmd.Flags().Bool("ready", false, "mark the merge request as ready")
