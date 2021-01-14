@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -12,12 +13,13 @@ import (
 )
 
 var (
-	issueLabels    []string
-	issueMilestone string
-	issueState     string
-	issueSearch    string
-	issueNumRet    int
-	issueAll       bool
+	issueLabels     []string
+	issueMilestone  string
+	issueState      string
+	issueSearch     string
+	issueNumRet     int
+	issueAll        bool
+	issueExactMatch bool
 )
 
 var issueListCmd = &cobra.Command{
@@ -70,6 +72,13 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		OrderBy:   gitlab.String("updated_at"),
 	}
 
+	if issueExactMatch {
+		if issueSearch == "" {
+			return nil, errors.New("Exact match requested, but no search terms provided")
+		}
+		issueSearch = "\"" + issueSearch + "\""
+	}
+
 	if issueSearch != "" {
 		opts.Search = &issueSearch
 	}
@@ -97,6 +106,9 @@ func init() {
 	issueListCmd.Flags().StringVar(
 		&issueMilestone, "milestone", "",
 		"filter issues by milestone")
+	issueListCmd.Flags().BoolVarP(
+		&issueExactMatch, "exact-match", "x", false,
+		"match on the exact (case-insensitive) search terms")
 
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{
