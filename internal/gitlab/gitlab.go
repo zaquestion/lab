@@ -1162,12 +1162,67 @@ func CITrace(pid interface{}, id int, name string) (io.Reader, *gitlab.Job, erro
 	if job == nil {
 		job = jobs[len(jobs)-1]
 	}
+
 	r, _, err := lab.Jobs.GetTraceFile(pid, job.ID)
 	if err != nil {
 		return nil, job, err
 	}
 
 	return r, job, err
+}
+
+// CIArtifacts searches by name for a job and returns its artifacts archive
+// together with the upstream filename. If path is specified and refers to
+// a single file within the artifacts archive, that file is returned instead.
+// If no name is provided, the last job with an artifacts file is picked.
+func CIArtifacts(pid interface{}, id int, name, path string) (io.Reader, string, error) {
+	jobs, err := CIJobs(pid, id)
+	if len(jobs) == 0 || err != nil {
+		return nil, "", err
+	}
+	var (
+		job               *gitlab.Job
+		lastWithArtifacts *gitlab.Job
+	)
+
+	for _, j := range jobs {
+		if j.ArtifactsFile.Filename != "" {
+			lastWithArtifacts = j
+		}
+		if j.Name == name {
+			job = j
+			// don't break because there may be a newer version of the job
+		}
+	}
+	if job == nil {
+		job = lastWithArtifacts
+	}
+	if job == nil {
+		return nil, "", fmt.Errorf("Could not find any jobs with artifacts")
+	}
+
+	var (
+		r       io.Reader
+		outpath string
+	)
+
+	if job.ArtifactsFile.Filename == "" {
+		return nil, "", fmt.Errorf("Job %d has no artifacts", job.ID)
+	}
+
+	if path != "" {
+		r, _, err = lab.Jobs.DownloadSingleArtifactsFile(pid, job.ID, path, nil)
+		outpath = filepath.Base(path)
+	} else {
+		r, _, err = lab.Jobs.GetJobArtifacts(pid, job.ID, nil)
+		outpath = job.ArtifactsFile.Filename
+	}
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	return r, outpath, nil
 }
 
 // CIPlayOrRetry runs a job either by playing it for the first time or by
