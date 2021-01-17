@@ -78,7 +78,7 @@ func Test_mrListStateMerged(t *testing.T) {
 func Test_mrListStateClosed(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "mr", "list", "-s", "closed")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-a", "-s", "closed")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
