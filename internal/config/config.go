@@ -376,6 +376,6 @@ func WriteConfigEntry(desc string, value interface{}, configpath string, confign
 
 // UserConfigError returns a default error message about authentication
 func UserConfigError() {
-	fmt.Println("Error: User authentication failed.  This is likely due to a misconfigured Personal Access Token.  Verify the token or token_load config settings before attemping to authenticate.")
+	fmt.Println("Error: User authentication failed.  This is likely due to a misconfigured Personal Access Token.  Verify the token or token_load config settings before attempting to authenticate.")
 	os.Exit(1)
 }
