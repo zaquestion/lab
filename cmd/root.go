@@ -205,7 +205,7 @@ func Execute() {
 	if cmd.Use == RootCmd.Use && len(os.Args) > 1 {
 		var knownFlag bool
 		for _, v := range os.Args {
-			if v == "--help" || v == "--version" {
+			if v == "-h" || v == "--help" || v == "--version" {
 				knownFlag = true
 			}
 		}
