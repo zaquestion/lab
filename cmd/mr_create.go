@@ -182,7 +182,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
 		coverLetterFormat, _ := cmd.Flags().GetBool("cover-letter")
-		msg, err := mrText(targetBranch, branch, sourceRemote, forkedFromRemote, coverLetterFormat)
+		msg, err := mrText(targetBranch, branch, sourceRemote, targetRemote, coverLetterFormat)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -286,12 +286,12 @@ func determineSourceRemote(branch string) string {
 	return forkRemote
 }
 
-func mrText(base, head, sourceRemote, forkedFromRemote string, coverLetterFormat bool) (string, error) {
+func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat bool) (string, error) {
 	var (
 		commitMsg string
 		err       error
 	)
-	remoteBase := fmt.Sprintf("%s/%s", forkedFromRemote, base)
+	remoteBase := fmt.Sprintf("%s/%s", targetRemote, base)
 	commitMsg = ""
 	if git.NumberCommits(remoteBase, head) == 1 {
 		commitMsg, err = git.LastCommitMessage()
@@ -344,7 +344,7 @@ func mrText(base, head, sourceRemote, forkedFromRemote string, coverLetterFormat
 		InitMsg:     commitMsg,
 		Tmpl:        mrTmpl,
 		CommentChar: commentChar,
-		Base:        forkedFromRemote + ":" + base,
+		Base:        targetRemote + ":" + base,
 		Head:        sourceRemote + ":" + head,
 		CommitLogs:  commitLogs,
 	}
