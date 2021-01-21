@@ -127,6 +127,10 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		"merged": "Merged",
 	}[mr.State]
 
+	if state == "Open" && mr.MergeStatus == "cannot_be_merged" {
+		state = "Open (Needs Rebase)"
+	}
+
 	if mr.Assignee != nil && mr.Assignee.Username != "" {
 		assignee = mr.Assignee.Username
 	}
