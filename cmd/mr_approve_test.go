@@ -12,7 +12,6 @@ import (
 // tests
 
 func Test_mrApproveSetup(t *testing.T) {
-	t.Parallel()
 	repo := copyTestRepo(t)
 	orig := exec.Command(labBinaryPath, "mr", "show", "18")
 	orig.Dir = repo
