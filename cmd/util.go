@@ -134,7 +134,7 @@ func parseArgsRemoteAndID(args []string) (string, int64, error) {
 		}
 	}
 	if remote == "" {
-		remote = forkedFromRemote
+		remote = defaultRemote
 	}
 	rn, err := git.PathWithNameSpace(remote)
 	if err != nil {
@@ -158,7 +158,7 @@ func parseArgsRemoteAndProject(args []string) (string, string, error) {
 	}
 
 	if remote == "" {
-		remote = forkedFromRemote
+		remote = defaultRemote
 	}
 
 	remote, err = getRemoteName(remote)
@@ -276,7 +276,7 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 		}
 
 		if s == "" {
-			s = forkedFromRemote
+			s = defaultRemote
 		}
 		s, err = getRemoteName(s)
 		if err != nil {

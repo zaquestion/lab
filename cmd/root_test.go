@@ -69,7 +69,7 @@ func TestMain(m *testing.M) {
 	// Make "origin" the default remote for test cases calling
 	// cmd.Run() directly, instead of launching the labBinaryPath
 	// for getting these vars correctly set through Execute().
-	forkedFromRemote = "origin"
+	defaultRemote = "origin"
 	forkRemote = "origin"
 	code := m.Run()
 

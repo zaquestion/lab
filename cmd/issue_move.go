@@ -20,7 +20,7 @@ var issueMoveCmd = &cobra.Command{
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		// get this rn
-		srcRN, err := getRemoteName(forkedFromRemote)
+		srcRN, err := getRemoteName(defaultRemote)
 		if err != nil {
 			log.Fatal(err)
 		}

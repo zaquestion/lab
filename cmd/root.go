@@ -106,7 +106,7 @@ func init() {
 
 var (
 	// Will be updated to upstream in Execute() if "upstream" remote exists
-	forkedFromRemote = ""
+	defaultRemote = ""
 	// Will be updated to lab.User() in Execute() if forkedFrom is "origin"
 	forkRemote = ""
 )
@@ -120,19 +120,19 @@ func Execute() {
 	if git.InsideGitRepo() {
 		_, err := gitconfig.Local("remote.upstream.url")
 		if err == nil {
-			forkedFromRemote = "upstream"
+			defaultRemote = "upstream"
 		}
 		_, err = gitconfig.Local("remote.origin.url")
 		if err == nil {
-			forkedFromRemote = "origin"
+			defaultRemote = "origin"
 		}
 
-		if forkedFromRemote == "" {
+		if defaultRemote == "" {
 			// use the remote tracked by the default branch if set
 			if remote, err := gitconfig.Local("branch.main.remote"); err == nil {
-				forkedFromRemote = remote
+				defaultRemote = remote
 			} else if remote, err = gitconfig.Local("branch.master.remote"); err == nil {
-				forkedFromRemote = remote
+				defaultRemote = remote
 			} else {
 				// use the first remote added to .git/config file, which, usually, is
 				// the one from which the repo was clonned
@@ -141,7 +141,7 @@ func Execute() {
 					remotes := strings.Split(remotesStr, "\n")
 					// remotes format: remote.<name>.<url|fetch>
 					remoteName := strings.Split(remotes[0], ".")[1]
-					forkedFromRemote = remoteName
+					defaultRemote = remoteName
 				} else {
 					log.Println("No default remote found")
 				}
@@ -153,7 +153,7 @@ func Execute() {
 		if err == nil {
 			forkRemote = lab.User()
 		} else {
-			forkRemote = forkedFromRemote
+			forkRemote = defaultRemote
 		}
 	}
 
