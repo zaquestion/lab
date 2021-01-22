@@ -113,6 +113,14 @@ var (
 
 // Try to guess what should be the default remote.
 func guessDefaultRemote() string {
+	// Allow to force a default remote. If set, return early.
+	if config := getMainConfig(); config != nil {
+		defaultRemote := config.GetString("core.default_remote")
+		if defaultRemote != "" {
+			return defaultRemote
+		}
+	}
+
 	guess := ""
 
 	_, err := gitconfig.Local("remote.upstream.url")
