@@ -111,6 +111,41 @@ var (
 	forkRemote = ""
 )
 
+// Try to guess what should be the default remote.
+func guessDefaultRemote() string {
+	guess := ""
+
+	_, err := gitconfig.Local("remote.upstream.url")
+	if err == nil {
+		guess = "upstream"
+	}
+	_, err = gitconfig.Local("remote.origin.url")
+	if err == nil {
+		guess = "origin"
+	}
+
+	if guess == "" {
+		// use the remote tracked by the default branch if set
+		if remote, err := gitconfig.Local("branch.main.remote"); err == nil {
+			guess = remote
+		} else if remote, err = gitconfig.Local("branch.master.remote"); err == nil {
+			guess = remote
+		} else {
+			// use the first remote added to .git/config file, which, usually, is
+			// the one from which the repo was clonned
+			remotesStr, err := git.GetLocalRemotesFromFile()
+			if err == nil {
+				remotes := strings.Split(remotesStr, "\n")
+				// remotes format: remote.<name>.<url|fetch>
+				remoteName := strings.Split(remotes[0], ".")[1]
+				guess = remoteName
+			}
+		}
+	}
+
+	return guess
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -118,38 +153,13 @@ func Execute() {
 	// Otherwise, skip it, since the info won't be used at all, also avoiding
 	// misleading error/warning messages about missing remote.
 	if git.InsideGitRepo() {
-		_, err := gitconfig.Local("remote.upstream.url")
-		if err == nil {
-			defaultRemote = "upstream"
-		}
-		_, err = gitconfig.Local("remote.origin.url")
-		if err == nil {
-			defaultRemote = "origin"
-		}
-
+		defaultRemote = guessDefaultRemote()
 		if defaultRemote == "" {
-			// use the remote tracked by the default branch if set
-			if remote, err := gitconfig.Local("branch.main.remote"); err == nil {
-				defaultRemote = remote
-			} else if remote, err = gitconfig.Local("branch.master.remote"); err == nil {
-				defaultRemote = remote
-			} else {
-				// use the first remote added to .git/config file, which, usually, is
-				// the one from which the repo was clonned
-				remotesStr, err := git.GetLocalRemotesFromFile()
-				if err == nil {
-					remotes := strings.Split(remotesStr, "\n")
-					// remotes format: remote.<name>.<url|fetch>
-					remoteName := strings.Split(remotes[0], ".")[1]
-					defaultRemote = remoteName
-				} else {
-					log.Println("No default remote found")
-				}
-			}
+			log.Println("No default remote found")
 		}
 
 		// Check if the user fork exists
-		_, err = gitconfig.Local("remote." + lab.User() + ".url")
+		_, err := gitconfig.Local("remote." + lab.User() + ".url")
 		if err == nil {
 			forkRemote = lab.User()
 		} else {
