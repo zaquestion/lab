@@ -25,7 +25,7 @@ var (
 
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
-	Use:              "fork [upstream-to-fork]",
+	Use:              "fork [remote|upstream-to-fork]",
 	Short:            "Fork a remote repository on GitLab and add as remote",
 	Long:             ``,
 	Args:             cobra.MaximumNArgs(1),
@@ -47,15 +47,33 @@ var forkCmd = &cobra.Command{
 			}
 		}
 
+		remote, project := "", ""
 		if len(args) == 1 {
-			forkToUpstream(args[0])
+			if ok, _ := git.IsRemote(args[0]); ok {
+				remote = args[0]
+			} else {
+				project = args[0]
+			}
+		}
+
+		if project != "" {
+			forkToUpstream(project)
 			return
 		}
-		forkFromOrigin()
+
+		if remote == "" {
+			remote = "origin"
+		}
+
+		project, err := git.PathWithNameSpace(remote)
+		if err != nil {
+			log.Fatal(err)
+		}
+		forkFromOrigin(project)
 	},
 }
 
-func forkFromOrigin() {
+func forkFromOrigin(project string) {
 	// Check for custom target namespace
 	remote := lab.User()
 	if targetData.group != "" {
@@ -80,11 +98,6 @@ func forkFromOrigin() {
 			log.Fatal(err)
 		}
 		return
-	}
-
-	project, err := git.PathWithNameSpace("origin")
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	forkRemoteURL, err := lab.Fork(project, forkOpts, useHTTP, waitFork)
