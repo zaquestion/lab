@@ -205,6 +205,53 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	return remote, branch, nil
 }
 
+func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
+	if forMR {
+		rn, mrNum, err := parseArgsWithGitBranchMR(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		mr, err := lab.MRGet(rn, int(mrNum))
+		if err != nil {
+			return "", 0, err
+		}
+
+		if mr.Pipeline == nil {
+			return "", 0, errors.Errorf("No pipeline found for merge request %d", mrNum)
+		}
+
+		// MR pipelines may run on the source- or target project,
+		// and we don't have a proper way to know which it is
+		if strings.Contains(mr.Pipeline.WebURL, rn) {
+			return rn, mr.Pipeline.ID, nil
+		} else {
+			p, err := lab.GetProject(mr.SourceProjectID)
+			if err != nil {
+				return "", 0, err
+			}
+
+			return p.PathWithNamespace, mr.Pipeline.ID, nil
+		}
+	} else {
+		rn, refName, err := parseArgsRemoteAndBranch(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		commit, err := lab.GetCommit(rn, refName)
+		if err != nil {
+			return "", 0, err
+		}
+
+		if commit.LastPipeline == nil {
+			return "", 0, errors.Errorf("No pipeline found for %s", refName)
+		}
+
+		return rn, commit.LastPipeline.ID, nil
+	}
+}
+
 func getRemoteName(remote string) (string, error) {
 	ok, err := git.IsRemote(remote)
 	if err != nil {
