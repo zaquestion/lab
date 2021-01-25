@@ -3,14 +3,12 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/acarl005/stripansi"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -507,73 +505,4 @@ func Test_mrCmd_noArgs(t *testing.T) {
 	require.Contains(t, string(b), `Usage:
   lab mr [flags]
   lab mr [command]`)
-}
-
-func Test_determineSourceRemote(t *testing.T) {
-	tests := []struct {
-		desc     string
-		branch   string
-		expected string
-	}{
-		{
-			desc:     "branch.<name>.remote",
-			branch:   "mrtest",
-			expected: "lab-testing",
-		},
-		{
-			desc:     "branch.<name>.pushRemote",
-			branch:   "mrtest-pushRemote",
-			expected: "lab-testing",
-		},
-		{
-			desc:     "pushDefault without pushRemote set",
-			branch:   "mrtest",
-			expected: "garbageurl",
-		},
-		{
-			desc:     "pushDefault with pushRemote set",
-			branch:   "mrtest-pushRemote",
-			expected: "lab-testing",
-		},
-	}
-
-	// The function being tested here depends on being in the test
-	// directory, where 'git config --local' can retrieve the correct
-	// info from
-	repo := copyTestRepo(t)
-	oldWd, err := os.Getwd()
-	if err != nil {
-		t.Log(err)
-	}
-	os.Chdir(repo)
-
-	var remoteModified bool
-	for _, test := range tests {
-		test := test
-		if strings.Contains(test.desc, "pushDefault") && !remoteModified {
-			git := exec.Command("git", "config", "--local", "remote.pushDefault", "garbageurl")
-			git.Dir = repo
-			b, err := git.CombinedOutput()
-			if err != nil {
-				t.Log(string(b))
-				t.Fatal(err)
-			}
-			remoteModified = true
-		}
-
-		t.Run(test.desc, func(t *testing.T) {
-			sourceRemote := determineSourceRemote(test.branch)
-			assert.Equal(t, test.expected, sourceRemote)
-		})
-	}
-	// Remove the added option to avoid messing with other tests
-	git := exec.Command("git", "config", "--local", "--unset", "remote.pushDefault")
-	git.Dir = repo
-	b, err := git.CombinedOutput()
-	if err != nil {
-		t.Log(string(b))
-		t.Fatal(err)
-	}
-	// And move back to the workdir we were before the test
-	os.Chdir(oldWd)
 }

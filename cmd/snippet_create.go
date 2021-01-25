@@ -21,10 +21,8 @@ import (
 )
 
 var (
-	name    string
-	file    string
-	private bool
-	public  bool
+	name string
+	file string
 )
 
 // mrCmd represents the mr command

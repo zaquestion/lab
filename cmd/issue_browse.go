@@ -7,11 +7,8 @@ import (
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/action"
-	"github.com/zaquestion/lab/internal/browser"
 	"github.com/zaquestion/lab/internal/gitlab"
 )
-
-var browse = browser.Open
 
 var issueBrowseCmd = &cobra.Command{
 	Use:              "browse [remote] <id>",

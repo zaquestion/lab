@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitconfig "github.com/tcnksm/go-gitconfig"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
@@ -264,26 +263,6 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 	}
 	fmt.Println(mrURL + "/diffs")
-}
-
-func determineSourceRemote(branch string) string {
-	// There is a precendence of options that should be considered here:
-	// branch.<name>.pushRemote > remote.pushDefault > branch.<name>.remote
-	// This rule is placed in git-config(1) manpage
-	r, err := gitconfig.Local("branch." + branch + ".pushRemote")
-	if err == nil {
-		return r
-	}
-	r, err = gitconfig.Local("remote.pushDefault")
-	if err == nil {
-		return r
-	}
-	r, err = gitconfig.Local("branch." + branch + ".remote")
-	if err == nil {
-		return r
-	}
-
-	return forkRemote
 }
 
 func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat bool) (string, error) {

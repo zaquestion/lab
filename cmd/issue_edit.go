@@ -172,16 +172,6 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 	},
 }
 
-// editGetLabels returns a string slice of labels based on the current
-// labels and flags from the command line, and a bool indicating whether
-// the labels have changed
-func editGetLabels(idLabels []string, labels []string, unlabels []string) ([]string, bool, error) {
-	// add the new labels to the current labels, then remove the "unlabels"
-	labels = difference(union(idLabels, labels), unlabels)
-
-	return labels, !same(idLabels, labels), nil
-}
-
 // issueGetCurrentAssignees returns a string slice of the current assignees'
 // usernames
 func issueGetCurrentAssignees(issue *gitlab.Issue) []string {
@@ -192,57 +182,6 @@ func issueGetCurrentAssignees(issue *gitlab.Issue) []string {
 		}
 	}
 	return currentAssignees
-}
-
-// GetUpdateAssignees returns an int slice of assignee IDs based on the
-// current assignees and flags from the command line, and a bool
-// indicating whether the assignees have changed
-func getUpdateAssignees(currentAssignees []string, assignees []string, unassignees []string) ([]int, bool, error) {
-	// add the new assignees to the current assignees, then remove the "unassignees"
-	assignees = difference(union(currentAssignees, assignees), unassignees)
-	assigneesChanged := !same(currentAssignees, assignees)
-
-	// turn the new assignee list into a list of assignee IDs
-	var assigneeIDs []int
-	if assigneesChanged && len(assignees) == 0 {
-		// if we're removing all assignees, we have to use []int{0}
-		// see https://github.com/xanzy/go-gitlab/issues/427
-		assigneeIDs = []int{0}
-	} else {
-		assigneeIDs = make([]int, len(assignees))
-		for i, a := range assignees {
-			assigneeIDs[i] = *getAssigneeID(a)
-		}
-	}
-
-	return assigneeIDs, assigneesChanged, nil
-}
-
-// editGetTitleDescription returns a title and description based on the current
-// issue title and description and various flags from the command line
-func editGetTitleDescription(title string, body string, msgs []string, nFlag int) (string, string, error) {
-	if len(msgs) > 0 {
-		title = msgs[0]
-
-		if len(msgs) > 1 {
-			body = strings.Join(msgs[1:], "\n\n")
-		}
-
-		// we have everything we need
-		return title, body, nil
-	}
-
-	// if other flags were given (eg label), then skip the editor and return
-	// what we already have
-	if nFlag != 0 {
-		return title, body, nil
-	}
-
-	text, err := editText(title, body)
-	if err != nil {
-		return "", "", err
-	}
-	return git.Edit("EDIT", text)
 }
 
 // editText returns an issue editing template that is suitable for loading
@@ -273,59 +212,6 @@ func editText(title string, body string) (string, error) {
 	}
 
 	return b.String(), nil
-}
-
-// union returns all the unique elements in a and b
-func union(a, b []string) []string {
-	mb := map[string]bool{}
-	ab := []string{}
-	for _, x := range b {
-		mb[x] = true
-		// add all of b's elements to ab
-		ab = append(ab, x)
-	}
-	for _, x := range a {
-		if _, ok := mb[x]; !ok {
-			// if a's elements aren't in b, add them to ab
-			// if they are, we don't need to add them
-			ab = append(ab, x)
-		}
-	}
-	return ab
-}
-
-// difference returns the elements in a that aren't in b
-func difference(a, b []string) []string {
-	mb := map[string]bool{}
-	for _, x := range b {
-		mb[x] = true
-	}
-	ab := []string{}
-	for _, x := range a {
-		if _, ok := mb[x]; !ok {
-			ab = append(ab, x)
-		}
-	}
-	return ab
-}
-
-// same returns true if a and b contain the same strings (regardless of order)
-func same(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	mb := map[string]bool{}
-	for _, x := range b {
-		mb[x] = true
-	}
-
-	for _, x := range a {
-		if _, ok := mb[x]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 func init() {

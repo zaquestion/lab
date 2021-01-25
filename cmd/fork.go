@@ -169,7 +169,7 @@ func init() {
 	forkCmd.Flags().StringP("name", "n", "", "fork project with a different name")
 	forkCmd.Flags().StringP("group", "g", "", "fork project in a different group (namespace)")
 	forkCmd.Flags().StringP("path", "p", "", "fork project with a different path")
-	// useHTTP is defined in "project_create.go"
+	// useHTTP is defined in "util.go"
 	forkCmd.Flags().BoolVar(&useHTTP, "http", false, "fork using HTTP protocol instead of SSH")
 	RootCmd.AddCommand(forkCmd)
 }

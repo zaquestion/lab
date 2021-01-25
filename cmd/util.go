@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/config"
 	git "github.com/zaquestion/lab/internal/git"
@@ -22,6 +23,8 @@ import (
 
 var (
 	CommandPrefix string
+	// http vs ssh protocol control flag
+	useHTTP bool
 )
 
 // flagConfig compares command line flags and the flags set in the config
@@ -202,6 +205,53 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	return remote, branch, nil
 }
 
+func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
+	if forMR {
+		rn, mrNum, err := parseArgsWithGitBranchMR(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		mr, err := lab.MRGet(rn, int(mrNum))
+		if err != nil {
+			return "", 0, err
+		}
+
+		if mr.Pipeline == nil {
+			return "", 0, errors.Errorf("No pipeline found for merge request %d", mrNum)
+		}
+
+		// MR pipelines may run on the source- or target project,
+		// and we don't have a proper way to know which it is
+		if strings.Contains(mr.Pipeline.WebURL, rn) {
+			return rn, mr.Pipeline.ID, nil
+		} else {
+			p, err := lab.GetProject(mr.SourceProjectID)
+			if err != nil {
+				return "", 0, err
+			}
+
+			return p.PathWithNamespace, mr.Pipeline.ID, nil
+		}
+	} else {
+		rn, refName, err := parseArgsRemoteAndBranch(args)
+		if err != nil {
+			return "", 0, err
+		}
+
+		commit, err := lab.GetCommit(rn, refName)
+		if err != nil {
+			return "", 0, err
+		}
+
+		if commit.LastPipeline == nil {
+			return "", 0, errors.Errorf("No pipeline found for %s", refName)
+		}
+
+		return rn, commit.LastPipeline.ID, nil
+	}
+}
+
 func getRemoteName(remote string) (string, error) {
 	ok, err := git.IsRemote(remote)
 	if err != nil {
@@ -296,6 +346,38 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 	return s, i, nil
 }
 
+func filterCommentArg(args []string) (int, []string, error) {
+	branchArgs := []string{}
+	idString := ""
+
+	if len(args) == 1 {
+		ok, err := git.IsRemote(args[0])
+		if err != nil {
+			return 0, branchArgs, err
+		}
+		if ok {
+			branchArgs = append(branchArgs, args[0])
+		} else {
+			idString = args[0]
+		}
+	} else if len(args) > 1 {
+		branchArgs = append(branchArgs, args[0])
+		idString = args[1]
+	}
+
+	if strings.Contains(idString, ":") {
+		ps := strings.Split(idString, ":")
+		branchArgs = append(branchArgs, ps[0])
+		idString = ps[1]
+	} else {
+		branchArgs = append(branchArgs, idString)
+		idString = ""
+	}
+
+	idNum, _ := strconv.Atoi(idString)
+	return idNum, branchArgs, nil
+}
+
 // setCommandPrefix returns a concatenated value of some of the commandline.
 // For example, 'lab mr show' would return 'mr_show.', and 'lab issue list'
 // would return 'issue_list.'
@@ -349,4 +431,77 @@ func labURLToRepo(project *gitlab.Project) string {
 		urlToRepo = project.HTTPURLToRepo
 	}
 	return urlToRepo
+}
+
+func determineSourceRemote(branch string) string {
+	// There is a precendence of options that should be considered here:
+	// branch.<name>.pushRemote > remote.pushDefault > branch.<name>.remote
+	// This rule is placed in git-config(1) manpage
+	r, err := gitconfig.Local("branch." + branch + ".pushRemote")
+	if err == nil {
+		return r
+	}
+	r, err = gitconfig.Local("remote.pushDefault")
+	if err == nil {
+		return r
+	}
+	r, err = gitconfig.Local("branch." + branch + ".remote")
+	if err == nil {
+		return r
+	}
+
+	return forkRemote
+}
+
+// union returns all the unique elements in a and b
+func union(a, b []string) []string {
+	mb := map[string]bool{}
+	ab := []string{}
+	for _, x := range b {
+		mb[x] = true
+		// add all of b's elements to ab
+		ab = append(ab, x)
+	}
+	for _, x := range a {
+		if _, ok := mb[x]; !ok {
+			// if a's elements aren't in b, add them to ab
+			// if they are, we don't need to add them
+			ab = append(ab, x)
+		}
+	}
+	return ab
+}
+
+// difference returns the elements in a that aren't in b
+func difference(a, b []string) []string {
+	mb := map[string]bool{}
+	for _, x := range b {
+		mb[x] = true
+	}
+	ab := []string{}
+	for _, x := range a {
+		if _, ok := mb[x]; !ok {
+			ab = append(ab, x)
+		}
+	}
+	return ab
+}
+
+// same returns true if a and b contain the same strings (regardless of order)
+func same(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	mb := map[string]bool{}
+	for _, x := range b {
+		mb[x] = true
+	}
+
+	for _, x := range a {
+		if _, ok := mb[x]; !ok {
+			return false
+		}
+	}
+	return true
 }
