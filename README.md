@@ -155,7 +155,7 @@ alias git=lab
 
 NOTE: before aliasing, if you use git in your shell prompt command, be sure lab works by it's own first:
 
-## What about [GLab](https://github.com/profclem/glab)?
+## What about [GLab](https://github.com/profclems/glab)?
 
 Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying the developer workflower. In many ways `lab` is to [hub], what [glab] is to [gh].
 
@@ -200,4 +200,4 @@ Enter GitLab host (default: https://gitlab.com):
 [gh]:https://github.com/cli/cli
 [hub]:https://github.com/github/hub
 [lab]:https://github.com/zaquestion/lab
-[glab]:https://github.com/profclem/glab
+[glab]:https://github.com/profclems/glab
