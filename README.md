@@ -147,13 +147,20 @@ source <(lab completion zsh)
 
 # Aliasing
 
-Like hub, lab feels best when aliased as `git`. In your `.bashrc` or `.bash_profile`:
+Like hub, lab feels best when aliased as `git`, however it's perfectly reasonable to use as a standalone tool. In your `.bashrc` or `.bash_profile`:
 
 ```
 alias git=lab
 ```
 
 NOTE: before aliasing, if you use git in your shell prompt command, be sure lab works by it's own first:
+
+## What about [GLab](https://github.com/profclem/glab)?
+
+Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying the developer workflower. In many ways `lab` is to [hub], what [glab] is to [gh].
+
+`lab` aims to feel familiar to a `git` user and leverages `git` to power many of it's commands. `glab` will feel more familiar to `gh` users and in turn is more interactive and likely more beginner friendly for that reason.
+
 
 ```
 $ lab
@@ -189,3 +196,8 @@ Enter GitLab host (default: https://gitlab.com):
 [Powershell]:https://microsoft.com/powershell
 [Xonsh]:https://xon.sh/
 [Zsh]:https://www.zsh.org/
+
+[gh]:https://github.com/cli/cli
+[hub]:https://github.com/github/hub
+[lab]:https://github.com/zaquestion/lab
+[glab]:https://github.com/profclem/glab
