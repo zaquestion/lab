@@ -147,15 +147,11 @@ func CurrentUpstreamBranch() (string, error) {
 
 // UpstreamBranch returns the upstream of the specified branch
 func UpstreamBranch(branch string) (string, error) {
-	cmd := New("rev-parse", "--abbrev-ref", branch+"@{upstream}")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	ref, err := cmd.Output()
+	upstreamBranch, err := gitconfig.Local("branch." + branch + ".merge")
 	if err != nil {
 		return "", errors.Errorf("No upstream for branch '%s'", branch)
 	}
-	upstreamBranch := strings.SplitN(string(ref), "/", 2)[1]
-	return strings.TrimSpace(upstreamBranch), nil
+	return strings.TrimPrefix(upstreamBranch, "refs/heads/"), nil
 }
 
 // PathWithNameSpace returns the owner/repository for the current repo
@@ -353,7 +349,7 @@ func NumberCommits(sha1, sha2 string) int {
 	cmd.Stderr = nil
 	CmdOut, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("There are no commits between %s and %s", sha2, sha2)
+		fmt.Printf("There are no commits between %s and %s\n", sha1, sha2)
 		log.Fatal(err)
 	}
 	numLines := strings.Count(string(CmdOut), "\n")
