@@ -34,7 +34,7 @@ require (
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/rivo/tview v0.0.0-20201018122409-d551c850a743
+	github.com/rivo/tview v0.0.0-20210125085121-dbc1f32bb1d0
 	github.com/rsteube/carapace v0.1.6
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/afero v1.4.1
@@ -53,8 +53,6 @@ require (
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/oauth2 v0.0.0-20201109201403-9fd604954f58 // indirect
-	golang.org/x/sys v0.0.0-20201109165425-215b40eba54c // indirect
-	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	golang.org/x/tools v0.0.0-20200930213115-e57f6d466a48 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
