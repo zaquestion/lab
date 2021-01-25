@@ -36,7 +36,7 @@ var checkoutCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		var targetRemote = forkedFromRemote
+		var targetRemote = defaultRemote
 		if len(args) == 2 {
 			// parseArgs above already validated this is a remote
 			targetRemote = args[0]

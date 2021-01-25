@@ -40,7 +40,7 @@ Optionally add a title & description with -m`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		remote := forkedFromRemote
+		remote := defaultRemote
 		if len(args) > 0 {
 			ok, err := git.IsRemote(args[0])
 			if err != nil {

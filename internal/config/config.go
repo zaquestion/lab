@@ -241,7 +241,8 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	//		- if specified, lower order config files will not override
 	//		  the user specified config
 	//	3.  .config/lab/lab.toml (global config)
-	//	4.  .git/lab/lab/toml (worktree config)
+	//	4.  .git/lab/lab.toml or .git/worktrees/<name>/lab/lab.toml
+	//	    (worktree config)
 	//
 	// Values from the worktree config will override any global config settings.
 

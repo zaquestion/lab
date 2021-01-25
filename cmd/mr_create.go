@@ -128,7 +128,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	targetRemote := forkedFromRemote
+	targetRemote := defaultRemote
 	if len(args) > 0 {
 		targetRemote = args[0]
 		ok, err := git.IsRemote(targetRemote)
