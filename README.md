@@ -157,7 +157,7 @@ NOTE: before aliasing, if you use git in your shell prompt command, be sure lab 
 
 ## What about [GLab](https://github.com/profclems/glab)?
 
-Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying the developer workflower. In many ways `lab` is to [hub], what [glab] is to [gh].
+Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying the developer workflow. In many ways `lab` is to [hub], what [glab] is to [gh].
 
 `lab` aims to feel familiar to a `git` user and leverages `git` to power many of it's commands. `glab` will feel more familiar to `gh` users and in turn is more interactive and likely more beginner friendly for that reason.
 
