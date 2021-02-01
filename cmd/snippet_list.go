@@ -28,6 +28,8 @@ var snippetListCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
 		for _, snip := range snips {
 			fmt.Printf("#%d %s\n", snip.ID, snip.Title)
 		}

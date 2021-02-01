@@ -86,6 +86,37 @@ func CommentChar() string {
 	return "#"
 }
 
+// PagerCommand returns the commandline and environment for the pager
+func PagerCommand() (string, []string) {
+	// Set up environment for common pagers, see the documentation
+	// for "core.pager" in git-config(1)
+	env := os.Environ()
+	if _, ok := os.LookupEnv("LESS"); !ok {
+		env = append(env, "LESS=FRX")
+	}
+	if _, ok := os.LookupEnv("LESSSECURE"); !ok {
+		env = append(env, "LESSSECURE=1")
+	}
+	if _, ok := os.LookupEnv("LV"); !ok {
+		env = append(env, "LV=-c")
+	}
+
+	// Find an appropriate pager command, following git's preference
+	cmd, ok := os.LookupEnv("GIT_PAGER")
+	if ok {
+		return cmd, env
+	}
+	cmd, err := gitconfig.Entire("core.pager")
+	if err == nil {
+		return cmd, env
+	}
+	cmd, ok = os.LookupEnv("PAGER")
+	if ok {
+		return cmd, env
+	}
+	return "less", env
+}
+
 // LastCommitMessage returns the last commits message as one line
 func LastCommitMessage() (string, error) {
 	cmd := New("show", "-s", "--format=%s%n%+b", "HEAD")

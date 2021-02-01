@@ -102,6 +102,7 @@ func init() {
 	RootCmd.SetHelpCommand(helpCmd)
 	RootCmd.SetHelpFunc(helpFunc)
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
+	RootCmd.PersistentFlags().Bool("no-pager", false, "Do not pipe output into a pager")
 }
 
 var (

@@ -35,6 +35,9 @@ lab label list remote "search term"  # search "remote" for labels with "search t
 			log.Fatal(err)
 		}
 
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		for _, label := range labels {
 			// GitLab API has no search for labels, so we do it ourselves
 			if labelSearch != "" &&

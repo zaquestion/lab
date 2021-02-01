@@ -43,6 +43,9 @@ lab ci status --wait`,
 
 		pid := rn
 
+		pager := NewPager(cmd.Flags())
+		defer pager.Close()
+
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)
 
 		wait, err := cmd.Flags().GetBool("wait")
