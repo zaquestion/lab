@@ -36,6 +36,11 @@ lab ci status --wait`,
 			log.Fatal(err)
 		}
 
+		followBridge, err = cmd.Flags().GetBool("follow")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		rn, pipelineID, err := getPipelineFromArgs(args, forMR)
 		if err != nil {
 			log.Fatal(err)
@@ -53,14 +58,19 @@ lab ci status --wait`,
 			log.Fatal(err)
 		}
 
-		var jobs []*gitlab.Job
+		var jobStructList []lab.JobStruct
+		jobs := make([]*gitlab.Job, 0)
 
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
 		for {
 			// fetch all of the CI Jobs from the API
-			jobs, err = lab.CIJobs(pid, pipelineID)
+			jobStructList, err = lab.CIJobs(pid, pipelineID, followBridge)
 			if err != nil {
 				log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
+			}
+
+			for _, jobStruct := range jobStructList {
+				jobs = append(jobs, jobStruct.Job)
 			}
 
 			// filter out old jobs

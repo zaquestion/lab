@@ -488,12 +488,8 @@ github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGr
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
 github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad/go.mod h1:Hy8o65+MXnS6EwGElrSRjUzQDLXreJlzYLlWiHtt8hM=
-github.com/xanzy/go-gitlab v0.33.1-0.20200713191942-71ea998bed24 h1:WmX8fdQSu32qQpsPZ6/h90HK930NhUmoh+yLDItvmYw=
-github.com/xanzy/go-gitlab v0.33.1-0.20200713191942-71ea998bed24/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
-github.com/xanzy/go-gitlab v0.38.1 h1:st5/Ag4h8CqVfp3LpOWW0Jd4jYHTGETwu0KksYDPnYE=
-github.com/xanzy/go-gitlab v0.38.1/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
-github.com/xanzy/go-gitlab v0.39.0 h1:7aiZ03fJfCdqoHFhsZq/SoVYp2lR91hfYWmiXLOU5Qo=
-github.com/xanzy/go-gitlab v0.39.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
+github.com/xanzy/go-gitlab v0.43.0 h1:rpOZQjxVJGW/ch+Jy4j7W4o7BB1mxkXJNVGuplZ7PUs=
+github.com/xanzy/go-gitlab v0.43.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
 github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xanzy/ssh-agent v0.3.0 h1:wUMzuKtKilRgBAD1sUb8gOwwRr2FGoBVumcjoOACClI=

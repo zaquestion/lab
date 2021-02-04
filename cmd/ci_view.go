@@ -57,6 +57,11 @@ Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
 			log.Fatal(err)
 		}
 
+		followBridge, err = cmd.Flags().GetBool("follow")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		rn, pipelineID, err = getPipelineFromArgs(args, forMR)
 		if err != nil {
 			log.Fatal(err)
@@ -483,11 +488,17 @@ func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job) {
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		jobs, err := lab.CIJobs(projectID, pipelineID)
-		if len(jobs) == 0 || err != nil {
+		jobStructList, err := lab.CIJobs(projectID, pipelineID, followBridge)
+		if len(jobStructList) == 0 || err != nil {
 			app.Stop()
 			log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
 		}
+
+		jobs := make([]*gitlab.Job, 0)
+		for _, jobStruct := range jobStructList {
+			jobs = append(jobs, jobStruct.Job)
+		}
+
 		jobsCh <- latestJobs(jobs)
 		time.Sleep(time.Second * 5)
 	}

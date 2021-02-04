@@ -21,6 +21,7 @@ import (
 
 	"github.com/pkg/errors"
 	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
 )
 
@@ -1052,12 +1053,21 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 	return list, nil
 }
 
-type JobSorter struct{ Jobs []*gitlab.Job }
+// JobStruct maps the project ID to which a certain job belongs to.
+// It's needed due to multi-projects pipeline, which allows jobs from
+// different projects be triggered by the current project.
+// CIJob() is currently the function handling the mapping.
+type JobStruct struct {
+	Job *gitlab.Job
+	// A project ID can either be a string or an integer
+	ProjectID interface{}
+}
+type JobSorter struct{ Jobs []JobStruct }
 
 func (s JobSorter) Len() int      { return len(s.Jobs) }
 func (s JobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
 func (s JobSorter) Less(i, j int) bool {
-	return time.Time(*s.Jobs[i].CreatedAt).Before(time.Time(*s.Jobs[j].CreatedAt))
+	return time.Time(*s.Jobs[i].Job.CreatedAt).Before(time.Time(*s.Jobs[j].Job.CreatedAt))
 }
 
 // GroupSearch searches for a namespace on GitLab
@@ -1096,24 +1106,93 @@ func GroupSearch(query string) (*gitlab.Group, error) {
 	return nil, errors.Errorf("Group '%s' not found", query)
 }
 
-// CIJobs returns a list of jobs in the pipeline with given id. The jobs are
-// returned sorted by their CreatedAt time
-func CIJobs(pid interface{}, id int) ([]*gitlab.Job, error) {
+// CIJobs returns a list of jobs in the pipeline with given id.
+// This function by default doesn't follow bridge jobs.
+// The jobs are returned sorted by their CreatedAt time
+func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: 500,
 		},
 	}
-	list := make([]*gitlab.Job, 0)
+
+	// First we get the jobs with direct relation to the actual project
+	list := make([]JobStruct, 0)
 	for {
 		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, id, opts)
 		if err != nil {
 			return nil, err
 		}
+
+		for _, job := range jobs {
+			list = append(list, JobStruct{job, pid})
+		}
+
 		opts.Page = resp.NextPage
-		list = append(list, jobs...)
 		if resp.CurrentPage == resp.TotalPages {
 			break
+		}
+	}
+
+	// It's also possible the pipelines are bridges to other project's
+	// pipelines (multi-project pipeline).
+	// Reference:
+	//     https://docs.gitlab.com/ee/ci/multi_project_pipelines.html
+	if followBridge {
+		// A project can have multiple bridge jobs
+		bridgeList := make([]*gitlab.Bridge, 0)
+		for {
+			bridges, resp, err := lab.Jobs.ListPipelineBridges(pid, id, opts)
+			if err != nil {
+				return nil, err
+			}
+
+			opts.Page = resp.NextPage
+			bridgeList = append(bridgeList, bridges...)
+			if resp.CurrentPage == resp.TotalPages {
+				break
+			}
+		}
+
+		for _, bridge := range bridgeList {
+			// Unfortunately the GitLab API doesn't exposes the project ID nor name that the
+			// bridge job points to, since it might be extarnal to the config core.host
+			// hostname, hence the WebURL is exposed.
+			// With that, and considering we don't want to support anything outside the
+			// core.host, we need to massage the WebURL to get the project name that we can
+			// search for.
+			// WebURL format:
+			//   <core.host>/<bridged-project-name-with-namespace>/-/pipelines/<id>
+			host := config.MainConfig.GetString("core.host")
+			projectName := strings.Replace(bridge.DownstreamPipeline.WebURL, host+"/", "", 1)
+			pipelineText := fmt.Sprintf("/-/pipelines/%d", bridge.DownstreamPipeline.ID)
+			projectName = strings.Replace(projectName, pipelineText, "", 1)
+
+			p, err := FindProject(projectName)
+			if err != nil {
+				continue
+			}
+
+			// Switch to the new project name and downstream pipeline id
+			pid = p.PathWithNamespace
+			id = bridge.DownstreamPipeline.ID
+
+			for {
+				// Get the list of bridged jobs and append to the original list
+				jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, id, opts)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, job := range jobs {
+					list = append(list, JobStruct{job, pid})
+				}
+
+				opts.Page = resp.NextPage
+				if resp.CurrentPage == resp.TotalPages {
+					break
+				}
+			}
 		}
 	}
 
@@ -1130,8 +1209,8 @@ func CIJobs(pid interface{}, id int) ([]*gitlab.Job, error) {
 // 1. Last Running Job
 // 2. First Pending Job
 // 3. Last Job in Pipeline
-func CITrace(pid interface{}, id int, name string) (io.Reader, *gitlab.Job, error) {
-	jobs, err := CIJobs(pid, id)
+func CITrace(pid interface{}, id int, name string, followBridge bool) (io.Reader, *gitlab.Job, error) {
+	jobs, err := CIJobs(pid, id, followBridge)
 	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
 	}
@@ -1141,7 +1220,10 @@ func CITrace(pid interface{}, id int, name string) (io.Reader, *gitlab.Job, erro
 		firstPending *gitlab.Job
 	)
 
-	for _, j := range jobs {
+	for _, jobStruct := range jobs {
+		// Switch to the project ID that owns the job (for a bridge case)
+		pid = jobStruct.ProjectID
+		j := jobStruct.Job
 		if j.Status == "running" {
 			lastRunning = j
 		}
@@ -1160,7 +1242,7 @@ func CITrace(pid interface{}, id int, name string) (io.Reader, *gitlab.Job, erro
 		job = firstPending
 	}
 	if job == nil {
-		job = jobs[len(jobs)-1]
+		job = jobs[len(jobs)-1].Job
 	}
 
 	r, _, err := lab.Jobs.GetTraceFile(pid, job.ID)
@@ -1175,8 +1257,8 @@ func CITrace(pid interface{}, id int, name string) (io.Reader, *gitlab.Job, erro
 // together with the upstream filename. If path is specified and refers to
 // a single file within the artifacts archive, that file is returned instead.
 // If no name is provided, the last job with an artifacts file is picked.
-func CIArtifacts(pid interface{}, id int, name, path string) (io.Reader, string, error) {
-	jobs, err := CIJobs(pid, id)
+func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool) (io.Reader, string, error) {
+	jobs, err := CIJobs(pid, id, followBridge)
 	if len(jobs) == 0 || err != nil {
 		return nil, "", err
 	}
@@ -1185,7 +1267,10 @@ func CIArtifacts(pid interface{}, id int, name, path string) (io.Reader, string,
 		lastWithArtifacts *gitlab.Job
 	)
 
-	for _, j := range jobs {
+	for _, jobStruct := range jobs {
+		// Switch to the project ID that owns the job (for a bridge case)
+		pid = jobStruct.ProjectID
+		j := jobStruct.Job
 		if j.ArtifactsFile.Filename != "" {
 			lastWithArtifacts = j
 		}
