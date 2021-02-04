@@ -1295,6 +1295,7 @@ func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool) 
 		return nil, "", fmt.Errorf("Job %d has no artifacts", job.ID)
 	}
 
+	fmt.Println("Downloading artifacts...")
 	if path != "" {
 		r, _, err = lab.Jobs.DownloadSingleArtifactsFile(pid, job.ID, path, nil)
 		outpath = filepath.Base(path)
