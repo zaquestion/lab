@@ -222,35 +222,35 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 			return "", 0, errors.Errorf("No pipeline found for merge request %d", mrNum)
 		}
 
-		// MR pipelines may run on the source- or target project,
-		// and we don't have a proper way to know which it is
+		// MR pipelines may run on the source, target or another project
+		// (multi-project pipelines), and we don't have a proper way to
+		// know which it is. Here we handle the first two cases.
 		if strings.Contains(mr.Pipeline.WebURL, rn) {
 			return rn, mr.Pipeline.ID, nil
-		} else {
-			p, err := lab.GetProject(mr.SourceProjectID)
-			if err != nil {
-				return "", 0, err
-			}
-
-			return p.PathWithNamespace, mr.Pipeline.ID, nil
 		}
-	} else {
-		rn, refName, err := parseArgsRemoteAndBranch(args)
+
+		p, err := lab.GetProject(mr.SourceProjectID)
 		if err != nil {
 			return "", 0, err
 		}
 
-		commit, err := lab.GetCommit(rn, refName)
-		if err != nil {
-			return "", 0, err
-		}
-
-		if commit.LastPipeline == nil {
-			return "", 0, errors.Errorf("No pipeline found for %s", refName)
-		}
-
-		return rn, commit.LastPipeline.ID, nil
+		return p.PathWithNamespace, mr.Pipeline.ID, nil
 	}
+	rn, refName, err := parseArgsRemoteAndBranch(args)
+	if err != nil {
+		return "", 0, err
+	}
+
+	commit, err := lab.GetCommit(rn, refName)
+	if err != nil {
+		return "", 0, err
+	}
+
+	if commit.LastPipeline == nil {
+		return "", 0, errors.Errorf("No pipeline found for %s", refName)
+	}
+
+	return rn, commit.LastPipeline.ID, nil
 }
 
 func getRemoteName(remote string) (string, error) {

@@ -38,7 +38,7 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/tcnksm/go-gitconfig v0.1.2
-	github.com/xanzy/go-gitlab v0.39.0
+	github.com/xanzy/go-gitlab v0.43.0
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/yuin/goldmark v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897

@@ -42,6 +42,11 @@ var ciTraceCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		followBridge, err = cmd.Flags().GetBool("follow")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		rn, pipelineID, err := getPipelineFromArgs(branchArgs, forMR)
 		if err != nil {
 			log.Fatal(err)
@@ -72,7 +77,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, 
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, pipelineID, name)
+		trace, job, err := lab.CITrace(pid, pipelineID, name, followBridge)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}
