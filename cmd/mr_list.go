@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
-	"github.com/zaquestion/lab/internal/config"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -47,8 +46,7 @@ lab mr list remote "search terms"  # search "remote" for merge requests with "se
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)
 		if err != nil {
-			log.Print(err)
-			config.UserConfigError()
+			log.Fatal(err)
 		}
 
 		pager := NewPager(cmd.Flags())
