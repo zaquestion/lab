@@ -30,6 +30,8 @@ var (
 	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
 	// ErrGroupNotFound is returned when a GitLab group cannot be found.
 	ErrGroupNotFound = errors.New("gitlab group not found")
+	// ErrStatusForbidden is returned when attempting to access a GitLab project with insufficient permissions
+	ErrStatusForbidden = errors.New("Insufficient permissions for gitlab project")
 )
 
 var (
@@ -499,7 +501,10 @@ func MRMerge(pid interface{}, id int) error {
 
 // MRApprove approves an mr on a GitLab project
 func MRApprove(pid interface{}, id int) error {
-	_, _, err := lab.MergeRequestApprovals.ApproveMergeRequest(pid, id, &gitlab.ApproveMergeRequestOptions{})
+	_, resp, err := lab.MergeRequestApprovals.ApproveMergeRequest(pid, id, &gitlab.ApproveMergeRequestOptions{})
+	if resp != nil && resp.StatusCode == http.StatusForbidden {
+		return ErrStatusForbidden
+	}
 	if err != nil {
 		return err
 	}
@@ -508,7 +513,10 @@ func MRApprove(pid interface{}, id int) error {
 
 // MRUnapprove Unapproves a previously approved mr on a GitLab project
 func MRUnapprove(pid interface{}, id int) error {
-	_, err := lab.MergeRequestApprovals.UnapproveMergeRequest(pid, id, nil)
+	resp, err := lab.MergeRequestApprovals.UnapproveMergeRequest(pid, id, nil)
+	if resp != nil && resp.StatusCode == http.StatusForbidden {
+		return ErrStatusForbidden
+	}
 	if err != nil {
 		return err
 	}
