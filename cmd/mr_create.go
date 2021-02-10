@@ -156,6 +156,31 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	labelTerms, err := cmd.Flags().GetStringSlice("label")
+	if err != nil {
+		log.Fatal(err)
+	}
+	labels, err := MapLabels(targetProjectName, labelTerms)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	milestoneArg, _ := cmd.Flags().GetString("milestone")
+	milestoneID, _ := strconv.Atoi(milestoneArg)
+
+	var milestone *int
+	if milestoneID > 0 {
+		milestone = &milestoneID
+	} else if milestoneArg != "" {
+		ms, err := lab.MilestoneGet(targetProjectName, milestoneArg)
+		if err != nil {
+			log.Fatal(err)
+		}
+		milestone = &ms.ID
+	} else {
+		milestone = nil
+	}
+
 	var title, body string
 
 	if filename != "" {
@@ -213,31 +238,6 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
 	squash, _ := cmd.Flags().GetBool("squash")
 	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
-
-	labelTerms, err := cmd.Flags().GetStringSlice("label")
-	if err != nil {
-		log.Fatal(err)
-	}
-	labels, err := MapLabels(targetProjectName, labelTerms)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	milestoneArg, _ := cmd.Flags().GetString("milestone")
-	milestoneID, _ := strconv.Atoi(milestoneArg)
-
-	var milestone *int
-	if milestoneID > 0 {
-		milestone = &milestoneID
-	} else if milestoneArg != "" {
-		ms, err := lab.MilestoneGet(targetProjectName, milestoneArg)
-		if err != nil {
-			log.Fatal(err)
-		}
-		milestone = &ms.ID
-	} else {
-		milestone = nil
-	}
 
 	if title == "" {
 		log.Fatal("aborting MR due to empty MR msg")
