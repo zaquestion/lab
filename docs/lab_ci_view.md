@@ -13,7 +13,7 @@ Supports viewing, running, tracing, and canceling jobs
 
 Supports vi style (hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
 
-Feedback Encouraged!: https://github.com/zaquestion/lab/issues
+Feedback Encouraged!: <https://github.com/zaquestion/lab/issues>
 
 ```
 lab ci view [remote [branch/tag]] [flags]
