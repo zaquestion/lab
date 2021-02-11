@@ -218,6 +218,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	if title == "" {
+		log.Fatal("aborting MR due to empty MR msg")
+	}
+
 	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 	if linebreak {
 		body = textToMarkdown(body)
@@ -238,10 +242,6 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
 	squash, _ := cmd.Flags().GetBool("squash")
 	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
-
-	if title == "" {
-		log.Fatal("aborting MR due to empty MR msg")
-	}
 
 	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
 		SourceBranch:       &branch,
