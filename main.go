@@ -29,8 +29,13 @@ func main() {
 }
 
 func skipInit() bool {
-	if len(os.Args) <= 1 {
+	nArgs := len(os.Args)
+	if nArgs <= 1 {
 		return false
+	}
+	switch os.Args[nArgs-1] {
+	case "-h", "--help":
+		return true
 	}
 	switch os.Args[1] {
 	case "--version", "version":
