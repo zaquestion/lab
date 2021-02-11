@@ -498,6 +498,14 @@ func determineSourceRemote(branch string) string {
 	return forkRemote
 }
 
+// Check of a case-insensitive prefix in a string
+func hasPrefix(str, prefix string) bool {
+	if len(str) < len(prefix) {
+		return false
+	}
+	return strings.EqualFold(str[0:len(prefix)], prefix)
+}
+
 // union returns all the unique elements in a and b
 func union(a, b []string) []string {
 	mb := map[string]bool{}

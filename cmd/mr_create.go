@@ -229,10 +229,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	draft, _ := cmd.Flags().GetBool("draft")
 	if draft {
-		isWIP := strings.EqualFold(title[0:4], "wip:")
-		isDraft := strings.EqualFold(title[0:6], "draft:") ||
-			strings.EqualFold(title[0:7], "[draft]") ||
-			strings.EqualFold(title[0:7], "(draft)")
+		isWIP := hasPrefix(title, "wip:")
+		isDraft := hasPrefix(title, "draft:") ||
+			hasPrefix(title, "[draft]") ||
+			hasPrefix(title, "(draft)")
 
 		if !isWIP && !isDraft {
 			title = "Draft: " + title
