@@ -273,19 +273,23 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 	//   https://docs.gitlab.com/ce/api/projects.html#fork-project
 	//   https://docs.gitlab.com/ee/api/project_import_export.html#import-status
 	status, _, err := lab.ProjectImportExport.ImportStatus(fork.ID, nil)
-	if wait {
-		for {
-			if status.ImportStatus == "finished" {
-				break
+	if err != nil {
+		log.Printf("Impossible to get fork status: %s\n", err)
+	} else {
+		if wait {
+			for {
+				if status.ImportStatus == "finished" {
+					break
+				}
+				status, _, err = lab.ProjectImportExport.ImportStatus(fork.ID, nil)
+				if err != nil {
+					log.Fatal(err)
+				}
+				time.Sleep(2 * time.Second)
 			}
-			status, _, err = lab.ProjectImportExport.ImportStatus(fork.ID, nil)
-			if err != nil {
-				log.Fatal(err)
-			}
-			time.Sleep(2 * time.Second)
+		} else if status.ImportStatus != "finished" {
+			err = errors.New("not finished")
 		}
-	} else if status.ImportStatus != "finished" {
-		err = errors.New("not finished")
 	}
 
 	urlToRepo := fork.SSHURLToRepo
