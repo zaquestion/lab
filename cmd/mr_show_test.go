@@ -38,6 +38,7 @@ Approved By: None
 Milestone: 1.0
 Labels: documentation
 Issues Closed by this MR: 
+Subscribed: Yes
 WebURL: https://gitlab.com/zaquestion/test/-/merge_requests/1`)
 	require.Contains(t, string(b), `commented at`)
 	require.Contains(t, string(b), `updated comment at`)

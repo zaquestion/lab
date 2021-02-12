@@ -124,6 +124,7 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	milestone := "None"
 	labels := "None"
 	approvedByUsers := "None"
+	subscribed := "No"
 	state := map[string]string{
 		"opened": "Open",
 		"closed": "Closed",
@@ -165,6 +166,10 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		approvedByUsers = strings.Join(approvedBys, ", ")
 	}
 
+	if mr.Subscribed {
+		subscribed = "Yes"
+	}
+
 	fmt.Printf(`
 !%d %s
 ===================================
@@ -179,13 +184,14 @@ Approved By: %s
 Milestone: %s
 Labels: %s
 Issues Closed by this MR: %s
+Subscribed: %s
 WebURL: %s
 `,
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
 		mr.TargetBranch, state, assignee,
 		mr.Author.Username, approvedByUsers, milestone, labels,
 		strings.Trim(strings.Replace(fmt.Sprint(closingIssues), " ", ",", -1), "[]"),
-		mr.WebURL,
+		subscribed, mr.WebURL,
 	)
 }
 
