@@ -535,6 +535,30 @@ func MRUnapprove(pid interface{}, id int) error {
 	return nil
 }
 
+// MRSubscribe subscribes to an mr on a GitLab project
+func MRSubscribe(pid interface{}, id int) error {
+	_, resp, err := lab.MergeRequests.SubscribeToMergeRequest(pid, id, nil)
+	if resp != nil && resp.StatusCode == http.StatusNotModified {
+		return errors.New("Already subscribed")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MRUnsubscribe unsubscribes from a previously mr on a GitLab project
+func MRUnsubscribe(pid interface{}, id int) error {
+	_, resp, err := lab.MergeRequests.UnsubscribeFromMergeRequest(pid, id, nil)
+	if resp != nil && resp.StatusCode == http.StatusNotModified {
+		return errors.New("Not subscribed")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MRThumbUp places a thumb up/down on a merge request
 func MRThumbUp(pid interface{}, id int) error {
 	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(pid, id, &gitlab.CreateAwardEmojiOptions{
@@ -742,6 +766,30 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 	}
 
 	return discussions, nil
+}
+
+// IssueSubscribe subscribes to an issue on a GitLab project
+func IssueSubscribe(pid interface{}, id int) error {
+	_, resp, err := lab.Issues.SubscribeToIssue(pid, id, nil)
+	if resp != nil && resp.StatusCode == http.StatusNotModified {
+		return errors.New("Already subscribed")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// IssueUnsubscribe unsubscribes from an issue on a GitLab project
+func IssueUnsubscribe(pid interface{}, id int) error {
+	_, resp, err := lab.Issues.UnsubscribeFromIssue(pid, id, nil)
+	if resp != nil && resp.StatusCode == http.StatusNotModified {
+		return errors.New("Not subscribed")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetCommit returns top Commit by ref (hash, branch or tag).
