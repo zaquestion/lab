@@ -218,6 +218,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	if title == "" {
+		log.Fatal("aborting MR due to empty MR msg")
+	}
+
 	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 	if linebreak {
 		body = textToMarkdown(body)
@@ -225,10 +229,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	draft, _ := cmd.Flags().GetBool("draft")
 	if draft {
-		isWIP := strings.EqualFold(title[0:4], "wip:")
-		isDraft := strings.EqualFold(title[0:6], "draft:") ||
-			strings.EqualFold(title[0:7], "[draft]") ||
-			strings.EqualFold(title[0:7], "(draft)")
+		isWIP := hasPrefix(title, "wip:")
+		isDraft := hasPrefix(title, "draft:") ||
+			hasPrefix(title, "[draft]") ||
+			hasPrefix(title, "(draft)")
 
 		if !isWIP && !isDraft {
 			title = "Draft: " + title
@@ -238,10 +242,6 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
 	squash, _ := cmd.Flags().GetBool("squash")
 	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
-
-	if title == "" {
-		log.Fatal("aborting MR due to empty MR msg")
-	}
 
 	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
 		SourceBranch:       &branch,
