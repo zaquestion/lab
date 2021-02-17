@@ -160,7 +160,7 @@ func init() {
 		&mrLabels, "label", "l", []string{}, "filter merge requests by label")
 	listCmd.Flags().StringVarP(
 		&mrState, "state", "s", "opened",
-		"filter merge requests by state (opened/closed/merged)")
+		"filter merge requests by state (all/opened/closed/merged)")
 	listCmd.Flags().IntVarP(
 		&mrNumRet, "number", "n", 10,
 		"number of merge requests to return")
