@@ -100,7 +100,7 @@ func init() {
 		"filter issues by label")
 	issueListCmd.Flags().StringVarP(
 		&issueState, "state", "s", "opened",
-		"filter issues by state (opened/closed)")
+		"filter issues by state (all/opened/closed)")
 	issueListCmd.Flags().IntVarP(
 		&issueNumRet, "number", "n", 10,
 		"number of issues to return")
