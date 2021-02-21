@@ -282,7 +282,7 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
 
 {{if .Tmpl}}{{.Tmpl}}{{end}}
-{{.CommentChar}} Requesting a merge into {{.Base}} from {{.Head}}
+{{.CommentChar}} Requesting a merge into {{.Base}} from {{.Head}} ({{.NumCommits}} commits)
 {{.CommentChar}}
 {{.CommentChar}} Write a message for this merge request. The first block
 {{.CommentChar}} of text is the title and the rest is the description.{{if .CommitLogs}}
@@ -293,7 +293,7 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 
-	commitLogs, err := git.Log(remoteBase, head)
+	commitLogs, numCommits, err := git.Log(remoteBase, head)
 	if err != nil {
 		return "", err
 	}
@@ -319,6 +319,7 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 		Base        string
 		Head        string
 		CommitLogs  string
+		NumCommits  int
 	}{
 		InitMsg:     commitMsg,
 		Tmpl:        mrTmpl,
@@ -326,6 +327,7 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 		Base:        targetRemote + ":" + base,
 		Head:        sourceRemote + ":" + head,
 		CommitLogs:  commitLogs,
+		NumCommits:  numCommits,
 	}
 
 	var b bytes.Buffer
