@@ -73,7 +73,7 @@ func TestLastCommitMessage(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
-	log, err := Log("HEAD~1", "HEAD")
+	log, count, err := Log("HEAD~1", "HEAD")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,6 +83,7 @@ func TestLog(t *testing.T) {
 	assert.Contains(t, log, expectedSHA)
 	assert.Contains(t, log, expectedAuthor)
 	assert.Contains(t, log, expectedMessage)
+	assert.Equal(t, 1, count)
 }
 
 func TestCurrentBranch(t *testing.T) {
