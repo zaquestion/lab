@@ -1,13 +1,13 @@
 // This file contains Linux specific calls.
 
-// +build !windows
+// +build !windows,!darwin
 
 package cmd
 
 // Since we're using some system calls that are platform-specific, we need
 // to make sure we have a small layer of compatibility for Unix-like and
 // Windows operating systems. For now, this file is still valid for BSDs
-// (MacOS included).
+// (MacOS NOT included)
 
 import "syscall"
 
@@ -27,6 +27,8 @@ func dupFD(fd int) (int, error) {
 	return syscall.Dup(fd)
 }
 
+// Dup2() is not supported in Linux arm64, so we need to change it.
+// Dup3() is available in all Linux arches and BSD* variants, but not darwin.
 func dupFD2(newFD, oldFD int) error {
-	return syscall.Dup2(newFD, oldFD)
+	return syscall.Dup3(newFD, oldFD, 0)
 }
