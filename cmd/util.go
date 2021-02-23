@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -413,8 +412,8 @@ func textToMarkdown(text string) string {
 // to avoid some markdown rendering garbage going to other outputs that
 // don't support some control chars.
 func isOutputTerminal() bool {
-	if !terminal.IsTerminal(int(syscall.Stdout)) ||
-		!terminal.IsTerminal(int(syscall.Stderr)) {
+	if !terminal.IsTerminal(sysStdout) ||
+		!terminal.IsTerminal(sysStderr) {
 		return false
 	}
 	return true
@@ -445,8 +444,8 @@ func NewPager(fs *flag.FlagSet) *Pager {
 		Files: []*os.File{pr, os.Stdout, os.Stderr},
 	})
 
-	savedStdout, _ := syscall.Dup(syscall.Stdout)
-	_ = syscall.Dup2(int(pw.Fd()), syscall.Stdout)
+	savedStdout, _ := dupFD(sysStdout)
+	_ = dupFD2(int(pw.Fd()), sysStdout)
 
 	return &Pager{
 		proc:   proc,
@@ -456,8 +455,8 @@ func NewPager(fs *flag.FlagSet) *Pager {
 
 func (pager *Pager) Close() {
 	if pager.stdout > 0 {
-		_ = syscall.Dup2(pager.stdout, syscall.Stdout)
-		_ = syscall.Close(pager.stdout)
+		_ = dupFD2(pager.stdout, sysStdout)
+		_ = closeFD(pager.stdout)
 	}
 	if pager.proc != nil {
 		pager.proc.Wait()
