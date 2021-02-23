@@ -18,7 +18,7 @@ lab will look for hub and uses that as your git binary when available so you don
 $ lab version
 git version 2.11.0
 hub version 2.3.0-pre9
-lab version 0.19.0
+lab version 0.20.0
 ```
 
 # Inspiration
