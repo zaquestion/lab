@@ -87,19 +87,6 @@ func forkFromOrigin(project string) {
 		log.Fatal("remote: upstream already exists")
 	}
 
-	remoteURL, err := gitconfig.Local("remote.origin.url")
-	if err != nil {
-		log.Fatal(err)
-	}
-	if git.IsHub && strings.Contains(remoteURL, "github.com") {
-		git := git.New("fork")
-		git.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
-
 	forkRemoteURL, err := lab.Fork(project, forkOpts, useHTTP, waitFork)
 	if err != nil {
 		if err.Error() == "not finished" {
