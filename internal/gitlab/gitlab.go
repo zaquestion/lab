@@ -246,6 +246,14 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 	}
 	target, err := FindProject(namespace + name)
 	if err == nil {
+		// Check if it was forked from the same project being requested
+		if target.ForkedFromProject != nil &&
+			target.ForkedFromProject.PathWithNamespace != project {
+			errMsg := fmt.Sprintf("\"%s\" fork name already taken for a different project", name)
+			return "", errors.New(errMsg)
+		}
+
+		// Project already forked and found
 		urlToRepo := target.SSHURLToRepo
 		if useHTTP {
 			urlToRepo = target.HTTPURLToRepo
