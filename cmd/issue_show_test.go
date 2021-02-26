@@ -36,6 +36,7 @@ Time Stats: Estimated 40h, Spent 8h
 Labels: bug
 Related MRs: 1
 MRs that will close this Issue: 
+Subscribed: No
 WebURL: https://gitlab.com/zaquestion/test/-/issues/1
 `)
 

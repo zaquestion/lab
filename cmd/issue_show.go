@@ -68,6 +68,7 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 	milestone := "None"
 	timestats := "None"
 	dueDate := "None"
+	subscribed := "No"
 	state := map[string]string{
 		"opened": "Open",
 		"closed": "Closed",
@@ -109,6 +110,10 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 		log.Fatal(err)
 	}
 
+	if issue.Subscribed {
+		subscribed = "Yes"
+	}
+
 	fmt.Printf(`
 #%d %s
 ===================================
@@ -124,6 +129,7 @@ Time Stats: %s
 Labels: %s
 Related MRs: %s
 MRs that will close this Issue: %s
+Subscribed: %s
 WebURL: %s
 `,
 		issue.IID, issue.Title, issue.Description, project, state, strings.Join(assignees, ", "),
@@ -131,7 +137,7 @@ WebURL: %s
 		strings.Join(issue.Labels, ", "),
 		strings.Trim(strings.Replace(fmt.Sprint(relatedMRs), " ", ",", -1), "[]"),
 		strings.Trim(strings.Replace(fmt.Sprint(closingMRs), " ", ",", -1), "[]"),
-		issue.WebURL,
+		subscribed, issue.WebURL,
 	)
 }
 
