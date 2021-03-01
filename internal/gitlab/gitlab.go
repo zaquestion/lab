@@ -244,12 +244,27 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 			opts.Name = gitlab.String(name)
 		}
 	}
+
 	target, err := FindProject(namespace + name)
 	if err == nil {
-		// Check if it was forked from the same project being requested
+		// Check if it isn't the same project being requested
+		if target.PathWithNamespace == project {
+			errMsg := "not possible to fork a project from the same namespace and name"
+			return "", errors.New(errMsg)
+		}
+
+		// Check if it isn't a non-fork project, meaning the user has
+		// access to a project with same namespace/name
+		if target.ForkedFromProject == nil {
+			errMsg := fmt.Sprintf("\"%s\" project already taken\n", target.PathWithNamespace)
+			return "", errors.New(errMsg)
+		}
+
+		// Check if it isn't already a fork for another project
 		if target.ForkedFromProject != nil &&
 			target.ForkedFromProject.PathWithNamespace != project {
-			errMsg := fmt.Sprintf("\"%s\" fork name already taken for a different project", name)
+			errMsg := fmt.Sprintf("\"%s\" fork already taken for a different project",
+				target.PathWithNamespace)
 			return "", errors.New(errMsg)
 		}
 
