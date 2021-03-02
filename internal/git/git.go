@@ -203,7 +203,7 @@ func UpstreamBranch(branch string) (string, error) {
 // Respects GitLab subgroups (https://docs.gitlab.com/ce/user/group/subgroups/)
 func PathWithNameSpace(remote string) (string, error) {
 	remoteURL, err := gitconfig.Local("remote." + remote + ".pushurl")
-	if err != nil {
+	if err != nil || remoteURL == "" {
 		remoteURL, err = gitconfig.Local("remote." + remote + ".url")
 		if err != nil {
 			return "", err

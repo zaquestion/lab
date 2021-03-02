@@ -127,6 +127,12 @@ func TestPathWithNameSpace(t *testing.T) {
 			expectedErr: "",
 		},
 		{
+			desc:        "empty-pushurl",
+			remote:      "origin-empty-pushurl",
+			expected:    "zaquestion/test",
+			expectedErr: "",
+		},
+		{
 			desc:        "https://token@gitlab.com/org/repo",
 			remote:      "origin-https-token",
 			expected:    "zaquestion/test",
