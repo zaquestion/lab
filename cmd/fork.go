@@ -15,6 +15,7 @@ import (
 var (
 	skipClone  = false
 	waitFork   = true
+	remoteName string
 	targetData struct {
 		project string
 		group   string
@@ -34,6 +35,7 @@ var forkCmd = &cobra.Command{
 		skipClone, _ = cmd.Flags().GetBool("skip-clone")
 		noWaitFork, _ := cmd.Flags().GetBool("no-wait")
 		waitFork = !noWaitFork
+		remoteName, _ = cmd.Flags().GetString("remote-name")
 		targetData.project, _ = cmd.Flags().GetString("name")
 		targetData.group, _ = cmd.Flags().GetString("group")
 		targetData.path, _ = cmd.Flags().GetString("path")
@@ -75,16 +77,9 @@ var forkCmd = &cobra.Command{
 
 func forkFromOrigin(project string) {
 	// Check for custom target namespace
-	remote := lab.User()
-	if targetData.group != "" {
-		remote = targetData.group
-	}
-
+	remote := determineForkRemote(project)
 	if _, err := gitconfig.Local("remote." + remote + ".url"); err == nil {
 		log.Fatalf("remote: %s already exists", remote)
-	}
-	if _, err := gitconfig.Local("remote.upstream.url"); err == nil {
-		log.Fatal("remote: upstream already exists")
 	}
 
 	remoteURL, err := gitconfig.Local("remote.origin.url")
@@ -109,8 +104,7 @@ func forkFromOrigin(project string) {
 		}
 	}
 
-	name := determineForkRemote(project)
-	err = git.RemoteAdd(name, forkRemoteURL, ".")
+	err = git.RemoteAdd(remote, forkRemoteURL, ".")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -151,6 +145,10 @@ func forkToUpstream(project string) {
 }
 
 func determineForkRemote(project string) string {
+	if remoteName != "" {
+		return remoteName
+	}
+
 	name := lab.User()
 	if targetData.group != "" {
 		name = targetData.group
@@ -169,6 +167,7 @@ func init() {
 	forkCmd.Flags().StringP("name", "n", "", "fork project with a different name")
 	forkCmd.Flags().StringP("group", "g", "", "fork project in a different group (namespace)")
 	forkCmd.Flags().StringP("path", "p", "", "fork project with a different path")
+	forkCmd.Flags().StringP("remote-name", "r", "", "use a custom remote name for the fork")
 	// useHTTP is defined in "util.go"
 	forkCmd.Flags().BoolVar(&useHTTP, "http", false, "fork using HTTP protocol instead of SSH")
 	RootCmd.AddCommand(forkCmd)
