@@ -94,6 +94,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	coverLetterFormat, err := cmd.Flags().GetBool("cover-letter")
+	if err != nil {
+		log.Fatal(err)
+	}
 	branch, err := git.CurrentBranch()
 	if err != nil {
 		log.Fatal(err)
@@ -184,6 +188,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	var title, body string
 
 	if filename != "" {
+		if len(msgs) > 0 || coverLetterFormat {
+			log.Fatal("option -F cannot be combined with -m/-c")
+		}
+
 		file, err := os.Open(filename)
 		if err != nil {
 			log.Fatal(err)
@@ -201,11 +209,13 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 
 		file.Close()
-
 	} else if len(msgs) > 0 {
+		if coverLetterFormat {
+			log.Fatal("option -m cannot be combined with -c/-F")
+		}
+
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
-		coverLetterFormat, _ := cmd.Flags().GetBool("cover-letter")
 		msg, err := mrText(targetBranch, branch, sourceRemote, targetRemote, coverLetterFormat)
 		if err != nil {
 			log.Fatal(err)
