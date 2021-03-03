@@ -361,6 +361,64 @@ func Test_determineSourceRemote(t *testing.T) {
 	os.Chdir(oldWd)
 }
 
+func Test_matchTerms(t *testing.T) {
+	tests := []struct {
+		desc        string
+		search      []string
+		existent    []string
+		expected    []string
+		expectedErr string
+	}{
+		{
+			desc:        "no match",
+			search:      []string{"asd", "zxc"},
+			existent:    []string{"dsa", "cxz"},
+			expected:    []string{""},
+			expectedErr: "'asd' not found",
+		},
+		{
+			desc:        "full match",
+			search:      []string{"asd", "zxc"},
+			existent:    []string{"asd", "zxc"},
+			expected:    []string{"asd", "zxc"},
+			expectedErr: "",
+		},
+		{
+			desc:        "substring match",
+			search:      []string{"as", "zx"},
+			existent:    []string{"as", "asd", "zxc"},
+			expected:    []string{"as", "zxc"},
+			expectedErr: "",
+		},
+		{
+			desc:        "ambiguous terms",
+			search:      []string{"as", "zx"},
+			existent:    []string{"asd", "asf", "zxc", "zxv"},
+			expected:    []string{""},
+			expectedErr: "'as' has no exact match and is ambiguous",
+		},
+	}
+
+	t.Parallel()
+
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			matches, err := matchTerms(test.search, test.existent)
+			if test.expected[0] != "" {
+				assert.Equal(t, test.expected, matches)
+			} else {
+				assert.Nil(t, matches)
+			}
+
+			if test.expectedErr != "" {
+				assert.EqualError(t, err, test.expectedErr)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
 func Test_same(t *testing.T) {
 	t.Parallel()
 	assert.True(t, same([]string{}, []string{}))
