@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -22,10 +23,14 @@ Scripts can be directly sourced (though using pre-generated versions is recommen
   zsh        : source <(lab completion)`,
 	ValidArgs: []string{"bash", "elvish", "fish", "powershell", "xonsh", "zsh"},
 	Run: func(cmd *cobra.Command, args []string) {
+		shell := ""
 		if len(args) > 0 {
-			fmt.Println(carapace.Gen(cmd).Snippet(args[0]))
+			shell = args[0]
+		}
+		if script, err := carapace.Gen(cmd).Snippet(shell); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
 		} else {
-			fmt.Println(carapace.Gen(cmd).Snippet(""))
+			fmt.Println(script)
 		}
 	},
 }
