@@ -181,15 +181,18 @@ func Test_forkWait(t *testing.T) {
 func Test_determineForkRemote(t *testing.T) {
 	tests := []struct {
 		desc     string
+		custom   string
 		project  string
 		expected string
 	}{
-		{"project is forked from repo", "zaquestion", "lab-testing"},
-		{"project is user", "lab-testing", "upstream"},
+		{"project is forked from repo", "", "zaquestion", "lab-testing"},
+		{"project is user", "", "lab-testing", "upstream"},
+		{"project is user", "custom-test", "lab-testing", "custom-test"},
 	}
 
 	for _, test := range tests {
 		test := test
+		remoteName = test.custom
 		t.Run(test.desc, func(t *testing.T) {
 			require.Equal(t, test.expected, determineForkRemote(test.project))
 		})
