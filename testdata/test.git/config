@@ -34,6 +34,10 @@
 	url = garbageurl
 	pushurl = https://gitlab.com/zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin-pushurl/*
+[remote "origin-empty-pushurl"]
+	url = https://gitlab.com/zaquestion/test.git
+	pushurl = 
+	fetch = +refs/heads/*:refs/remotes/origin-empty-pushurl/*
 [remote "origin-https-token"]
 	url = https://token@gitlab.com/zaquestion/test.git
 	fetch = +refs/heads/*:refs/remotes/origin-https-token/*
