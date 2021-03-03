@@ -9,7 +9,7 @@ import (
 )
 
 func Remotes() carapace.Action {
-	return carapace.ActionCallback(func(args []string) carapace.Action {
+	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		remotes, err := git.Remotes()
 		if err != nil {
 			return carapace.ActionMessage(err.Error())
@@ -19,10 +19,10 @@ func Remotes() carapace.Action {
 }
 
 func RemoteBranches(argIndex int) carapace.Action {
-	return carapace.ActionCallback(func(args []string) carapace.Action {
+	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		remote := ""
 		if argIndex >= 0 {
-			remote = args[argIndex]
+			remote = c.Args[argIndex]
 		}
 		branches, err := git.RemoteBranches(remote)
 		if err != nil {
@@ -33,8 +33,8 @@ func RemoteBranches(argIndex int) carapace.Action {
 }
 
 func Snippets(snippetList func(args []string) ([]*gitlab.Snippet, error)) carapace.Action {
-	return carapace.ActionCallback(func(args []string) carapace.Action {
-		snips, err := snippetList(args[:0])
+	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+		snips, err := snippetList(c.Args[:0])
 		if err != nil {
 			return carapace.ActionMessage(err.Error())
 		}
@@ -49,8 +49,8 @@ func Snippets(snippetList func(args []string) ([]*gitlab.Snippet, error)) carapa
 }
 
 func Issues(issueList func(args []string) ([]*gitlab.Issue, error)) carapace.Action {
-	return carapace.ActionCallback(func(args []string) carapace.Action {
-		issues, err := issueList(args[:0])
+	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+		issues, err := issueList(c.Args[:0])
 		if err != nil {
 			return carapace.ActionMessage(err.Error())
 		}
@@ -65,8 +65,8 @@ func Issues(issueList func(args []string) ([]*gitlab.Issue, error)) carapace.Act
 }
 
 func MergeRequests(mrList func(args []string) ([]*gitlab.MergeRequest, error)) carapace.Action {
-	return carapace.ActionCallback(func(args []string) carapace.Action {
-		mergeRequests, err := mrList(args[:0])
+	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+		mergeRequests, err := mrList(c.Args[:0])
 		if err != nil {
 			return carapace.ActionMessage(err.Error())
 		}
