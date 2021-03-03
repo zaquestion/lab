@@ -200,6 +200,13 @@ func init() {
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
+		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
+			}
+		}),
 		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
 				return carapace.ActionMessage(err.Error())
