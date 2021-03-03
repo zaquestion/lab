@@ -505,6 +505,53 @@ func hasPrefix(str, prefix string) bool {
 	return strings.EqualFold(str[0:len(prefix)], prefix)
 }
 
+// Match terms being searched with an existing list of terms, checking its
+// ambiguity at the same time
+func matchTerms(searchTerms, existentTerms []string) ([]string, error) {
+	var ambiguous bool
+	matches := make([]string, len(searchTerms))
+
+	for i, sTerm := range searchTerms {
+		ambiguous = false
+		lowerSTerm := strings.ToLower(sTerm)
+		for _, eTerm := range existentTerms {
+			lowerETerm := strings.ToLower(eTerm)
+
+			// no match
+			if !strings.Contains(lowerETerm, lowerSTerm) {
+				continue
+			}
+
+			// check for ambiguity on substring level
+			if matches[i] != "" && lowerSTerm != lowerETerm {
+				ambiguous = true
+				continue
+			}
+
+			matches[i] = eTerm
+
+			// exact match
+			// may happen after multiple substring matches
+			if lowerETerm == lowerSTerm {
+				ambiguous = false
+				break
+			}
+		}
+
+		if matches[i] == "" {
+			return nil, errors.Errorf("'%s' not found", sTerm)
+		}
+
+		// Ambiguous matches should not be returned to avoid
+		// manipulating the wrong item.
+		if ambiguous {
+			return nil, errors.Errorf("'%s' has no exact match and is ambiguous", sTerm)
+		}
+	}
+
+	return matches, nil
+}
+
 // union returns all the unique elements in a and b
 func union(a, b []string) []string {
 	mb := map[string]bool{}

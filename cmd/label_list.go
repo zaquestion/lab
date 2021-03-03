@@ -56,50 +56,19 @@ lab label list remote "search term"  # search "remote" for labels with "search t
 }
 
 func MapLabels(rn string, labelTerms []string) ([]string, error) {
-	var ambiguous bool
-
 	labels, err := lab.LabelList(rn)
 	if err != nil {
 		return nil, err
 	}
 
-	matches := make([]string, len(labelTerms))
-	for i, term := range labelTerms {
-		ambiguous = false
-		lowerTerm := strings.ToLower(term)
-		for _, label := range labels {
-			lowerLabel := strings.ToLower(label.Name)
+	labelNames := make([]string, len(labels))
+	for _, label := range labels {
+		labelNames = append(labelNames, label.Name)
+	}
 
-			// no match
-			if !strings.Contains(lowerLabel, lowerTerm) {
-				continue
-			}
-
-			// check for ambiguity on substring level
-			if matches[i] != "" && lowerTerm != lowerLabel {
-				ambiguous = true
-				continue
-			}
-
-			matches[i] = label.Name
-
-			// exact match
-			// may happen after multiple substring matches
-			if lowerLabel == lowerTerm {
-				ambiguous = false
-				break
-			}
-		}
-
-		if matches[i] == "" {
-			return nil, errors.Errorf("Label '%s' not found", term)
-		}
-
-		// Ambiguous matches should not be returned to avoid
-		// manipulating the wrong label.
-		if ambiguous {
-			return nil, errors.Errorf("Label '%s' has no exact match and is ambiguous\n", term)
-		}
+	matches, err := matchTerms(labelTerms, labelNames)
+	if err != nil {
+		return nil, errors.Errorf("Label %s\n", err.Error())
 	}
 
 	return matches, nil
