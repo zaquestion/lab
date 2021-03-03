@@ -113,8 +113,9 @@ func init() {
 	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
 	mrCmd.AddCommand(checkoutCmd)
 	carapace.Gen(checkoutCmd).PositionalCompletion(
-		carapace.ActionCallback(func(args []string) carapace.Action {
-			return action.MergeRequests(mrList).Invoke([]string{"origin"}).ToA()
+		carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			c.Args = []string{"origin"}
+			return action.MergeRequests(mrList).Invoke(c).ToA()
 		}),
 	)
 }

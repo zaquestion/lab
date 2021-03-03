@@ -23,9 +23,9 @@ Scripts can be directly sourced (though using pre-generated versions is recommen
 	ValidArgs: []string{"bash", "elvish", "fish", "powershell", "xonsh", "zsh"},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
-			fmt.Println(carapace.Gen(cmd).Snippet(args[0], true))
+			fmt.Println(carapace.Gen(cmd).Snippet(args[0]))
 		} else {
-			fmt.Println(carapace.Gen(cmd).Snippet("", true))
+			fmt.Println(carapace.Gen(cmd).Snippet(""))
 		}
 	},
 }
