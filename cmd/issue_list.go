@@ -21,6 +21,10 @@ var (
 	issueNumRet     string
 	issueAll        bool
 	issueExactMatch bool
+	issueAssignee   string
+	issueAssigneeID *int
+	issueAuthor     string
+	issueAuthorID   *int
 )
 
 var issueListCmd = &cobra.Command{
@@ -72,14 +76,35 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		num = -1
 	}
 
+	// gitlab lib still doesn't have search by author username for issues,
+	// because of that we need to get user's ID for both assignee and
+	// author.
+	if issueAuthor != "" {
+		authorID, err := lab.UserIDByUserName(issueAuthor)
+		if err != nil {
+			log.Fatal(err)
+		}
+		issueAuthorID = &authorID
+	}
+
+	if issueAssignee != "" {
+		assigneeID, err := lab.UserIDByUserName(issueAssignee)
+		if err != nil {
+			log.Fatal(err)
+		}
+		issueAssigneeID = &assigneeID
+	}
+
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: num,
 		},
-		Labels:    labels,
-		Milestone: &issueMilestone,
-		State:     &issueState,
-		OrderBy:   gitlab.String("updated_at"),
+		Labels:     labels,
+		Milestone:  &issueMilestone,
+		State:      &issueState,
+		OrderBy:    gitlab.String("updated_at"),
+		AuthorID:   issueAuthorID,
+		AssigneeID: issueAssigneeID,
 	}
 
 	if issueExactMatch {
@@ -112,6 +137,12 @@ func init() {
 	issueListCmd.Flags().StringVar(
 		&issueMilestone, "milestone", "",
 		"filter issues by milestone")
+	issueListCmd.Flags().StringVar(
+		&issueAssignee, "assignee", "",
+		"filter issues by assignee")
+	issueListCmd.Flags().StringVar(
+		&issueAuthor, "author", "",
+		"filter issues by author")
 	issueListCmd.Flags().BoolVarP(
 		&issueExactMatch, "exact-match", "x", false,
 		"match on the exact (case-insensitive) search terms")
