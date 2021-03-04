@@ -99,6 +99,11 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			log.Fatal(err)
 		}
 
+		filename, err := cmd.Flags().GetString("file")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		draft, err := cmd.Flags().GetBool("draft")
 		if err != nil {
 			log.Fatal(err)
@@ -156,11 +161,27 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		title, body, err := editGetTitleDescription(mr.Title, mr.Description, msgs, cmd.Flags().NFlag())
-		if err != nil {
-			_, f, l, _ := runtime.Caller(0)
-			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+
+		var title, body string
+
+		if filename != "" {
+			if len(msgs) > 0 {
+				log.Fatal("option -F cannot be combined with -m")
+			}
+
+			title, body, err = editGetTitleDescFromFile(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			title, body, err = editGetTitleDescription(
+				mr.Title, mr.Description, msgs, cmd.Flags().NFlag())
+			if err != nil {
+				_, f, l, _ := runtime.Caller(0)
+				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			}
 		}
+
 		if title == "" {
 			log.Fatal("aborting: empty mr title")
 		}
@@ -288,6 +309,7 @@ func init() {
 	mrEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	mrEditCmd.Flags().String("milestone", "", "set milestone")
 	mrEditCmd.Flags().StringP("target-branch", "t", "", "set target branch")
+	mrEditCmd.Flags().StringP("file", "F", "", "use the given file as the description")
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrEditCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mrEditCmd.Flags().Bool("ready", false, "mark the merge request as ready")
