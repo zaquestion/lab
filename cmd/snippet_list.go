@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -12,7 +13,7 @@ import (
 )
 
 var snippetListConfig struct {
-	Number int
+	Number string
 	All    bool
 }
 
@@ -41,14 +42,16 @@ func snippetList(args []string) ([]*gitlab.Snippet, error) {
 	if err != nil {
 		return nil, err
 	}
-	listOpts := gitlab.ListOptions{
-		PerPage: snippetListConfig.Number,
-	}
 
-	num := snippetListConfig.Number
-	if snippetListConfig.All {
+	num, err := strconv.Atoi(snippetListConfig.Number)
+	if snippetListConfig.All || (err != nil) {
 		num = -1
 	}
+
+	listOpts := gitlab.ListOptions{
+		PerPage: num,
+	}
+
 	// See if we're in a git repo or if global is set to determine
 	// if this should be a personal snippet
 	if global || rn == "" {
@@ -65,7 +68,7 @@ func snippetList(args []string) ([]*gitlab.Snippet, error) {
 }
 
 func init() {
-	snippetListCmd.Flags().IntVarP(&snippetListConfig.Number, "number", "n", 10, "number of snippets to return")
+	snippetListCmd.Flags().StringVarP(&snippetListConfig.Number, "number", "n", "10", "Number of snippets to return")
 	snippetListCmd.Flags().BoolVarP(&snippetListConfig.All, "all", "a", false, "list all snippets")
 
 	snippetCmd.AddCommand(snippetListCmd)

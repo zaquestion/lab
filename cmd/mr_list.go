@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
@@ -17,7 +18,7 @@ var (
 	mrState        string
 	mrTargetBranch string
 	mrMilestone    string
-	mrNumRet       int
+	mrNumRet       string
 	mrAll          bool
 	mrMine         bool
 	mrDraft        bool
@@ -69,8 +70,8 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		return nil, err
 	}
 
-	num := mrNumRet
-	if mrAll {
+	num, err := strconv.Atoi(mrNumRet)
+	if mrAll || (err != nil) {
 		num = -1
 	}
 
@@ -105,7 +106,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 
 	opts := gitlab.ListProjectMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: mrNumRet,
+			PerPage: num,
 		},
 		Labels:                 labels,
 		State:                  &mrState,
@@ -161,8 +162,8 @@ func init() {
 	listCmd.Flags().StringVarP(
 		&mrState, "state", "s", "opened",
 		"filter merge requests by state (all/opened/closed/merged)")
-	listCmd.Flags().IntVarP(
-		&mrNumRet, "number", "n", 10,
+	listCmd.Flags().StringVarP(
+		&mrNumRet, "number", "n", "10",
 		"number of merge requests to return")
 	listCmd.Flags().StringVarP(
 		&mrTargetBranch, "target-branch", "t", "",

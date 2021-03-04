@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
@@ -14,8 +15,7 @@ var projectListConfig struct {
 	Owned      bool
 	Membership bool
 	Starred    bool
-
-	Number int
+	Number     string
 }
 
 var projectListCmd = &cobra.Command{
@@ -28,9 +28,15 @@ var projectListCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		num, err := strconv.Atoi(projectListConfig.Number)
+		if projectListConfig.All || (err != nil) {
+			num = -1
+		}
+
 		opt := gitlab.ListProjectsOptions{
 			ListOptions: gitlab.ListOptions{
-				PerPage: projectListConfig.Number,
+				PerPage: num,
 			},
 			Simple:     gitlab.Bool(true),
 			OrderBy:    gitlab.String("id"),
@@ -39,10 +45,6 @@ var projectListCmd = &cobra.Command{
 			Membership: gitlab.Bool(projectListConfig.Membership),
 			Starred:    gitlab.Bool(projectListConfig.Starred),
 			Search:     gitlab.String(search),
-		}
-		num := projectListConfig.Number
-		if projectListConfig.All {
-			num = -1
 		}
 		projects, err := lab.ProjectList(opt, num)
 		if err != nil {
@@ -64,6 +66,6 @@ func init() {
 	projectListCmd.Flags().BoolVarP(&projectListConfig.Owned, "mine", "m", false, "limit by your projects")
 	projectListCmd.Flags().BoolVar(&projectListConfig.Membership, "member", false, "limit by projects which you are a member")
 	projectListCmd.Flags().BoolVar(&projectListConfig.Starred, "starred", false, "limit by your starred projects")
-	projectListCmd.Flags().IntVarP(&projectListConfig.Number, "number", "n", 100, "number of projects to return")
+	projectListCmd.Flags().StringVarP(&projectListConfig.Number, "number", "n", "100", "Number of projects to return")
 	projectListCmd.Flags().SortFlags = false
 }
