@@ -21,13 +21,15 @@ var (
 	mrNumRet       string
 	mrAll          bool
 	mrMine         bool
+	mrAuthor       string
+	mrAuthorID     *int
 	mrDraft        bool
 	mrReady        bool
 	mrConflicts    bool
 	mrNoConflicts  bool
 	mrExactMatch   bool
-	assigneeID     *int
 	mrAssignee     string
+	mrAssigneeID   *int
 	order          string
 	sortedBy       string
 )
@@ -75,18 +77,28 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		num = -1
 	}
 
+	// gitlab lib still doesn't have search by assignee and author username
+	// for merge requests, because of that we need to get the ID for both.
 	if mrAssignee != "" {
-		_assigneeID, err := lab.UserIDByUserName(mrAssignee)
+		assigneeID, err := lab.UserIDByUserName(mrAssignee)
 		if err != nil {
 			log.Fatal(err)
 		}
-		assigneeID = &_assigneeID
+		mrAssigneeID = &assigneeID
 	} else if mrMine {
-		_assigneeID, err := lab.UserID()
+		assigneeID, err := lab.UserID()
 		if err != nil {
 			log.Fatal(err)
 		}
-		assigneeID = &_assigneeID
+		mrAssigneeID = &assigneeID
+	}
+
+	if mrAuthor != "" {
+		authorID, err := lab.UserIDByUserName(mrAuthor)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mrAuthorID = &authorID
 	}
 
 	if mrMilestone != "" {
@@ -114,7 +126,8 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		Milestone:              &mrMilestone,
 		OrderBy:                orderBy,
 		Sort:                   sort,
-		AssigneeID:             assigneeID,
+		AuthorID:               mrAuthorID,
+		AssigneeID:             mrAssigneeID,
 		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
 	}
 
@@ -172,6 +185,8 @@ func init() {
 		&mrMilestone, "milestone", "", "list only MRs for the given milestone")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "list all MRs on the project")
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
+	listCmd.Flags().MarkDeprecated("mine", "use --assignee instead")
+	listCmd.Flags().StringVar(&mrAuthor, "author", "", "list only MRs authored by $username")
 	listCmd.Flags().StringVar(
 		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
 	listCmd.Flags().StringVar(&order, "order", "updated_at", "display order (updated_at/created_at)")
