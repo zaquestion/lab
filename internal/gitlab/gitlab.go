@@ -874,6 +874,32 @@ func LabelDelete(project, name string) error {
 	return err
 }
 
+// BranchList get all branches from the project that somehow matches the
+// requested options
+func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	branches := []*gitlab.Branch{}
+	opts.ListOptions.Page = 1
+	for {
+		bList, resp, err := lab.Branches.ListBranches(p.ID, opts)
+		if err != nil {
+			return nil, err
+		}
+		branches = append(branches, bList...)
+
+		if opts.Page >= resp.TotalPages {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	return branches, nil
+}
+
 func MilestoneGet(project string, name string) (*gitlab.Milestone, error) {
 	opts := &gitlab.ListMilestonesOptions{
 		Search: &name,
