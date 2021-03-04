@@ -116,7 +116,7 @@ func init() {
 
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{
-		"state": carapace.ActionValues("opened", "closed"),
+		"state": carapace.ActionValues("all", "opened", "closed"),
 	})
 	carapace.Gen(issueListCmd).PositionalCompletion(
 		action.Remotes(),

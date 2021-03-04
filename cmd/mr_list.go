@@ -184,7 +184,7 @@ func init() {
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
-		"state": carapace.ActionValues("opened", "closed", "merged"),
+		"state": carapace.ActionValues("all", "opened", "closed", "merged"),
 	})
 
 	carapace.Gen(listCmd).PositionalCompletion(
