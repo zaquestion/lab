@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"log"
@@ -192,23 +191,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 			log.Fatal("option -F cannot be combined with -m/-c")
 		}
 
-		file, err := os.Open(filename)
+		title, body, err = editGetTitleDescFromFile(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		fileScan := bufio.NewScanner(file)
-		fileScan.Split(bufio.ScanLines)
-
-		// The first line in the file is the title.
-		fileScan.Scan()
-		title = fileScan.Text()
-
-		for fileScan.Scan() {
-			body = body + fileScan.Text() + "\n"
-		}
-
-		file.Close()
 	} else if len(msgs) > 0 {
 		if coverLetterFormat {
 			log.Fatal("option -m cannot be combined with -c/-F")

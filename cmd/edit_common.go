@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bufio"
+	"os"
 	"strings"
 
 	"github.com/zaquestion/lab/internal/git"
@@ -40,8 +42,9 @@ func getUpdateAssignees(currentAssignees []string, assignees []string, unassigne
 	return assigneeIDs, assigneesChanged, nil
 }
 
-// editGetTitleDescription returns a title and description based on the current
-// issue title and description and various flags from the command line
+// editGetTitleDescription returns a title and description based on the
+// current issue title and description and various flags from the command
+// line
 func editGetTitleDescription(title string, body string, msgs []string, nFlag int) (string, string, error) {
 	if len(msgs) > 0 {
 		title = msgs[0]
@@ -65,4 +68,30 @@ func editGetTitleDescription(title string, body string, msgs []string, nFlag int
 		return "", "", err
 	}
 	return git.Edit("EDIT", text)
+}
+
+// editGetTitleDescFromFile returns the new title and description based on
+// the content of a file. The first line is considered the title, the
+// remaining is the description.
+func editGetTitleDescFromFile(filename string) (string, string, error) {
+	var title, body string
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", "", nil
+	}
+	defer file.Close()
+
+	fileScan := bufio.NewScanner(file)
+	fileScan.Split(bufio.ScanLines)
+
+	// The first line in the file is the title.
+	fileScan.Scan()
+	title = fileScan.Text()
+
+	for fileScan.Scan() {
+		body = body + fileScan.Text() + "\n"
+	}
+
+	return title, body, nil
 }
