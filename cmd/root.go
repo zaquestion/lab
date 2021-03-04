@@ -95,12 +95,26 @@ var helpCmd = &cobra.Command{
 	Run:   helpFunc,
 }
 
+// Version is set with linker flags during build.
+var Version string
+
+// versionCmd represents the version command
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("%s %s\n", "lab version", Version)
+	},
+}
+
 func init() {
 	// NOTE: Calling SetHelpCommand like this causes helpFunc to be called
 	// with correct arguments. If the default cobra help func is used no
 	// arguments are passed through and subcommand help breaks.
 	RootCmd.SetHelpCommand(helpCmd)
 	RootCmd.SetHelpFunc(helpFunc)
+	RootCmd.AddCommand(versionCmd)
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 	RootCmd.PersistentFlags().Bool("no-pager", false, "Do not pipe output into a pager")
 }

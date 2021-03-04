@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"math/rand"
 	"os"
@@ -406,4 +408,41 @@ func Test_flag_config_FT(t *testing.T) {
 	os.Remove("/home/travis/.config/lab/lab.toml")
 	// configs overridden on the command line, comments should not be output
 	require.NotContains(t, string(b), `commented at`)
+}
+
+// Make sure the version command don't break things in the future
+func Test_versionCmd(t *testing.T) {
+
+	t.Run("version", func(t *testing.T) {
+		lab_cmd := exec.Command(labBinaryPath, "version")
+		out, err := lab_cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(out))
+			t.Fatal(err)
+		}
+		assert.Contains(t, string(out), "lab version "+Version)
+	})
+	t.Run("--version", func(t *testing.T) {
+		old := os.Stdout // keep backup of the real stdout
+		r, w, _ := os.Pipe()
+		os.Stdout = w
+
+		RootCmd.Flag("version").Value.Set("true")
+		RootCmd.Run(RootCmd, nil)
+
+		outC := make(chan string)
+		// copy the output in a separate goroutine so printing can't block indefinitely
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outC <- buf.String()
+		}()
+
+		// back to normal state
+		w.Close()
+		os.Stdout = old // restoring the real stdout
+		out := <-outC
+
+		assert.Contains(t, out, "lab version "+Version)
+	})
 }
