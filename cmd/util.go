@@ -47,10 +47,8 @@ func flagConfig(fs *flag.FlagSet) {
 		case "stringSlice":
 			configValue = getMainConfig().GetStringSlice(CommandPrefix + f.Name)
 			configString = strings.Join(configValue.([]string), " ")
-
 		case "int":
-			configValue = getMainConfig().GetInt64(CommandPrefix + f.Name)
-			configString = strconv.FormatInt(configValue.(int64), 10)
+			log.Fatal("ERROR: found int flag, use string instead: ", f.Value.Type(), f)
 		case "stringArray":
 			// viper does not have support for stringArray
 			configString = ""

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
@@ -17,7 +18,7 @@ var (
 	issueMilestone  string
 	issueState      string
 	issueSearch     string
-	issueNumRet     int
+	issueNumRet     string
 	issueAll        bool
 	issueExactMatch bool
 )
@@ -66,9 +67,14 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		issueMilestone = milestone.Title
 	}
 
+	num, err := strconv.Atoi(issueNumRet)
+	if issueAll || (err != nil) {
+		num = -1
+	}
+
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: issueNumRet,
+			PerPage: num,
 		},
 		Labels:    labels,
 		Milestone: &issueMilestone,
@@ -87,10 +93,6 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		opts.Search = &issueSearch
 	}
 
-	num := issueNumRet
-	if issueAll {
-		num = -1
-	}
 	return lab.IssueList(rn, opts, num)
 }
 
@@ -101,8 +103,8 @@ func init() {
 	issueListCmd.Flags().StringVarP(
 		&issueState, "state", "s", "opened",
 		"filter issues by state (all/opened/closed)")
-	issueListCmd.Flags().IntVarP(
-		&issueNumRet, "number", "n", 10,
+	issueListCmd.Flags().StringVarP(
+		&issueNumRet, "number", "n", "10",
 		"number of issues to return")
 	issueListCmd.Flags().BoolVarP(
 		&issueAll, "all", "a", false,
