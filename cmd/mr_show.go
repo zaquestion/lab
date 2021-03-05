@@ -201,7 +201,7 @@ func init() {
 	mrShowCmd.Flags().StringP("since", "s", "", "show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "show MR patches")
 	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "reverse order when showing MR patches (chronological instead of anti-chronological)")
-	mrShowCmd.Flags().BoolVarP(&mrShowNoColorDiff, "no-color-diff", "", false, "show color diffs in comments")
+	mrShowCmd.Flags().BoolVarP(&mrShowNoColorDiff, "no-color-diff", "", false, "do not show color diffs in comments")
 	mrCmd.AddCommand(mrShowCmd)
 	carapace.Gen(mrShowCmd).PositionalCompletion(
 		action.Remotes(),
