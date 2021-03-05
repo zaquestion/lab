@@ -76,11 +76,8 @@ func helpFunc(cmd *cobra.Command, args []string) {
 		}
 		return
 	}
-	formatChar := "\n"
-	if git.IsHub {
-		formatChar = ""
-	}
 
+	formatChar := "\n"
 	git := git.New()
 	git.Stdout = nil
 	git.Stderr = nil
@@ -196,7 +193,6 @@ func Execute() {
 	if err != nil || cmd.Use == "clone" {
 		// Determine if any undefined flags were passed to "clone"
 		// TODO: Evaluate and support some of these flags
-		// NOTE: `hub help -a` wraps the `git help -a` output
 		if (cmd.Use == "clone" && len(os.Args) > 2) || os.Args[1] == "help" {
 			// ParseFlags will err in these cases
 			err = cmd.ParseFlags(os.Args[1:])
@@ -207,17 +203,6 @@ func Execute() {
 				}
 				return
 			}
-		}
-
-		// Lab passthrough for these commands can cause confusion. See #163
-		if os.Args[1] == "create" {
-			log.Fatalf("Please call `hub create` directly for github, the lab equivalent is `lab project create`")
-		}
-		if os.Args[1] == "browse" {
-			log.Fatalf("Please call `hub browse` directly for github, the lab equivalent is `lab <object> browse`")
-		}
-		if os.Args[1] == "alias" {
-			log.Fatalf("Please call `hub alias` directly for github, there is no lab equivalent`")
 		}
 
 		// Passthrough to git for any unrecognized commands

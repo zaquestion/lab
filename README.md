@@ -2,23 +2,13 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/1964720/42740177-6478d834-8858-11e8-9667-97f193ecb404.gif" align="center"></p>
 
-Lab wraps Git or [Hub](https://github.com/github/hub), making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
+Lab wraps Git, making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
 
 ```
 $ lab clone gitlab-com/infrastructure
 
 # expands to:
 $ git clone git@gitlab.com:gitlab-com/infrastructure
-```
-
-## hub + <img src="https://user-images.githubusercontent.com/3167497/34473826-40b4987c-ef2c-11e7-90b9-5ff322c4966f.png" width="30" height="30"> = hublab??
-
-lab will look for hub and uses that as your git binary when available so you don't have to give up hub to use lab
-```
-$ lab version
-git version 2.11.0
-hub version 2.3.0-pre9
-lab version 0.20.0
 ```
 
 # Inspiration
@@ -29,7 +19,7 @@ The [hub](https://github.com/github/hub) tool made my life significantly easier 
 
 Dependencies
 
-* `git` or `hub`
+* `git`
 
 ### Homebrew
 ```
@@ -147,7 +137,7 @@ source <(lab completion zsh)
 
 # Aliasing
 
-Like hub, lab feels best when aliased as `git`, however it's perfectly reasonable to use as a standalone tool. In your `.bashrc` or `.bash_profile`:
+`lab` feels best when aliased as `git`, however it's perfectly reasonable to use as a standalone tool. In your `.bashrc` or `.bash_profile`:
 
 ```
 alias git=lab
