@@ -11,7 +11,7 @@ lab mr show [remote] <id> [flags]
 ```
   -c, --comments        show comments for the merge request
   -h, --help            help for show
-      --no-color-diff   show color diffs in comments
+      --no-color-diff   do not show color diffs in comments
   -M, --no-markdown     don't use markdown renderer to print the issue description
   -p, --patch           show MR patches
       --reverse         reverse order when showing MR patches (chronological instead of anti-chronological)
