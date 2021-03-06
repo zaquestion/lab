@@ -167,6 +167,17 @@ func init() {
 	issueCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 
 	issueCmd.AddCommand(issueCreateCmd)
+
+	carapace.Gen(issueCreateCmd).FlagCompletion(carapace.ActionMap{
+		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Milestones(project, action.MilestoneOpts{Active: true})
+			}
+		}),
+	})
+
 	carapace.Gen(issueCreateCmd).PositionalCompletion(
 		action.Remotes(),
 	)

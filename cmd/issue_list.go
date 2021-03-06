@@ -149,6 +149,13 @@ func init() {
 
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{
+		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Milestones(project, action.MilestoneOpts{Active: true})
+			}
+		}),
 		"state": carapace.ActionValues("all", "opened", "closed"),
 	})
 	carapace.Gen(issueListCmd).PositionalCompletion(

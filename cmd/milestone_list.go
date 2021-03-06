@@ -57,7 +57,12 @@ lab milestone list remote "search term"  # search "remote" for milestones with "
 func init() {
 	milestoneListCmd.Flags().StringP("state", "s", "active", "filter milestones by state (active/closed)")
 	milestoneCmd.AddCommand(milestoneListCmd)
-	carapace.Gen(milestoneCmd).PositionalCompletion(
+
+	carapace.Gen(milestoneListCmd).FlagCompletion(carapace.ActionMap{
+		"state": carapace.ActionValues("active", "closed"),
+	})
+
+	carapace.Gen(milestoneListCmd).PositionalCompletion(
 		action.Remotes(),
 	)
 }
