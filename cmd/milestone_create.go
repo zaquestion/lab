@@ -43,7 +43,14 @@ var milestoneCreateCmd = &cobra.Command{
 func init() {
 	milestoneCreateCmd.Flags().String("description", "", "description of the new milestone")
 	milestoneCmd.AddCommand(milestoneCreateCmd)
-	carapace.Gen(milestoneCmd).PositionalCompletion(
+	carapace.Gen(milestoneCreateCmd).PositionalCompletion(
 		action.Remotes(),
+		carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Milestones(project, action.MilestoneOpts{Active: true})
+			}
+		}),
 	)
 }

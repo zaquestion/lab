@@ -31,7 +31,14 @@ var milestoneDeleteCmd = &cobra.Command{
 
 func init() {
 	milestoneCmd.AddCommand(milestoneDeleteCmd)
-	carapace.Gen(milestoneCmd).PositionalCompletion(
+	carapace.Gen(milestoneDeleteCmd).PositionalCompletion(
 		action.Remotes(),
+		carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Milestones(project, action.MilestoneOpts{Active: true})
+			}
+		}),
 	)
 }

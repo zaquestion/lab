@@ -316,6 +316,17 @@ func init() {
 	mrEditCmd.Flags().SortFlags = false
 
 	mrCmd.AddCommand(mrEditCmd)
+
+	carapace.Gen(mrEditCmd).FlagCompletion(carapace.ActionMap{
+		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Milestones(project, action.MilestoneOpts{Active: true})
+			}
+		}),
+	})
+
 	carapace.Gen(mrEditCmd).PositionalCompletion(
 		action.Remotes(),
 		action.MergeRequests(mrList),

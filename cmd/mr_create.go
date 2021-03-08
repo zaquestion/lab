@@ -46,6 +46,17 @@ func init() {
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
+
+	carapace.Gen(mrCreateCmd).FlagCompletion(carapace.ActionMap{
+		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+				return carapace.ActionMessage(err.Error())
+			} else {
+				return action.Milestones(project, action.MilestoneOpts{Active: true})
+			}
+		}),
+	})
+
 	carapace.Gen(mrCreateCmd).PositionalCompletion(
 		action.Remotes(),
 		action.RemoteBranches(0),
