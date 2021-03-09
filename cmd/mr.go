@@ -37,7 +37,10 @@ var mrCmd = &cobra.Command{
 
 func init() {
 	mrCmd.Flags().BoolP("list", "l", false, "list merge requests on a remote")
+	mrCmd.Flags().MarkDeprecated("list", "use the \"list\" subcommand instead")
 	mrCmd.Flags().BoolP("browse", "b", false, "view merge request <id> in a browser")
+	mrCmd.Flags().MarkDeprecated("browse", "use the \"browse\" subcommand instead")
 	mrCmd.Flags().StringP("close", "d", "", "close merge request <id> on remote")
+	mrCmd.Flags().MarkDeprecated("close", "use the \"close\" subcommand instead")
 	RootCmd.AddCommand(mrCmd)
 }
