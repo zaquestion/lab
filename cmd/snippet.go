@@ -52,8 +52,11 @@ var (
 func init() {
 	snippetCmd.PersistentFlags().BoolVarP(&global, "global", "g", false, "create as a personal snippet")
 	snippetCmd.Flags().BoolP("list", "l", false, "list snippets")
+	snippetCmd.Flags().MarkDeprecated("list", "use the \"list\" subcommand instead")
 	snippetCmd.Flags().BoolP("browse", "b", false, "browse snippets")
+	snippetCmd.Flags().MarkDeprecated("browse", "use the \"browse\" subcommand instead")
 	snippetCmd.Flags().StringP("delete", "d", "", "delete snippet with id")
+	snippetCmd.Flags().MarkDeprecated("delete", "use the \"delete\" subcommand instead")
 	// Create flags added in snippetCreate.go
 	RootCmd.AddCommand(snippetCmd)
 }

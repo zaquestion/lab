@@ -36,7 +36,10 @@ var issueCmd = &cobra.Command{
 
 func init() {
 	issueCmd.Flags().BoolP("list", "l", false, "list issues on a remote")
+	issueCmd.Flags().MarkDeprecated("list", "use the \"list\" subcommand instead")
 	issueCmd.Flags().BoolP("browse", "b", false, "view issue <id> in a browser")
+	issueCmd.Flags().MarkDeprecated("browse", "use the \"browse\" subcommand instead")
 	issueCmd.Flags().StringP("close", "d", "", "close issue <id> on remote")
+	issueCmd.Flags().MarkDeprecated("close", "use the \"close\" subcommand instead")
 	RootCmd.AddCommand(issueCmd)
 }
