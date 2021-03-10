@@ -19,7 +19,7 @@ import (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "lab",
-	Short: "A Git Wrapper for GitLab",
+	Short: "lab: A GitLab Command Line Interface Utility",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if ok, err := cmd.Flags().GetBool("version"); err == nil && ok {
@@ -76,13 +76,6 @@ func helpFunc(cmd *cobra.Command, args []string) {
 		}
 		return
 	}
-
-	formatChar := "\n"
-	git := git.New()
-	git.Stdout = nil
-	git.Stderr = nil
-	usage, _ := git.CombinedOutput()
-	fmt.Printf("%s%sThese GitLab commands are provided by lab:\n%s\n\n", string(usage), formatChar, labUsageFormat(cmd.Root()))
 }
 
 var helpCmd = &cobra.Command{
@@ -206,6 +199,7 @@ func Execute() {
 		}
 
 		// Passthrough to git for any unrecognized commands
+		log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
 		err = git.New(os.Args[1:]...).Run()
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
@@ -228,6 +222,7 @@ func Execute() {
 			}
 		}
 		if !knownFlag {
+			log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
 			git.New(os.Args[1:]...).Run()
 			return
 		}
