@@ -1635,24 +1635,18 @@ func MoveIssue(project string, issueNum int, dest string) (string, error) {
 	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
 }
 
-func GetMRApprovedBys(project string, mrNum int) ([]string, error) {
-	var retArray []string
-
+func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeRequestApprovals, error) {
 	p, err := FindProject(project)
 	if err != nil {
-		return retArray, err
+		return nil, err
 	}
 
 	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(p.ID, mrNum)
 	if err != nil {
-		return retArray, err
+		return nil, err
 	}
 
-	for _, approvedby := range configuration.ApprovedBy {
-		retArray = append(retArray, approvedby.User.Username)
-	}
-
-	return retArray, err
+	return configuration, err
 }
 
 func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID int) (string, error) {
