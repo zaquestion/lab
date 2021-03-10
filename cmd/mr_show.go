@@ -124,12 +124,17 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	milestone := "None"
 	labels := "None"
 	approvedByUsers := "None"
+	approvers := "None"
+	approverGroups := "None"
+	reviewers := "None"
 	subscribed := "No"
 	state := map[string]string{
 		"opened": "Open",
 		"closed": "Closed",
 		"merged": "Merged",
 	}[mr.State]
+
+	var _tmpStringArray []string
 
 	if state == "Open" && mr.MergeStatus == "cannot_be_merged" {
 		state = "Open (Needs Rebase)"
@@ -158,12 +163,47 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		log.Fatal(err)
 	}
 
-	approvedBys, err := lab.GetMRApprovedBys(project, mr.IID)
+	approvalConfig, err := lab.GetMRApprovalsConfiguration(project, mr.IID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(approvedBys) > 0 {
-		approvedByUsers = strings.Join(approvedBys, ", ")
+
+	for _, approvedby := range approvalConfig.ApprovedBy {
+		_tmpStringArray = append(_tmpStringArray, approvedby.User.Username)
+	}
+	if len(_tmpStringArray) > 0 {
+		approvedByUsers = strings.Join(_tmpStringArray, ", ")
+		_tmpStringArray = nil
+	}
+
+	// An argument could be made to separate these two fields into their own
+	// entries, however, at a high level they essentially the users that can
+	// approve the MR
+	for _, approvers := range approvalConfig.Approvers {
+		_tmpStringArray = append(_tmpStringArray, approvers.User.Username)
+	}
+	for _, suggestedApprovers := range approvalConfig.SuggestedApprovers {
+		_tmpStringArray = append(_tmpStringArray, suggestedApprovers.Username)
+	}
+	if len(_tmpStringArray) > 0 {
+		approvers = strings.Join(_tmpStringArray, ", ")
+		_tmpStringArray = nil
+	}
+
+	for _, approversGroups := range approvalConfig.ApproverGroups {
+		_tmpStringArray = append(_tmpStringArray, approversGroups.Group.Name)
+	}
+	if len(_tmpStringArray) > 0 {
+		approverGroups = strings.Join(_tmpStringArray, ", ")
+		_tmpStringArray = nil
+	}
+
+	for _, reviewerUsers := range mr.Reviewers {
+		_tmpStringArray = append(_tmpStringArray, reviewerUsers.Name)
+	}
+	if len(_tmpStringArray) > 0 {
+		reviewers = strings.Join(_tmpStringArray, ", ")
+		_tmpStringArray = nil
 	}
 
 	if mr.Subscribed {
@@ -181,6 +221,9 @@ Status: %s
 Assignee: %s
 Author: %s
 Approved By: %s
+Approvers: %s
+Approval Groups: %s
+Reviewers: %s
 Milestone: %s
 Labels: %s
 Issues Closed by this MR: %s
@@ -188,8 +231,8 @@ Subscribed: %s
 WebURL: %s
 `,
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
-		mr.TargetBranch, state, assignee,
-		mr.Author.Username, approvedByUsers, milestone, labels,
+		mr.TargetBranch, state, assignee, mr.Author.Username,
+		approvedByUsers, approvers, approverGroups, reviewers, milestone, labels,
 		strings.Trim(strings.Replace(fmt.Sprint(closingIssues), " ", ",", -1), "[]"),
 		subscribed, mr.WebURL,
 	)
