@@ -116,7 +116,7 @@ func TestRootNoArg(t *testing.T) {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
-	assert.Contains(t, string(b), `A Git Wrapper for GitLab
+	assert.Contains(t, string(b), `lab: A GitLab Command Line Interface Utility
 
 Usage:
   lab [flags]
