@@ -94,10 +94,10 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 	}
 
 	if renderMarkdown {
-		r, _ := glamour.NewTermRenderer(
-			glamour.WithStandardStyle("auto"),
-		)
-
+		r, err := getTermRenderer(glamour.WithAutoStyle())
+		if err != nil {
+			log.Fatal(err)
+		}
 		issue.Description, _ = r.Render(issue.Description)
 	}
 
