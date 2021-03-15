@@ -17,6 +17,7 @@ import (
 // mrCheckoutConfig holds configuration values for calls to lab mr checkout
 type mrCheckoutConfig struct {
 	branch string
+	force  bool
 	track  bool
 }
 
@@ -80,8 +81,14 @@ var checkoutCmd = &cobra.Command{
 		}
 
 		if err := git.New("show-ref", "--verify", "--quiet", "refs/heads/"+fetchToRef).Run(); err == nil {
-			fmt.Println("ERROR: mr", mrID, "branch", fetchToRef, "already exists.")
-			os.Exit(1)
+			if mrCheckoutCfg.force {
+				if err := git.New("branch", "-D", mrCheckoutCfg.branch).Run(); err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				fmt.Println("ERROR: mr", mrID, "branch", fetchToRef, "already exists.")
+				os.Exit(1)
+			}
 		}
 
 		// https://docs.gitlab.com/ce/user/project/merge_requests/#checkout-merge-requests-locally
@@ -111,6 +118,7 @@ func init() {
 	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set checked out branch to track mr author remote branch, adds remote if needed")
 	// useHTTP is defined in "project_create.go"
 	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
+	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch checkout and override existing branch")
 	mrCmd.AddCommand(checkoutCmd)
 	carapace.Gen(checkoutCmd).PositionalCompletion(
 		carapace.ActionCallback(func(c carapace.Context) carapace.Action {

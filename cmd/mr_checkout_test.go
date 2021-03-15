@@ -127,7 +127,7 @@ func Test_mrCheckoutCmdRunWithDifferentName(t *testing.T) {
 	require.Contains(t, eLog, "54fd49a2ac60aeeef5ddc75efecd49f85f7ba9b0")
 }
 
-func Test_mrDoubleCheckoutCmdRun(t *testing.T) {
+func Test_mrDoubleCheckoutFailCmdRun(t *testing.T) {
 	repo := copyTestRepo(t)
 
 	// make sure the branch does not exist
@@ -152,4 +152,39 @@ func Test_mrDoubleCheckoutCmdRun(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Contains(t, eLog, "ERROR: mr 1 branch mrtest already exists")
+}
+
+func Test_mrDoubleCheckoutForceRun(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	// make sure the branch does not exist
+	cmd := exec.Command("git", "branch", "-D", "mrtest")
+	cmd.Dir = repo
+	cmd.CombinedOutput()
+
+	first := exec.Command(labBinaryPath, "mr", "checkout", "1")
+	first.Dir = repo
+	b, err := first.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+
+	changeBranch := exec.Command("git", "checkout", "master")
+	changeBranch.Dir = repo
+	c, err := changeBranch.CombinedOutput()
+	if err != nil {
+		t.Log(string(c))
+		t.Fatal(err)
+	}
+
+	second := exec.Command(labBinaryPath, "mr", "checkout", "1", "--force")
+	second.Dir = repo
+	log, err := second.CombinedOutput()
+	eLog := string(log)
+	if err != nil {
+		t.Log(eLog)
+		t.Fatal(err)
+	}
+	require.Contains(t, eLog, "Deleted branch mrtest")
 }
