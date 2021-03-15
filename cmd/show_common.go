@@ -163,6 +163,9 @@ func getBoldStyle() ansi.StyleConfig {
 func getTermRenderer(style glamour.TermRendererOption) (*glamour.TermRenderer, error) {
 	r, err := glamour.NewTermRenderer(
 		glamour.WithWordWrap(0),
+		// There are PAGERs and TERMs that supports only 16 colors,
+		// since we aren't a beauty-driven project, lets use it.
+		glamour.WithColorProfile(termenv.ANSI),
 		style,
 	)
 	return r, err
