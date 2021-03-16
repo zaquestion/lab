@@ -160,6 +160,17 @@ func getBoldStyle() ansi.StyleConfig {
 	return style
 }
 
+func getTermRenderer(style glamour.TermRendererOption) (*glamour.TermRenderer, error) {
+	r, err := glamour.NewTermRenderer(
+		glamour.WithWordWrap(0),
+		// There are PAGERs and TERMs that supports only 16 colors,
+		// since we aren't a beauty-driven project, lets use it.
+		glamour.WithColorProfile(termenv.ANSI),
+		style,
+	)
+	return r, err
+}
+
 func printDiscussions(discussions []*gitlab.Discussion, since string, idstr string, idNum int, renderMarkdown bool) {
 	newAccessTime := time.Now().UTC()
 
@@ -179,10 +190,8 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 		sinceIsSet = false
 	}
 
-	mdRendererNormal, _ := glamour.NewTermRenderer(
-		glamour.WithAutoStyle())
-	mdRendererBold, _ := glamour.NewTermRenderer(
-		glamour.WithStyles(getBoldStyle()))
+	mdRendererNormal, _ := getTermRenderer(glamour.WithAutoStyle())
+	mdRendererBold, _ := getTermRenderer(glamour.WithStyles(getBoldStyle()))
 
 	// for available fields, see
 	// https://godoc.org/github.com/xanzy/go-gitlab#Note

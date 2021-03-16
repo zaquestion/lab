@@ -151,10 +151,10 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	}
 
 	if renderMarkdown {
-		r, _ := glamour.NewTermRenderer(
-			glamour.WithStandardStyle("auto"),
-		)
-
+		r, err := getTermRenderer(glamour.WithAutoStyle())
+		if err != nil {
+			log.Fatal(err)
+		}
 		mr.Description, _ = r.Render(mr.Description)
 	}
 
