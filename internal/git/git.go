@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -117,7 +116,7 @@ func LastCommitMessage() (string, error) {
 }
 
 // Log produces a formatted gitlog between 2 git shas
-func Log(sha1, sha2 string) (string, int, error) {
+func Log(sha1, sha2 string) (string, error) {
 	cmd := New("-c", "log.showSignature=false",
 		"log",
 		"--no-color",
@@ -127,28 +126,17 @@ func Log(sha1, sha2 string) (string, int, error) {
 	cmd.Stdout = nil
 	outputs, err := cmd.Output()
 	if err != nil {
-		return "", 0, errors.Errorf("Can't load git log %s..%s", sha1, sha2)
+		return "", errors.Errorf("Can't load git log %s..%s", sha1, sha2)
 	}
 
 	diffCmd := New("diff", "--stat", sha1)
 	diffCmd.Stdout = nil
 	diffOutput, err := diffCmd.Output()
 	if err != nil {
-		return "", 0, errors.Errorf("Can't load diffstat")
+		return "", errors.Errorf("Can't load diffstat")
 	}
 
-	numCommitsCmd := New("rev-list", "--count", fmt.Sprintf("%s...%s", sha1, sha2))
-	numCommitsCmd.Stdout = nil
-	numCommitsString, err := numCommitsCmd.Output()
-	if err != nil {
-		return "", 0, errors.Errorf("Can't determine number of commits")
-	}
-	numCommits, err := strconv.Atoi(strings.TrimSpace(string(numCommitsString)))
-	if err != nil {
-		return "", 0, errors.Errorf("Can't determine number of commits(%s)", numCommitsString)
-	}
-
-	return string(outputs) + string(diffOutput), numCommits, nil
+	return string(outputs) + string(diffOutput), nil
 }
 
 // CurrentBranch returns the currently checked out branch
