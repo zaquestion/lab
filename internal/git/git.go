@@ -368,8 +368,8 @@ func NumberCommits(sha1, sha2 string) int {
 	cmd.Stderr = nil
 	CmdOut, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("There are no commits between %s and %s\n", sha1, sha2)
-		log.Fatal(err)
+		// silently fail and handle the return of 0 at caller
+		return 0
 	}
 	numLines := strings.Count(string(CmdOut), "\n")
 	return numLines
