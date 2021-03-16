@@ -73,10 +73,11 @@ func TestLastCommitMessage(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
-	log, count, err := Log("HEAD~1", "HEAD")
+	log, err := Log("HEAD~1", "HEAD")
 	if err != nil {
 		t.Fatal(err)
 	}
+	count := NumberCommits("HEAD~1", "HEAD")
 	expectedSHA := "09b519c"
 	expectedAuthor := "Zaq? Wiedmann"
 	expectedMessage := "(ci) jobs with interleaved sleeps and prints"

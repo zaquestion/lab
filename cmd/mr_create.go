@@ -286,11 +286,16 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 	)
 	remoteBase := fmt.Sprintf("%s/%s", targetRemote, base)
 	commitMsg = ""
-	if git.NumberCommits(remoteBase, head) == 1 {
+
+	numCommits := git.NumberCommits(remoteBase, head)
+	if numCommits == 1 {
 		commitMsg, err = git.LastCommitMessage()
 		if err != nil {
 			return "", err
 		}
+	}
+	if numCommits == 0 {
+		return "", errors.New("Aborting: Resulting Merge Request would have had 0 commits.")
 	}
 
 	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
@@ -307,10 +312,11 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 
-	commitLogs, numCommits, err := git.Log(remoteBase, head)
+	commitLogs, err := git.Log(remoteBase, head)
 	if err != nil {
 		return "", err
 	}
+
 	commitLogs = strings.TrimSpace(commitLogs)
 	commentChar := git.CommentChar()
 
