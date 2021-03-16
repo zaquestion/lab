@@ -22,7 +22,7 @@ import (
 
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
-	Use:              "create [remote [branch]]",
+	Use:              "create [remote [remote_branch]]",
 	Aliases:          []string{"new"},
 	Short:            "Open a merge request on GitLab",
 	Long:             `Creates a merge request (default: MR created on default branch of origin)`,
