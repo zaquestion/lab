@@ -115,36 +115,34 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	branch, err := git.CurrentBranch()
+
+	localBranch, err := git.CurrentBranch()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sourceRemote := determineSourceRemote(branch)
+	sourceRemote := determineSourceRemote(localBranch)
 	sourceProjectName, err := git.PathWithNameSpace(sourceRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	remoteBranch, err := git.CurrentUpstreamBranch()
-	if remoteBranch == "" {
-		// Fall back to local branch
-		remoteBranch, err = git.CurrentBranch()
-	}
-
-	if err != nil {
-		log.Fatal(err)
+	// We want the pushed branch name
+	sourceBranch, _ := git.UpstreamBranch(localBranch)
+	if sourceBranch == "" {
+		// Fall back to local branch name
+		sourceBranch = localBranch
 	}
 
 	p, err := lab.FindProject(sourceProjectName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := lab.GetCommit(p.ID, remoteBranch); err != nil {
+	if _, err := lab.GetCommit(p.ID, sourceBranch); err != nil {
 		err = errors.Wrapf(
 			err,
 			"aborting MR, source branch %s not present on remote %s. did you forget to push?",
-			remoteBranch, sourceRemote)
+			sourceBranch, sourceRemote)
 		log.Fatal(err)
 	}
 
@@ -172,7 +170,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 			err = errors.Wrapf(
 				err,
 				"aborting MR, %s:%s is not a valid target. Did you forget to push %s to %s?",
-				targetRemote, branch, branch, targetRemote)
+				targetRemote, localBranch, localBranch, targetRemote)
 			log.Fatal(err)
 		}
 	}
@@ -220,7 +218,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
-		msg, err := mrText(targetBranch, branch, sourceRemote, targetRemote, coverLetterFormat)
+		msg, err := mrText(sourceRemote, sourceBranch, targetRemote, targetBranch, coverLetterFormat)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -258,7 +256,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
 
 	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
-		SourceBranch:       &branch,
+		SourceBranch:       &sourceBranch,
 		TargetBranch:       gitlab.String(targetBranch),
 		TargetProjectID:    &targetProject.ID,
 		Title:              &title,
@@ -279,30 +277,27 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	fmt.Println(mrURL + "/diffs")
 }
 
-func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat bool) (string, error) {
-	var (
-		commitMsg string
-		err       error
-	)
-	remoteBase := fmt.Sprintf("%s/%s", targetRemote, base)
-	targetBase := fmt.Sprintf("%s/%s", sourceRemote, head)
-	commitMsg = ""
+func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, coverLetterFormat bool) (string, error) {
+	target := fmt.Sprintf("%s/%s", targetRemote, targetBranch)
+	source := fmt.Sprintf("%s/%s", sourceRemote, sourceBranch)
+	commitMsg := ""
 
-	numCommits := git.NumberCommits(remoteBase, targetBase)
+	numCommits := git.NumberCommits(target, source)
 	if numCommits == 1 {
+		var err error
 		commitMsg, err = git.LastCommitMessage()
 		if err != nil {
 			return "", err
 		}
 	}
 	if numCommits == 0 {
-		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits.", remoteBase, targetBase)
+		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits.", target, source)
 	}
 
 	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
 
 {{if .Tmpl}}{{.Tmpl}}{{end}}
-{{.CommentChar}} Requesting a merge into {{.Base}} from {{.Head}} ({{.NumCommits}} commits)
+{{.CommentChar}} Requesting a merge into {{.Target}} from {{.Source}} ({{.NumCommits}} commits)
 {{.CommentChar}}
 {{.CommentChar}} Write a message for this merge request. The first block
 {{.CommentChar}} of text is the title and the rest is the description.{{if .CommitLogs}}
@@ -313,7 +308,7 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 
-	commitLogs, err := git.Log(remoteBase, targetBase)
+	commitLogs, err := git.Log(target, source)
 	if err != nil {
 		return "", err
 	}
@@ -337,16 +332,16 @@ func mrText(base, head, sourceRemote, targetRemote string, coverLetterFormat boo
 		InitMsg     string
 		Tmpl        string
 		CommentChar string
-		Base        string
-		Head        string
+		Target      string
+		Source      string
 		CommitLogs  string
 		NumCommits  int
 	}{
 		InitMsg:     commitMsg,
 		Tmpl:        mrTmpl,
 		CommentChar: commentChar,
-		Base:        targetRemote + ":" + base,
-		Head:        sourceRemote + ":" + head,
+		Target:      targetRemote + ":" + targetBranch,
+		Source:      sourceRemote + ":" + sourceBranch,
 		CommitLogs:  commitLogs,
 		NumCommits:  numCommits,
 	}
