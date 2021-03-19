@@ -43,6 +43,7 @@ func init() {
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "do not comment changelog and diffstat")
 	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
+	mrCreateCmd.Flags().String("source", "", "specify a remote source target in the form of remote:remote_branch")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
@@ -98,6 +99,13 @@ func getAssigneeIDs(assignees []string) []int {
 	return ids
 }
 
+func verifyRemoteAndBranch(projectID int, remote string, branch string) error {
+	if _, err := lab.GetCommit(projectID, branch); err != nil {
+		return fmt.Errorf("Aborting MR create, %s:%s is not a valid target\n", remote, branch)
+	}
+	return nil
+}
+
 func runMRCreate(cmd *cobra.Command, args []string) {
 	msgs, err := cmd.Flags().GetStringArray("message")
 	if err != nil {
@@ -122,28 +130,46 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	}
 
 	sourceRemote := determineSourceRemote(localBranch)
-	sourceProjectName, err := git.PathWithNameSpace(sourceRemote)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// We want the pushed branch name
+	// Get the pushed branch name
 	sourceBranch, _ := git.UpstreamBranch(localBranch)
 	if sourceBranch == "" {
 		// Fall back to local branch name
 		sourceBranch = localBranch
 	}
 
-	p, err := lab.FindProject(sourceProjectName)
+	sourceTarget, err := cmd.Flags().GetString("source")
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := lab.GetCommit(p.ID, sourceBranch); err != nil {
-		err = errors.Wrapf(
-			err,
-			"aborting MR, source branch %s not present on remote %s. did you forget to push?",
-			sourceBranch, sourceRemote)
+
+	if sourceTarget != "" {
+		sourceParts := strings.Split(sourceTarget, ":")
+		sourceRemote = sourceParts[0]
+		sourceBranch = sourceParts[1]
+		if sourceRemote == "" || sourceBranch == "" {
+			log.Fatal(errors.New("Error: Source remote must have format remote:remote_branch.\n"))
+		}
+
+		_, err := git.IsRemote(sourceRemote)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	sourceProjectName, err := git.PathWithNameSpace(sourceRemote)
+	if err != nil {
 		log.Fatal(err)
+	}
+
+	sourceProject, err := lab.FindProject(sourceProjectName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// verify the source branch and remote
+	err = verifyRemoteAndBranch(sourceProject.ID, sourceRemote, sourceBranch)
+	if err != nil {
+		log.Fatal(errors.Wrapf(err, "Did you forget to 'git push'?"))
 	}
 
 	targetRemote := defaultRemote
@@ -166,13 +192,8 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	targetBranch := targetProject.DefaultBranch
 	if len(args) > 1 && targetBranch != args[1] {
 		targetBranch = args[1]
-		if _, err := lab.GetCommit(targetProject.ID, targetBranch); err != nil {
-			err = errors.Wrapf(
-				err,
-				"aborting MR, %s:%s is not a valid target. Did you forget to push %s to %s?",
-				targetRemote, localBranch, localBranch, targetRemote)
-			log.Fatal(err)
-		}
+		// verify the target branch and remote
+		verifyRemoteAndBranch(targetProject.ID, targetRemote, targetBranch)
 	}
 
 	labelTerms, err := cmd.Flags().GetStringSlice("label")
