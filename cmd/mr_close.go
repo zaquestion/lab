@@ -12,7 +12,6 @@ import (
 
 var mrCloseCmd = &cobra.Command{
 	Use:              "close [remote] <id>",
-	Aliases:          []string{"delete"},
 	Short:            "Close merge request",
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,

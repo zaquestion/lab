@@ -368,6 +368,23 @@ func MRUpdate(project string, mrNum int, opts *gitlab.UpdateMergeRequestOptions)
 	return issue.WebURL, nil
 }
 
+// MRDelete deletes an merge request on a GitLab project
+func MRDelete(project string, mrNum int) error {
+	p, err := FindProject(project)
+	if err != nil {
+		return err
+	}
+	resp, err := lab.MergeRequests.DeleteMergeRequest(p.ID, mrNum)
+	if resp != nil && resp.StatusCode == http.StatusForbidden {
+		return ErrStatusForbidden
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
 	p, err := FindProject(project)
