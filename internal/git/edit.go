@@ -71,11 +71,21 @@ func EditFile(filePrefix, message string) (string, error) {
 func editorPath() (string, error) {
 	cmd := New("var", "GIT_EDITOR")
 	cmd.Stdout = nil
-	e, err := cmd.Output()
+	a, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(string(e)), nil
+	editor := strings.TrimSpace(string(a))
+	if editor == "" {
+		cmd = New("config", "--get", "core.editor")
+		cmd.Stdout = nil
+		b, err := cmd.Output()
+		if err != nil {
+			return "", err
+		}
+		editor = strings.TrimSpace(string(b))
+	}
+	return editor, nil
 }
 
 func editorCMD(editorPath, filePath string) *exec.Cmd {
