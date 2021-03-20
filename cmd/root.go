@@ -128,15 +128,24 @@ func guessDefaultRemote() string {
 
 	guess := ""
 
-	_, err := gitconfig.Local("remote.upstream.url")
-	if err == nil {
-		guess = "upstream"
-	}
-	_, err = gitconfig.Local("remote.origin.url")
+	// defaultRemote should try to always point to the upstream project.
+	// Since "origin" may have two different meanings depending on how the
+	// user forked the project, thus make "upstream" as the most significant
+	// remote.
+	// In forkFromOrigin approach, "origin" remote is the one pointing to
+	// the upstream project.
+	_, err := gitconfig.Local("remote.origin.url")
 	if err == nil {
 		guess = "origin"
 	}
+	// In forkToUpstream approach, "upstream" remote is the one pointing to
+	// the upstream project
+	_, err = gitconfig.Local("remote.upstream.url")
+	if err == nil {
+		guess = "upstream"
+	}
 
+	// But it's still possible the user used a custom name
 	if guess == "" {
 		// use the remote tracked by the default branch if set
 		if remote, err := gitconfig.Local("branch.main.remote"); err == nil {
