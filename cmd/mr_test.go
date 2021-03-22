@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -12,18 +13,50 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func closeMR(t *testing.T, targetRepo string, cmdDir string, mrID string) {
+	if mrID == "" {
+		t.Skip("mrID is empty, create likely failed")
+	}
+	cmd := exec.Command(labBinaryPath, "mr", "close", targetRepo, mrID)
+	cmd.Dir = cmdDir
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+	require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+}
+
+func cleanupMR(t *testing.T, targetRepo string, cmdDir string, MRtitle string) {
+	openMRcmd := exec.Command("sh", "-c", fmt.Sprintf("%s mr list %s | grep -m1 \"%s\" | cut -c2- | awk '{print $1}'", labBinaryPath, targetRepo, MRtitle))
+	openMRcmd.Dir = cmdDir
+	openMRstr, err := openMRcmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(openMRstr))
+		t.Fatal(err)
+	}
+
+	openMR, err := strconv.Atoi(strings.TrimSpace(string(openMRstr)))
+	if err != nil {
+		t.Log(string(openMRstr))
+		return
+	}
+
+	if openMR <= 0 {
+		// no open MRs
+		return
+	}
+
+	// close the existing MR
+	closeMR(t, targetRepo, cmdDir, string(openMRstr))
+}
+
 func Test_mrCmd(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'mr title' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "lab-testing", repo, "mr title")
 	})
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -74,19 +107,8 @@ func Test_mrCmd(t *testing.T) {
 		require.Contains(t, outStripped, "mr description")
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/-/merge_requests/%s", mrID))
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "-d", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "lab-testing", repo, mrID)
 	})
 }
 
@@ -97,14 +119,7 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 		commentID string
 	)
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'Fancy Description' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "lab-testing", repo, "Fancy Description")
 	})
 	t.Run("create MR from file", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -190,19 +205,8 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 		_commentID := "#" + commentID + ": lab-testing"
 		require.Contains(t, out, _commentID)
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create -F likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "lab-testing", "-d", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "lab-testing", repo, mrID)
 	})
 }
 
@@ -210,14 +214,7 @@ func Test_mrCmd_DifferingUpstreamBranchName(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'mr title' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "lab-testing", repo, "mr title")
 	})
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "-b", "local/mrtest", "origin/mrtest")
@@ -244,19 +241,8 @@ func Test_mrCmd_DifferingUpstreamBranchName(t *testing.T) {
 		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/merge_requests/")
 		t.Log(mrID)
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "close", "lab-testing", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "lab-testing", repo, mrID)
 	})
 }
 
@@ -264,14 +250,7 @@ func Test_mrCmd_Draft(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'Test draft' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "lab-testing", repo, "Test draft")
 	})
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -326,19 +305,8 @@ func Test_mrCmd_Draft(t *testing.T) {
 		t.Log(out)
 		require.NotContains(t, out, "Test draft merge request")
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "close", "lab-testing", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "lab-testing", repo, mrID)
 	})
 }
 
@@ -346,14 +314,7 @@ func Test_mrCmd_Milestone(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list origin | grep -m1 'Test draft' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr origin -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "origin", repo, "Test draft")
 	})
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -408,19 +369,8 @@ func Test_mrCmd_Milestone(t *testing.T) {
 		t.Log(out)
 		require.NotContains(t, out, "MR for 1.0")
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "close", "origin", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "origin", repo, mrID)
 	})
 }
 
@@ -428,14 +378,7 @@ func Test_mrCmd_ByBranch(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'mr by branch' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "lab-testing", repo, "mr by branch")
 	})
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -476,19 +419,8 @@ func Test_mrCmd_ByBranch(t *testing.T) {
 		out := string(b)
 		require.Contains(t, out, fmt.Sprintf("WebURL: https://gitlab.com/lab-testing/test/-/merge_requests/%s", mrID))
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "close", "lab-testing", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "lab-testing", repo, mrID)
 	})
 }
 
@@ -496,14 +428,7 @@ func Test_mrCmd_source(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cmd := exec.Command("sh", "-c", labBinaryPath+` mr list lab-testing | grep -m1 'mr title' | cut -c2- | awk '{print $1}' | xargs `+labBinaryPath+` mr lab-testing -d`)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			//t.Fatal(err)
-		}
+		cleanupMR(t, "lab-testing", repo, "mr title")
 	})
 	t.Run("create_invalid", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -553,19 +478,8 @@ func Test_mrCmd_source(t *testing.T) {
 		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/lab-testing/test/-/merge_requests/")
 		t.Log(mrID)
 	})
-	t.Run("delete", func(t *testing.T) {
-		if mrID == "" {
-			t.Skip("mrID is empty, create likely failed")
-		}
-		cmd := exec.Command(labBinaryPath, "mr", "close", "lab-testing", mrID)
-		cmd.Dir = repo
-
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Log(string(b))
-			t.Fatal(err)
-		}
-		require.Contains(t, string(b), fmt.Sprintf("Merge Request !%s closed", mrID))
+	t.Run("close", func(t *testing.T) {
+		closeMR(t, "lab-testing", repo, mrID)
 	})
 }
 
