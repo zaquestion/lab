@@ -91,7 +91,7 @@ var issueCreateCmd = &cobra.Command{
 
 		assigneeIDs := make([]int, len(assignees))
 		for i, a := range assignees {
-			assigneeIDs[i] = *getAssigneeID(a)
+			assigneeIDs[i] = *getUserID(a)
 		}
 
 		issueURL, err := lab.IssueCreate(rn, &gitlab.CreateIssueOptions{

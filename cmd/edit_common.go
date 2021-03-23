@@ -18,28 +18,28 @@ func editGetLabels(idLabels []string, labels []string, unlabels []string) ([]str
 	return labels, !same(idLabels, labels), nil
 }
 
-// GetUpdateAssignees returns an int slice of assignee IDs based on the
-// current assignees and flags from the command line, and a bool
-// indicating whether the assignees have changed
-func getUpdateAssignees(currentAssignees []string, assignees []string, unassignees []string) ([]int, bool, error) {
-	// add the new assignees to the current assignees, then remove the "unassignees"
-	assignees = difference(union(currentAssignees, assignees), unassignees)
-	assigneesChanged := !same(currentAssignees, assignees)
+// GetUpdateUsers returns an int slice of user IDs based on the
+// current users and flags from the command line, and a bool
+// indicating whether the users have changed
+func getUpdateUsers(currentUsers []string, users []string, remove []string) ([]int, bool, error) {
+	// add the new users to the current users, then remove the "remove" group
+	users = difference(union(currentUsers, users), remove)
+	usersChanged := !same(currentUsers, users)
 
-	// turn the new assignee list into a list of assignee IDs
-	var assigneeIDs []int
-	if assigneesChanged && len(assignees) == 0 {
-		// if we're removing all assignees, we have to use []int{0}
+	// turn the new user list into a list of user IDs
+	var userIDs []int
+	if usersChanged && len(users) == 0 {
+		// if we're removing all users, we have to use []int{0}
 		// see https://github.com/xanzy/go-gitlab/issues/427
-		assigneeIDs = []int{0}
+		userIDs = []int{0}
 	} else {
-		assigneeIDs = make([]int, len(assignees))
-		for i, a := range assignees {
-			assigneeIDs[i] = *getAssigneeID(a)
+		userIDs = make([]int, len(users))
+		for i, a := range users {
+			userIDs[i] = *getUserID(a)
 		}
 	}
 
-	return assigneeIDs, assigneesChanged, nil
+	return userIDs, usersChanged, nil
 }
 
 // editGetTitleDescription returns a title and description based on the
