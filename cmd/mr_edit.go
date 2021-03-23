@@ -99,6 +99,18 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			log.Fatal(err)
 		}
 
+		// get the reviewers to add
+		reviewers, err := cmd.Flags().GetStringSlice("review")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// get the reviewers to remove
+		unreviewers, err := cmd.Flags().GetStringSlice("unreview")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		filename, err := cmd.Flags().GetString("file")
 		if err != nil {
 			log.Fatal(err)
@@ -120,6 +132,12 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 
 		currentAssignees := mrGetCurrentAssignees(mr)
 		assigneeIDs, assigneesChanged, err := getUpdateUsers(currentAssignees, assignees, unassignees)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		currentReviewers := mrGetCurrentReviewers(mr)
+		reviewerIDs, reviewersChanged, err := getUpdateUsers(currentReviewers, reviewers, unreviewers)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -233,6 +251,10 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 			opts.AssigneeIDs = assigneeIDs
 		}
 
+		if reviewersChanged {
+			opts.ReviewerIDs = reviewerIDs
+		}
+
 		if updateMilestone {
 			opts.MilestoneID = &milestoneID
 		}
@@ -259,6 +281,18 @@ func mrGetCurrentAssignees(mr *gitlab.MergeRequest) []string {
 		}
 	}
 	return currentAssignees
+}
+
+// mrGetCurrentReviewers returns a string slice of the current reviewers'
+// usernames
+func mrGetCurrentReviewers(mr *gitlab.MergeRequest) []string {
+	currentReviewers := make([]string, len(mr.Reviewers))
+	if len(mr.Reviewers) > 0 && mr.Reviewers[0].Username != "" {
+		for i, a := range mr.Reviewers {
+			currentReviewers[i] = a.Username
+		}
+	}
+	return currentReviewers
 }
 
 // getBranchName considers the possible ambiguity of different branch names
@@ -313,6 +347,8 @@ func init() {
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrEditCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mrEditCmd.Flags().Bool("ready", false, "mark the merge request as ready")
+	mrEditCmd.Flags().StringSliceP("review", "r", []string{}, "add an reviewer by username")
+	mrEditCmd.Flags().StringSliceP("unreview", "", []string{}, "remove an reviewer by username")
 	mrEditCmd.Flags().SortFlags = false
 
 	mrCmd.AddCommand(mrEditCmd)

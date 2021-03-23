@@ -34,6 +34,7 @@ var mrCreateCmd = &cobra.Command{
 func init() {
 	mrCreateCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateCmd.Flags().StringSliceP("assignee", "a", []string{}, "set assignee by username; can be specified multiple times for multiple assignees")
+	mrCreateCmd.Flags().StringSliceP("reviewer", "r", []string{}, "set reviewer by username; can be specified multiple times for multiple reviewers")
 	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "add label <label>; can be specified multiple times for multiple labels")
 	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "remove source branch from remote after merge")
 	mrCreateCmd.Flags().BoolP("squash", "s", false, "squash commits when merging")
@@ -114,6 +115,11 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	reviewers, err := cmd.Flags().GetStringSlice("reviewer")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	filename, err := cmd.Flags().GetString("file")
 	if err != nil {
 		log.Fatal(err)
@@ -282,6 +288,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		Title:              &title,
 		Description:        &body,
 		AssigneeIDs:        getUserIDs(assignees),
+		ReviewerIDs:        getUserIDs(reviewers),
 		RemoveSourceBranch: &removeSourceBranch,
 		Squash:             &squash,
 		AllowCollaboration: &allowCollaboration,
