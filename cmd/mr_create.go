@@ -72,33 +72,6 @@ func init() {
 	)
 }
 
-// getUser returns the userID for use with other GitLab API calls.
-func getUserID(user string) *int {
-	if user == "" {
-		return nil
-	}
-	if user[0] == '@' {
-		user = user[1:]
-	}
-	userID, err := lab.UserIDFromUsername(user)
-	if err != nil {
-		return nil
-	}
-	if userID == -1 {
-		return nil
-	}
-	return gitlab.Int(userID)
-}
-
-// getUsers returns the userIDs for use with other GitLab API calls.
-func getUserIDs(users []string) []int {
-	var ids []int
-	for _, a := range users {
-		ids = append(ids, *getUserID(a))
-	}
-	return ids
-}
-
 func verifyRemoteAndBranch(projectID int, remote string, branch string) error {
 	if _, err := lab.GetCommit(projectID, branch); err != nil {
 		return fmt.Errorf("Aborting MR create, %s:%s is not a valid target\n", remote, branch)
