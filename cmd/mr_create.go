@@ -71,30 +71,29 @@ func init() {
 	)
 }
 
-// getAssignee returns the assigneeID for use with other GitLab API calls.
-// NOTE: It is also used by issue_create.go
-func getAssigneeID(assignee string) *int {
-	if assignee == "" {
+// getUser returns the userID for use with other GitLab API calls.
+func getUserID(user string) *int {
+	if user == "" {
 		return nil
 	}
-	if assignee[0] == '@' {
-		assignee = assignee[1:]
+	if user[0] == '@' {
+		user = user[1:]
 	}
-	assigneeID, err := lab.UserIDFromUsername(assignee)
+	userID, err := lab.UserIDFromUsername(user)
 	if err != nil {
 		return nil
 	}
-	if assigneeID == -1 {
+	if userID == -1 {
 		return nil
 	}
-	return gitlab.Int(assigneeID)
+	return gitlab.Int(userID)
 }
 
-// getAssignees returns the assigneeIDs for use with other GitLab API calls.
-func getAssigneeIDs(assignees []string) []int {
+// getUsers returns the userIDs for use with other GitLab API calls.
+func getUserIDs(users []string) []int {
 	var ids []int
-	for _, a := range assignees {
-		ids = append(ids, *getAssigneeID(a))
+	for _, a := range users {
+		ids = append(ids, *getUserID(a))
 	}
 	return ids
 }
@@ -282,7 +281,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		TargetProjectID:    &targetProject.ID,
 		Title:              &title,
 		Description:        &body,
-		AssigneeIDs:        getAssigneeIDs(assignees),
+		AssigneeIDs:        getUserIDs(assignees),
 		RemoveSourceBranch: &removeSourceBranch,
 		Squash:             &squash,
 		AllowCollaboration: &allowCollaboration,

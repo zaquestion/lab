@@ -104,7 +104,7 @@ lab issue edit <id>:<comment_id>                   # update a comment on MR`,
 		}
 
 		currentAssignees := issueGetCurrentAssignees(issue)
-		assigneeIDs, assigneesChanged, err := getUpdateAssignees(currentAssignees, assignees, unassignees)
+		assigneeIDs, assigneesChanged, err := getUpdateUsers(currentAssignees, assignees, unassignees)
 		if err != nil {
 			log.Fatal(err)
 		}
