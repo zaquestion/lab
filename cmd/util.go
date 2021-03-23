@@ -605,19 +605,31 @@ func same(a, b []string) bool {
 
 // getUser returns the userID for use with other GitLab API calls.
 func getUserID(user string) *int {
+	var (
+		err    error
+		userID int
+	)
+
 	if user == "" {
 		return nil
 	}
+
 	if user[0] == '@' {
 		user = user[1:]
 	}
-	userID, err := lab.UserIDFromUsername(user)
+
+	if strings.Contains(user, "@") {
+		userID, err = lab.UserIDFromEmail(user)
+	} else {
+		userID, err = lab.UserIDFromUsername(user)
+	}
 	if err != nil {
 		return nil
 	}
 	if userID == -1 {
 		return nil
 	}
+
 	return gitlab.Int(userID)
 }
 

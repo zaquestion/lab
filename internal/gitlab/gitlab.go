@@ -1499,6 +1499,18 @@ func UserIDFromUsername(username string) (int, error) {
 	return us[0].ID, nil
 }
 
+// UserIDFromEmail returns the associated Users ID in GitLab. This is useful
+// for API calls that allow you to reference a user, but only by ID.
+func UserIDFromEmail(email string) (int, error) {
+	us, _, err := lab.Users.ListUsers(&gitlab.ListUsersOptions{
+		Search: gitlab.String(email),
+	})
+	if err != nil || len(us) == 0 {
+		return -1, err
+	}
+	return us[0].ID, nil
+}
+
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
 func AddMRDiscussionNote(project string, mrNum int, discussionID string, body string) (string, error) {
 	p, err := FindProject(project)
