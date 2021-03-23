@@ -1682,3 +1682,38 @@ func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID 
 	}
 	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrNum, noteID), nil
 }
+
+func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
+	if n == -1 {
+		opts.PerPage = 100
+	}
+
+	list, resp, err := lab.Todos.ListTodos(&opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+
+		todos, resp, err := lab.Todos.ListTodos(&opts)
+		if err != nil {
+			return nil, err
+		}
+
+		opts.Page = resp.NextPage
+		list = append(list, todos...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
+	}
+
+	return list, nil
+}
