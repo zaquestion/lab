@@ -229,7 +229,7 @@ lab MR edit <id>:<comment_id>                   # update a comment on MR`,
 
 		abortUpdate := (title == mr.Title && body == mr.Description &&
 			!labelsChanged && !assigneesChanged && !updateMilestone &&
-			!targetBranchChanged)
+			!targetBranchChanged && !reviewersChanged)
 		if abortUpdate {
 			log.Fatal("aborting: no changes")
 		}
