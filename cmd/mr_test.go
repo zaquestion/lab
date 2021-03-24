@@ -29,15 +29,20 @@ func closeMR(t *testing.T, targetRepo string, cmdDir string, mrID string) {
 }
 
 func cleanupMR(t *testing.T, targetRepo string, cmdDir string, MRtitle string) {
-	openMRcmd := exec.Command("sh", "-c", fmt.Sprintf("%s mr list %s | grep -m1 \"%s\" | cut -c2- | awk '{print $1}'", labBinaryPath, targetRepo, MRtitle))
+	openMRcmd := exec.Command(labBinaryPath, "mr", "list", targetRepo, MRtitle)
 	openMRcmd.Dir = cmdDir
-	openMRstr, err := openMRcmd.CombinedOutput()
+	openMRout, err := openMRcmd.CombinedOutput()
 	if err != nil {
-		t.Log(string(openMRstr))
-		t.Fatal(err)
+		t.Log(string(openMRout))
 	}
 
-	openMR, err := strconv.Atoi(strings.TrimSpace(string(openMRstr)))
+	// find MR number
+	s := strings.Split(string(openMRout), " ")
+	openMRstr := s[0]
+	// strip off "!"
+	openMRstr = openMRstr[1:]
+
+	openMR, err := strconv.Atoi(openMRstr)
 	if err != nil {
 		t.Log(string(openMRstr))
 		return
@@ -120,6 +125,7 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 	)
 	t.Run("prepare", func(t *testing.T) {
 		cleanupMR(t, "lab-testing", repo, "Fancy Description")
+		cleanupMR(t, "lab-testing", repo, "Updated Description")
 	})
 	t.Run("create MR from file", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
