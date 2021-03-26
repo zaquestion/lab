@@ -8,6 +8,7 @@ import (
 
 var mergeRequestCmd = &cobra.Command{
 	Use:              "merge-request [remote [branch]]",
+	Deprecated:       "use the `mr create` command instead",
 	Short:            mrCreateCmd.Short,
 	Long:             mrCreateCmd.Long,
 	Args:             mrCreateCmd.Args,
