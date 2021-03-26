@@ -461,7 +461,7 @@ func Test_mrCmd_source(t *testing.T) {
 		b, _ = cmd.CombinedOutput()
 		out := string(b)
 		t.Log(out)
-		require.Contains(t, out, "Aborting MR create, origin:mrtestDoesNotExist is not a valid target")
+		require.Contains(t, out, "Aborting MR create, origin:mrtestDoesNotExist is not a valid reference")
 	})
 	t.Run("create_valid", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")

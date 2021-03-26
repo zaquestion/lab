@@ -73,7 +73,7 @@ func init() {
 
 func verifyRemoteAndBranch(projectID int, remote string, branch string) error {
 	if _, err := lab.GetCommit(projectID, branch); err != nil {
-		return fmt.Errorf("Aborting MR create, %s:%s is not a valid target\n", remote, branch)
+		return fmt.Errorf("Aborting MR create, %s:%s is not a valid reference\n", remote, branch)
 	}
 	return nil
 }
@@ -146,7 +146,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	// verify the source branch and remote
 	err = verifyRemoteAndBranch(sourceProject.ID, sourceRemote, sourceBranch)
 	if err != nil {
-		log.Fatal(fmt.Errorf("Did you forget to 'git push'?\n"))
+		log.Fatal(err)
 	}
 
 	targetRemote := defaultRemote
@@ -170,7 +170,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if len(args) > 1 && targetBranch != args[1] {
 		targetBranch = args[1]
 		// verify the target branch and remote
-		verifyRemoteAndBranch(targetProject.ID, targetRemote, targetBranch)
+		err = verifyRemoteAndBranch(targetProject.ID, targetRemote, targetBranch)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	labelTerms, err := cmd.Flags().GetStringSlice("label")
