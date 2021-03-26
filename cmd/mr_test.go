@@ -494,6 +494,92 @@ func Test_mrCmd_source(t *testing.T) {
 	})
 }
 
+func Test_mrCmd_assign_and_review(t *testing.T) {
+	var mrID string
+	mrIDString := "MR for assign and review commands"
+
+	repo := copyTestRepo(t)
+
+	// find the test MR
+	mrIDlist := exec.Command(labBinaryPath, "mr", "list", mrIDString)
+	mrIDlist.Dir = repo
+	mrIDOut, err := mrIDlist.CombinedOutput()
+	if err != nil {
+		t.Log(string(mrIDOut))
+		t.Fatal(err)
+	}
+
+	// find MR number
+	s := strings.Split(string(mrIDOut), " ")
+	mrID = s[0]
+	// strip off "!"
+	mrID = mrID[1:]
+
+	mrURL := "https://gitlab.com/zaquestion/test/-/merge_requests/" + mrID
+
+	t.Run("assign_and_unassign", func(t *testing.T) {
+		mrEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--assign", "lab-testing")
+		mrEdit.Dir = repo
+		mrEditOut, err := mrEdit.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrEditOut))
+			t.Fatal(err)
+		}
+
+		mrList := exec.Command(labBinaryPath, "mr", "list", "--assignee", "lab-testing")
+		mrList.Dir = repo
+		mrListOut, err := mrList.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrListOut))
+			t.Fatal(err)
+		}
+
+		mrUnEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--unassign", "lab-testing")
+		mrUnEdit.Dir = repo
+		mrUnEditOut, err := mrUnEdit.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrUnEditOut))
+			t.Fatal(err)
+		}
+
+		require.Contains(t, string(mrEditOut), mrURL)
+		require.Contains(t, string(mrListOut), mrIDString)
+		require.Contains(t, string(mrUnEditOut), mrURL)
+	})
+
+	// This tests 'lab mr edit --review' and 'lab mr list --unreview'
+	t.Run("review_and_unreview", func(t *testing.T) {
+		mrEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--review", "lab-testing")
+		mrEdit.Dir = repo
+		mrEditOut, err := mrEdit.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrEditOut))
+			t.Fatal(err)
+		}
+
+		mrList := exec.Command(labBinaryPath, "mr", "list", "--reviewer", "lab-testing")
+		mrList.Dir = repo
+		mrListOut, err := mrList.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrListOut))
+			t.Fatal(err)
+		}
+
+		mrUnEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--unreview", "lab-testing")
+		mrUnEdit.Dir = repo
+		mrUnEditOut, err := mrUnEdit.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrUnEditOut))
+			t.Fatal(err)
+		}
+
+		require.Contains(t, string(mrEditOut), mrURL)
+		require.Contains(t, string(mrListOut), mrIDString)
+		require.Contains(t, string(mrUnEditOut), mrURL)
+
+	})
+}
+
 func Test_mrCmd_noArgs(t *testing.T) {
 	repo := copyTestRepo(t)
 	cmd := exec.Command(labBinaryPath, "mr")
