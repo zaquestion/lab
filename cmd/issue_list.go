@@ -80,19 +80,17 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 	// because of that we need to get user's ID for both assignee and
 	// author.
 	if issueAuthor != "" {
-		authorID, err := lab.UserIDByUserName(issueAuthor)
-		if err != nil {
-			log.Fatal(err)
+		issueAuthorID := getUserID(issueAuthor)
+		if issueAuthorID == nil {
+			log.Fatal(fmt.Errorf("%s user not found\n", issueAuthor))
 		}
-		issueAuthorID = &authorID
 	}
 
 	if issueAssignee != "" {
-		assigneeID, err := lab.UserIDByUserName(issueAssignee)
-		if err != nil {
-			log.Fatal(err)
+		issueAssigneeID := getUserID(issueAssignee)
+		if issueAssigneeID == nil {
+			log.Fatal(fmt.Errorf("%s user not found\n", issueAssignee))
 		}
-		issueAssigneeID = &assigneeID
 	}
 
 	opts := gitlab.ListProjectIssuesOptions{
