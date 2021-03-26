@@ -11,7 +11,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -125,7 +124,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		sourceRemote = sourceParts[0]
 		sourceBranch = sourceParts[1]
 		if sourceRemote == "" || sourceBranch == "" {
-			log.Fatal(errors.New("Error: Source remote must have format remote:remote_branch.\n"))
+			log.Fatal(fmt.Errorf("Error: Source remote must have format remote:remote_branch.\n"))
 		}
 
 		_, err := git.IsRemote(sourceRemote)
@@ -147,7 +146,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	// verify the source branch and remote
 	err = verifyRemoteAndBranch(sourceProject.ID, sourceRemote, sourceBranch)
 	if err != nil {
-		log.Fatal(errors.Wrapf(err, "Did you forget to 'git push'?"))
+		log.Fatal(fmt.Errorf("Did you forget to 'git push'?\n"))
 	}
 
 	targetRemote := defaultRemote
@@ -155,7 +154,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		targetRemote = args[0]
 		ok, err := git.IsRemote(targetRemote)
 		if err != nil || !ok {
-			log.Fatal(errors.Wrapf(err, "%s is not a valid remote", targetRemote))
+			log.Fatal(fmt.Errorf("%s is not a valid remote\n", targetRemote))
 		}
 	}
 	targetProjectName, err := git.PathWithNameSpace(targetRemote)
@@ -291,7 +290,7 @@ func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, cover
 		}
 	}
 	if numCommits == 0 {
-		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits.", target, source)
+		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits\n", target, source)
 	}
 
 	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
