@@ -32,6 +32,8 @@ var (
 	mrAssigneeID   *int
 	order          string
 	sortedBy       string
+	mrReviewer     string
+	mrReviewerID   *int
 )
 
 // listCmd represents the list command
@@ -107,6 +109,13 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		mrMilestone = milestone.Title
 	}
 
+	if mrReviewer != "" {
+		mrReviewerID := getUserID(mrReviewer)
+		if mrReviewerID == nil {
+			log.Fatal(fmt.Errorf("%s user not found\n", mrReviewer))
+		}
+	}
+
 	orderBy := gitlab.String(order)
 
 	sort := gitlab.String(sortedBy)
@@ -127,6 +136,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		AuthorID:               mrAuthorID,
 		AssigneeID:             mrAssigneeID,
 		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
+		ReviewerID:             mrReviewerID,
 	}
 
 	if mrDraft && !mrReady {
@@ -195,6 +205,8 @@ func init() {
 	listCmd.Flags().BoolVar(&mrNoConflicts, "no-conflicts", false, "list only MRs that can be merged")
 	listCmd.Flags().BoolVar(&mrConflicts, "conflicts", false, "list only MRs that cannot be merged")
 	listCmd.Flags().BoolVarP(&mrExactMatch, "exact-match", "x", false, "match on the exact (case-insensitive) search terms")
+	listCmd.Flags().StringVar(
+		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
