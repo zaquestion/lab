@@ -533,10 +533,8 @@ func MRRebase(pid interface{}, id int) error {
 }
 
 // MRMerge merges an mr on a GitLab project
-func MRMerge(pid interface{}, id int) error {
-	_, _, err := lab.MergeRequests.AcceptMergeRequest(pid, int(id), &gitlab.AcceptMergeRequestOptions{
-		MergeWhenPipelineSucceeds: gitlab.Bool(true),
-	})
+func MRMerge(pid interface{}, id int, opts *gitlab.AcceptMergeRequestOptions) error {
+	_, _, err := lab.MergeRequests.AcceptMergeRequest(pid, int(id), opts)
 	if err != nil {
 		return err
 	}
