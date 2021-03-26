@@ -80,11 +80,10 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	// gitlab lib still doesn't have search by assignee and author username
 	// for merge requests, because of that we need to get the ID for both.
 	if mrAssignee != "" {
-		assigneeID, err := lab.UserIDByUserName(mrAssignee)
-		if err != nil {
-			log.Fatal(err)
+		mrAssigneeID := getUserID(mrAssignee)
+		if mrAssigneeID == nil {
+			log.Fatal(fmt.Errorf("%s user not found\n", mrAssignee))
 		}
-		mrAssigneeID = &assigneeID
 	} else if mrMine {
 		assigneeID, err := lab.UserID()
 		if err != nil {
@@ -94,11 +93,10 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	}
 
 	if mrAuthor != "" {
-		authorID, err := lab.UserIDByUserName(mrAuthor)
-		if err != nil {
-			log.Fatal(err)
+		mrAuthorID := getUserID(mrAuthor)
+		if mrAuthorID == nil {
+			log.Fatal(fmt.Errorf("%s user not found\n", mrAuthor))
 		}
-		mrAuthorID = &authorID
 	}
 
 	if mrMilestone != "" {
