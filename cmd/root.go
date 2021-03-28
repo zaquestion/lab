@@ -170,7 +170,7 @@ func guessDefaultRemote() string {
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(initSkipped bool) {
 	// Try to gather remote information if running inside a git tree/repo.
 	// Otherwise, skip it, since the info won't be used at all, also avoiding
 	// misleading error/warning messages about missing remote.
@@ -226,16 +226,9 @@ func Execute() {
 	// flow returns to lab to generate the error.
 	// TODO: remove for 1.0 when we stop wrapping git
 	if cmd.Use == RootCmd.Use && len(os.Args) > 1 {
-		var knownFlag bool
-		for _, v := range os.Args {
-			if v == "-h" || v == "--help" || v == "--version" || v == "-v" {
-				knownFlag = true
-			}
-		}
-
 		// Pass unknown flags to git, if it also doesn't handle it, let lab
 		// handle the exit msg (help) and code.
-		if !knownFlag {
+		if !initSkipped {
 			log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
 			gitCmd := git.New(os.Args[1:]...)
 			gitCmd.Stderr = nil

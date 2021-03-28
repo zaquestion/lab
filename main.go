@@ -16,7 +16,8 @@ var version = "master"
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
-	if !skipInit() {
+	initSkipped := skipInit()
+	if !initSkipped {
 		h, u, t, ca, skipVerify := config.LoadMainConfig()
 
 		if ca != "" {
@@ -25,7 +26,7 @@ func main() {
 			lab.Init(h, u, t, skipVerify)
 		}
 	}
-	cmd.Execute()
+	cmd.Execute(initSkipped)
 }
 
 func skipInit() bool {
