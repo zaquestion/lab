@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,24 +44,24 @@ func Test_ciStatus(t *testing.T) {
 	out := string(b)
 	assert.Contains(t, out, `Stage:  Name                           - Status
 build:  build1                         - success
-build:  build2                         - success
-build:  build2:fails                   - failed
-test:   test1                          - success
-test:   test2                          - success
-test:   test2:really_a_long_name_for   - success
-test:   test2:no_suffix:test           - success
-test:   test3                          - success
 deploy: deploy1                        - success
-deploy: deploy2                        - manual
-deploy: deploy3:no_sufix:deploy        - success
-deploy: deploy4                        - success
 deploy: deploy5:really_a_long_name_for - success
-deploy: deploy5                        - success
-deploy: deploy6                        - success
-deploy: deploy7                        - success
-deploy: deploy8                        - success
 deploy: deploy9                        - success
-deploy: deploy10                       - success`)
+build:  build2                         - success
+deploy: deploy4                        - success
+test:   test1                          - success
+deploy: deploy7                        - success
+test:   test3                          - success
+deploy: deploy3:no_sufix:deploy        - success
+deploy: deploy5                        - success
+deploy: deploy2                        - success
+deploy: deploy6                        - success
+deploy: deploy10                       - success
+deploy: deploy8                        - success
+build:  build2:fails                   - failed
+test:   test2                          - success
+test:   test2:no_suffix:test           - success
+test:   test2:really_a_long_name_for   - success`)
 
 	assert.Contains(t, out, "Pipeline Status: success")
 }
@@ -76,7 +78,8 @@ func Test_ciStatusMR(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := string(b)
-	assert.Contains(t, out, `Stage:  Name                           - Status
+	if strings.TrimSpace(os.Getenv("LAB_CORE_TEST")) == "GITLAB" {
+		assert.Contains(t, out, `Stage:  Name                           - Status
 build:  build1                         - success
 build:  build2                         - success
 build:  build2:fails                   - failed
@@ -96,6 +99,7 @@ deploy: deploy7                        - success
 deploy: deploy8                        - success
 deploy: deploy9                        - success
 deploy: deploy10                       - success`)
+	}
 
 	assert.Contains(t, out, "Pipeline Status: success")
 }
