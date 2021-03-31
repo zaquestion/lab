@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"path/filepath"
 	"runtime"
 	"strconv"

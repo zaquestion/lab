@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/rsteube/carapace"
@@ -14,7 +13,6 @@ import (
 var version = "master"
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	cmd.Version = version
 	initSkipped := skipInit()
 	if !initSkipped {

@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"

@@ -5,7 +5,6 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 
 	"fmt"
-	"log"
 )
 
 var mrDeleteCmd = &cobra.Command{

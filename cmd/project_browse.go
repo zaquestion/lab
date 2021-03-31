@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )

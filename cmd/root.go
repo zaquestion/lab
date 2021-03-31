@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,7 +13,11 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	"github.com/zaquestion/lab/internal/logger"
 )
+
+// Get internal lab logger instance
+var log = logger.GetInstance()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -177,7 +180,7 @@ func Execute(initSkipped bool) {
 	if git.InsideGitRepo() {
 		defaultRemote = guessDefaultRemote()
 		if defaultRemote == "" {
-			log.Println("No default remote found")
+			log.Infoln("No default remote found")
 		}
 
 		// Check if the user fork exists
@@ -208,7 +211,7 @@ func Execute(initSkipped bool) {
 		}
 
 		// Passthrough to git for any unrecognized commands
-		log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
+		log.Warnln("lab's git passthrough command support will be removed in a later release.")
 		err = git.New(os.Args[1:]...).Run()
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
@@ -229,7 +232,7 @@ func Execute(initSkipped bool) {
 		// Pass unknown flags to git, if it also doesn't handle it, let lab
 		// handle the exit msg (help) and code.
 		if !initSkipped {
-			log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
+			log.Warnln("lab's git passthrough command support will be removed in a later release.")
 			gitCmd := git.New(os.Args[1:]...)
 			gitCmd.Stderr = nil
 			gitCmd.Stdout = nil
