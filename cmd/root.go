@@ -110,6 +110,19 @@ func init() {
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 	RootCmd.PersistentFlags().Bool("no-pager", false, "Do not pipe output into a pager")
+	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging level")
+
+	// We need to set the logger level before any other piece of code is
+	// called, thus we make sure we don't lose any debug message, but for
+	// that we need to parse the args from command input.
+	err := RootCmd.ParseFlags(os.Args[1:])
+	// Handle the err != nil case later
+	if err == nil {
+		debugLogLevel, _ := RootCmd.Flags().GetBool("debug")
+		if debugLogLevel {
+			log.SetLogLevel(logger.LOG_DEBUG)
+		}
+	}
 }
 
 var (
