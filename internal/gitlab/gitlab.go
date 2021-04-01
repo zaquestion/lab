@@ -95,7 +95,7 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 		},
 	}
 
-	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"))
+	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"), gitlab.WithCustomLeveledLogger(log))
 }
 
 func InitWithCustomCA(_host, _user, _token, caFile string) error {
