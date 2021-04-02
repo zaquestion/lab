@@ -13,7 +13,8 @@ import (
 
 // Logger levels available
 const (
-	LOG_ERROR = iota
+	LOG_NONE = iota
+	LOG_ERROR
 	LOG_INFO
 	LOG_DEBUG
 )
@@ -53,9 +54,9 @@ func GetInstance() *logger {
 }
 
 // SetLogLevel set the level of the internal logger.
-// Allowed values are LOG_{ERROR,INFO,DEBUG}.
+// Allowed values are LOG_{ERROR,INFO,DEBUG,NONE}.
 func (l *logger) SetLogLevel(level int) error {
-	if !(level >= LOG_ERROR && level <= LOG_DEBUG) {
+	if !(level >= LOG_NONE && level <= LOG_DEBUG) {
 		return errors.New("invalid log level")
 	}
 	l.level = level

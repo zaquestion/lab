@@ -111,6 +111,7 @@ func init() {
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 	RootCmd.PersistentFlags().Bool("no-pager", false, "Do not pipe output into a pager")
 	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging level")
+	RootCmd.PersistentFlags().Bool("quiet", false, "Turn off any sort of logging. Only command output is printed")
 
 	// We need to set the logger level before any other piece of code is
 	// called, thus we make sure we don't lose any debug message, but for
@@ -118,9 +119,15 @@ func init() {
 	err := RootCmd.ParseFlags(os.Args[1:])
 	// Handle the err != nil case later
 	if err == nil {
-		debugLogLevel, _ := RootCmd.Flags().GetBool("debug")
-		if debugLogLevel {
+		debugLogger, _ := RootCmd.Flags().GetBool("debug")
+		quietLogger, _ := RootCmd.Flags().GetBool("quiet")
+		if debugLogger && quietLogger {
+			log.Fatal("option --debug cannot be combined with --quiet")
+		}
+		if debugLogger {
 			log.SetLogLevel(logger.LOG_DEBUG)
+		} else if quietLogger {
+			log.SetLogLevel(logger.LOG_NONE)
 		}
 	}
 }
