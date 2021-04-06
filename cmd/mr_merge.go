@@ -5,14 +5,20 @@ import (
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+var mergeImmediate bool
+
 var mrMergeCmd = &cobra.Command{
-	Use:              "merge [remote] <id>",
-	Short:            "Merge an open merge request",
-	Long:             `If the pipeline for the mr is still running, lab sets merge on success`,
+	Use:   "merge [remote] <id>",
+	Short: "Merge an open merge request",
+	Long: `Merges an open merge request. If the pipeline in the project is
+enabled and is still running for that specific MR, by default,
+this command will sets the merge to only happen when the pipeline
+succeeds`,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
@@ -25,7 +31,11 @@ var mrMergeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.MRMerge(p.ID, int(id))
+		opts := gitlab.AcceptMergeRequestOptions{
+			MergeWhenPipelineSucceeds: gitlab.Bool(!mergeImmediate),
+		}
+
+		err = lab.MRMerge(p.ID, int(id), &opts)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -33,6 +43,7 @@ var mrMergeCmd = &cobra.Command{
 }
 
 func init() {
+	mrMergeCmd.Flags().BoolVarP(&mergeImmediate, "immediate", "i", false, "merge immediately, regardless pipeline results")
 	mrCmd.AddCommand(mrMergeCmd)
 	carapace.Gen(mrMergeCmd).PositionalCompletion(
 		action.Remotes(),
