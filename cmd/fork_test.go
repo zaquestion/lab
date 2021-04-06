@@ -108,6 +108,16 @@ func Test_fork(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			namespace := "lab-testing"
+			if test.namespace != "" {
+				namespace = test.namespace
+			}
+			name := test.name
+			if test.path != "" {
+				name = test.path
+			}
+			project := namespace + "/" + name
+
 			args := []string{"fork"}
 			if len(test.args) > 0 {
 				args = append(args, test.args...)
@@ -118,18 +128,9 @@ func Test_fork(t *testing.T) {
 			out := string(b)
 			if err != nil {
 				t.Log(out)
+				cleanupFork(t, project)
 				t.Fatal(err)
 			}
-
-			namespace := "lab-testing"
-			if test.namespace != "" {
-				namespace = test.namespace
-			}
-			name := test.name
-			if test.path != "" {
-				name = test.path
-			}
-			project := namespace + "/" + name
 
 			require.Contains(t, out, "From gitlab.com:"+project)
 			require.Contains(t, out, "new remote: "+namespace)
