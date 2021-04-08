@@ -199,7 +199,7 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 	}
 
 	for _, reviewerUsers := range mr.Reviewers {
-		_tmpStringArray = append(_tmpStringArray, reviewerUsers.Name)
+		_tmpStringArray = append(_tmpStringArray, reviewerUsers.Username)
 	}
 	if len(_tmpStringArray) > 0 {
 		reviewers = strings.Join(_tmpStringArray, ", ")
