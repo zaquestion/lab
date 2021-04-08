@@ -25,6 +25,8 @@ var (
 	issueAssigneeID *int
 	issueAuthor     string
 	issueAuthorID   *int
+	issueOrder      string
+	issueSortedBy   string
 )
 
 var issueListCmd = &cobra.Command{
@@ -93,6 +95,10 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		}
 	}
 
+	orderBy := gitlab.String(issueOrder)
+
+	sort := gitlab.String(issueSortedBy)
+
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: num,
@@ -100,7 +106,8 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		Labels:     labels,
 		Milestone:  &issueMilestone,
 		State:      &issueState,
-		OrderBy:    gitlab.String("updated_at"),
+		OrderBy:    orderBy,
+		Sort:       sort,
 		AuthorID:   issueAuthorID,
 		AssigneeID: issueAssigneeID,
 	}
@@ -144,6 +151,8 @@ func init() {
 	issueListCmd.Flags().BoolVarP(
 		&issueExactMatch, "exact-match", "x", false,
 		"match on the exact (case-insensitive) search terms")
+	issueListCmd.Flags().StringVar(&issueOrder, "order", "updated_at", "display order (updated_at/created_at)")
+	issueListCmd.Flags().StringVar(&issueSortedBy, "sort", "desc", "sort order (desc/asc)")
 
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{

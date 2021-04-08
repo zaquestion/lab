@@ -30,8 +30,8 @@ var (
 	mrExactMatch   bool
 	mrAssignee     string
 	mrAssigneeID   *int
-	order          string
-	sortedBy       string
+	mrOrder        string
+	mrSortedBy     string
 	mrReviewer     string
 	mrReviewerID   *int
 )
@@ -116,9 +116,9 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		}
 	}
 
-	orderBy := gitlab.String(order)
+	orderBy := gitlab.String(mrOrder)
 
-	sort := gitlab.String(sortedBy)
+	sort := gitlab.String(mrSortedBy)
 
 	// if none of the flags are set, return every single MR
 	mrCheckConflicts := (mrConflicts || mrNoConflicts)
@@ -197,8 +197,8 @@ func init() {
 	listCmd.Flags().StringVar(&mrAuthor, "author", "", "list only MRs authored by $username")
 	listCmd.Flags().StringVar(
 		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
-	listCmd.Flags().StringVar(&order, "order", "updated_at", "display order (updated_at/created_at)")
-	listCmd.Flags().StringVar(&sortedBy, "sort", "desc", "sort order (desc/asc)")
+	listCmd.Flags().StringVar(&mrOrder, "order", "updated_at", "display order (updated_at/created_at)")
+	listCmd.Flags().StringVar(&mrSortedBy, "sort", "desc", "sort order (desc/asc)")
 	listCmd.Flags().BoolVarP(&mrDraft, "draft", "", false, "list MRs marked as draft")
 	listCmd.Flags().BoolVarP(&mrReady, "ready", "", false, "list MRs not marked as draft")
 	listCmd.Flags().SortFlags = false
