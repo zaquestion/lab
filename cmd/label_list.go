@@ -56,6 +56,11 @@ lab label list remote "search term"  # search "remote" for labels with "search t
 }
 
 func MapLabels(rn string, labelTerms []string) ([]string, error) {
+	// Don't bother fetching project labels if nothing is being really requested
+	if len(labelTerms) == 0 {
+		return []string{}, nil
+	}
+
 	labels, err := lab.LabelList(rn)
 	if err != nil {
 		return nil, err
