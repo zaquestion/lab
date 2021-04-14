@@ -14,6 +14,10 @@ var todoCmd = &cobra.Command{
 			todoListCmd.Run(cmd, args)
 			return
 		}
+		if done, _ := cmd.Flags().GetBool("done"); done {
+			todoDoneCmd.Run(cmd, args)
+			return
+		}
 
 		if len(args) == 0 || len(args) > 2 {
 			cmd.Help()

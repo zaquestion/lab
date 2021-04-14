@@ -1709,3 +1709,11 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 
 	return list, nil
 }
+
+func TodoMarkDone(todoNum int) error {
+	_, err := lab.Todos.MarkTodoAsDone(todoNum)
+	if err != nil {
+		return err
+	}
+	return nil
+}
