@@ -1717,3 +1717,11 @@ func TodoMarkDone(todoNum int) error {
 	}
 	return nil
 }
+
+func TodoMarkAllDone() error {
+	_, err := lab.Todos.MarkAllTodosAsDone()
+	if err != nil {
+		return err
+	}
+	return nil
+}
