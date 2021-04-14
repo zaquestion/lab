@@ -158,10 +158,6 @@ func parseArgsRemoteAndProject(args []string) (string, string, error) {
 		return "", "", nil
 	}
 
-	if remote == "" {
-		remote = defaultRemote
-	}
-
 	remote, err = getRemoteName(remote)
 	if err != nil {
 		return "", "", err
@@ -187,19 +183,19 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 		return "", "", err
 	}
 
-	if remote == "" {
-		remote = determineSourceRemote(branch)
-	}
-
 	remoteBranch, _ := git.UpstreamBranch(branch)
 	if remoteBranch != "" {
 		branch = remoteBranch
 	}
 
+	if remote == "" {
+		remote = determineSourceRemote(branch)
+	}
 	remote, err = getRemoteName(remote)
 	if err != nil {
 		return "", "", err
 	}
+
 	return remote, branch, nil
 }
 
@@ -251,6 +247,10 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 }
 
 func getRemoteName(remote string) (string, error) {
+	if remote == "" {
+		remote = defaultRemote
+	}
+
 	ok, err := git.IsRemote(remote)
 	if err != nil {
 		return "", err
@@ -323,9 +323,6 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 			return "", 0, err
 		}
 
-		if s == "" {
-			s = defaultRemote
-		}
 		s, err = getRemoteName(s)
 		if err != nil {
 			return "", 0, err
