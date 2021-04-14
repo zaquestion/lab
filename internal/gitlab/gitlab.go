@@ -32,6 +32,8 @@ var (
 	ErrGroupNotFound = errors.New("gitlab group not found")
 	// ErrStatusForbidden is returned when attempting to access a GitLab project with insufficient permissions
 	ErrStatusForbidden = errors.New("Insufficient permissions for gitlab project")
+	// ErrNotModified is returned when adding an already existing item to a Todo list
+	ErrNotModified = errors.New("Not Modified")
 )
 
 var (
@@ -1724,4 +1726,20 @@ func TodoMarkAllDone() error {
 		return err
 	}
 	return nil
+}
+
+func TodoMRCreate(project string, mrNum int) (int, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return 0, err
+	}
+
+	todo, resp, err := lab.MergeRequests.CreateTodo(p.ID, mrNum)
+	if err != nil {
+		if resp.StatusCode == http.StatusNotModified {
+			return 0, ErrNotModified
+		}
+		return 0, err
+	}
+	return todo.ID, nil
 }
