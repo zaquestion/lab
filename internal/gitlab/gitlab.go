@@ -384,13 +384,8 @@ func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNote
 }
 
 // MRGet retrieves the merge request from GitLab project
-func MRGet(project string, mrNum int) (*gitlab.MergeRequest, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
-	mr, _, err := lab.MergeRequests.GetMergeRequest(p.ID, mrNum, nil)
+func MRGet(project interface{}, mrNum int) (*gitlab.MergeRequest, error) {
+	mr, _, err := lab.MergeRequests.GetMergeRequest(project, mrNum, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -639,13 +634,8 @@ func IssueCreateNote(project string, issueNum int, opts *gitlab.CreateIssueNoteO
 }
 
 // IssueGet retrieves the issue information from a GitLab project
-func IssueGet(project string, issueNum int) (*gitlab.Issue, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
-	issue, _, err := lab.Issues.GetIssue(p.ID, issueNum)
+func IssueGet(project interface{}, issueNum int) (*gitlab.Issue, error) {
+	issue, _, err := lab.Issues.GetIssue(project, issueNum)
 	if err != nil {
 		return nil, err
 	}
