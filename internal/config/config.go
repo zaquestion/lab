@@ -246,14 +246,6 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	//
 	// Values from the worktree config will override any global config settings.
 
-	// Attempt to auto-configure for GitLab CI.
-	// Always do this before reading in the config file o/w CI will end up
-	// with the wrong data.
-	host, user, token := CI()
-	if host != "" && user != "" && token != "" {
-		return host, user, token, "", false
-	}
-
 	// Try to find XDG_CONFIG_HOME which is declared in XDG base directory
 	// specification and use it's location as the config directory
 	confpath := os.Getenv("XDG_CONFIG_HOME")
@@ -295,6 +287,15 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	MainConfig.SetEnvPrefix("LAB")
 	MainConfig.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	MainConfig.AutomaticEnv()
+
+	// Attempt to auto-configure for GitLab CI.  This *MUST* be called
+	// after the initialization of the empty MainConfig.  Always do this
+	// before reading in the config file o/w CI will end up with the wrong
+	// data.
+	host, user, token := CI()
+	if host != "" && user != "" && token != "" {
+		return host, user, token, "", false
+	}
 
 	if _, ok := MainConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
 		// Create a new config
