@@ -11,7 +11,7 @@ var todoIssueCmd = &cobra.Command{
 	Use:              "issue",
 	Short:            "Add a Issue to Todo list",
 	Example:          `lab todo issue 5678                #adds Issue 1234 to user's Todo list`,
-	Hidden:            true,
+	Hidden:           true,
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
