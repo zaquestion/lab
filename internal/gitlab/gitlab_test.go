@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/otiai10/copy"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gitlab "github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/copy"
 )
 
 func TestMain(m *testing.M) {
@@ -176,7 +176,7 @@ func copyTestRepo() string {
 		log.Fatal(err)
 	}
 	// Move the test.git dir into the expected path at .git
-	if err := os.Rename(dst+"/test.git", dst+"/.git"); err != nil {
+	if err := copy.Copy(dst+"/test.git", dst+"/.git"); err != nil {
 		log.Fatal(err)
 	}
 	return dst
