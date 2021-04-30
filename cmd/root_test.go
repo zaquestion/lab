@@ -175,7 +175,13 @@ func whoAmI() string {
 }
 
 func configFile() string {
-	return "/home/" + whoAmI() + "/.config/lab/lab.toml"
+	str := "/home/" + whoAmI() + "/.config/lab"
+	str = strings.Replace(str, "\n", "", -1)
+	if _, err := os.Stat(str); os.IsNotExist(err) {
+		os.MkdirAll(str, os.ModePerm)
+	}
+	str = str + "/lab.toml"
+	return str
 }
 
 // getAppOutput splits and truncates the list of strings returned from the "lab"
