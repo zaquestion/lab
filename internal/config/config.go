@@ -288,15 +288,6 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	MainConfig.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	MainConfig.AutomaticEnv()
 
-	// Attempt to auto-configure for GitLab CI.  This *MUST* be called
-	// after the initialization of the empty MainConfig.  Always do this
-	// before reading in the config file o/w CI will end up with the wrong
-	// data.
-	host, user, token := CI()
-	if host != "" && user != "" && token != "" {
-		return host, user, token, "", false
-	}
-
 	if _, ok := MainConfig.ReadInConfig().(viper.ConfigFileNotFoundError); ok {
 		// Create a new config
 		err := New(labconfpath, os.Stdin)
@@ -313,6 +304,15 @@ func LoadMainConfig() (string, string, string, string, bool) {
 			}
 			MainConfig.MergeConfig(bytes.NewReader(file))
 		}
+	}
+
+	// Attempt to auto-configure for GitLab CI.  This *MUST* be called
+	// after the initialization of the MainConfig.  This will return
+	// the config file's merged config data with the host, user, and
+	// token supplied by GitLab's CI.
+	host, user, token := CI()
+	if host != "" && user != "" && token != "" {
+		return host, user, token, "", false
 	}
 
 	if !MainConfig.IsSet("core.host") {
