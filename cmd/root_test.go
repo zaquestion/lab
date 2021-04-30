@@ -14,11 +14,11 @@ import (
 	"time"
 
 	"github.com/acarl005/stripansi"
+	"github.com/otiai10/copy"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gitlab "github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/copy"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -159,7 +159,7 @@ func copyTestRepo(log fatalLogger) string {
 		log.Fatal(err)
 	}
 	// Move the test.git dir into the expected path at .git
-	if err := os.Rename(dst+"/test.git", dst+"/.git"); err != nil {
+	if err := copy.Copy(dst+"/test.git", dst+"/.git"); err != nil {
 		log.Fatal(err)
 	}
 	return dst
@@ -198,7 +198,7 @@ func getAppOutput(output []byte) []string {
 }
 
 func setConfigValues(repo string, configVal string, gitVal string) error {
-	err := os.Rename(repo+"/lab.toml", configFile())
+	err := copy.Copy(repo+"/lab.toml", configFile())
 	if err != nil {
 		log.Println(err)
 		return err
