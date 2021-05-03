@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/rsteube/carapace"
@@ -39,6 +40,7 @@ succeeds`,
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("Merge Request !%d merged\n", id)
 	},
 }
 
