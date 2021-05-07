@@ -26,14 +26,14 @@ import (
 )
 
 var (
-	// ErrProjectNotFound is returned when a GitLab project cannot be found.
-	ErrProjectNotFound = errors.New("gitlab project not found, verify you have access to the requested resource")
 	// ErrGroupNotFound is returned when a GitLab group cannot be found.
-	ErrGroupNotFound = errors.New("gitlab group not found")
-	// ErrStatusForbidden is returned when attempting to access a GitLab project with insufficient permissions
-	ErrStatusForbidden = errors.New("Insufficient permissions for gitlab project")
+	ErrGroupNotFound = errors.New("GitLab group not found")
 	// ErrNotModified is returned when adding an already existing item to a Todo list
 	ErrNotModified = errors.New("Not Modified")
+	// ErrProjectNotFound is returned when a GitLab project cannot be found.
+	ErrProjectNotFound = errors.New("GitLab project not found, verify you have access to the requested resource")
+	// ErrStatusForbidden is returned when attempting to access a GitLab project with insufficient permissions
+	ErrStatusForbidden = errors.New("Insufficient permissions for GitLab project")
 )
 
 var (
