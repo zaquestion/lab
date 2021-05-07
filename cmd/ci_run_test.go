@@ -123,7 +123,7 @@ func Test_getCIRunOptions(t *testing.T) {
 			[]string{},
 			nil, // https://gitlab.com/zaquestion/test project ID
 			"",
-			"gitlab project not found, verify you have access to the requested resource",
+			"GitLab project not found, verify you have access to the requested resource",
 		},
 	}
 

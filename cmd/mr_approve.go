@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -52,7 +53,13 @@ var mrApproveCmd = &cobra.Command{
 
 		err = lab.MRApprove(p.ID, int(id))
 		if err != nil {
-			log.Fatal(err)
+			if err == lab.ErrStatusForbidden {
+				log.Fatal(err)
+			}
+			if err == lab.ErrActionRepeated {
+				fmt.Printf("Merge Request !%d already approved\n", id)
+				os.Exit(1)
+			}
 		}
 		fmt.Printf("Merge Request !%d approved\n", id)
 	},
