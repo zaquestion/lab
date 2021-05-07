@@ -26,6 +26,9 @@ import (
 )
 
 var (
+	// ErrActionRepeated is returned when a GitLab action is executed again.  For example
+	// this can be returned when an MR is approved twice.
+	ErrActionRepeated = errors.New("GitLab action repeated")
 	// ErrGroupNotFound is returned when a GitLab group cannot be found.
 	ErrGroupNotFound = errors.New("GitLab group not found")
 	// ErrNotModified is returned when adding an already existing item to a Todo list
@@ -526,6 +529,10 @@ func MRApprove(pid interface{}, id int) error {
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
 	}
+	if resp != nil && resp.StatusCode == http.StatusUnauthorized {
+		// returns 401 if the MR has already been approved
+		return ErrActionRepeated
+	}
 	if err != nil {
 		return err
 	}
@@ -537,6 +544,10 @@ func MRUnapprove(pid interface{}, id int) error {
 	resp, err := lab.MergeRequestApprovals.UnapproveMergeRequest(pid, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
+	}
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
+		// returns 404 if the MR has already been unapproved
+		return ErrActionRepeated
 	}
 	if err != nil {
 		return err
