@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"io"
-	"log"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -46,7 +45,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	// Make a copy of the testdata Git test project and chdir to it.
-	repo := copyTestRepo(log.New(os.Stderr, "", log.LstdFlags))
+	repo := copyTestRepo(log)
 	if err := os.Chdir(repo); err != nil {
 		log.Fatalf("Error chdir to testdata: %s", err)
 	}
@@ -81,12 +80,12 @@ func TestMain(m *testing.M) {
 	os.Remove(labBinaryPath)
 	testdirs, err := filepath.Glob(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-*"))
 	if err != nil {
-		log.Printf("Error listing glob testdata-*: %s", err)
+		log.Infof("Error listing glob testdata-*: %s", err)
 	}
 	for _, dir := range testdirs {
 		err := os.RemoveAll(dir)
 		if err != nil {
-			log.Printf("Error removing dir %s: %s", dir, err)
+			log.Infof("Error removing dir %s: %s", dir, err)
 		}
 	}
 
@@ -200,7 +199,7 @@ func getAppOutput(output []byte) []string {
 func setConfigValues(repo string, configVal string, gitVal string) error {
 	err := copy.Copy(repo+"/lab.toml", configFile())
 	if err != nil {
-		log.Println(err)
+		log.Errorln(err)
 		return err
 	}
 

@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"

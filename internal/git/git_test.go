@@ -1,7 +1,6 @@
 package git
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"os/exec"

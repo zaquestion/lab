@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,7 +13,11 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	"github.com/zaquestion/lab/internal/logger"
 )
+
+// Get internal lab logger instance
+var log = logger.GetInstance()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -107,6 +110,26 @@ func init() {
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.Flags().Bool("version", false, "Show the lab version")
 	RootCmd.PersistentFlags().Bool("no-pager", false, "Do not pipe output into a pager")
+	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging level")
+	RootCmd.PersistentFlags().Bool("quiet", false, "Turn off any sort of logging. Only command output is printed")
+
+	// We need to set the logger level before any other piece of code is
+	// called, thus we make sure we don't lose any debug message, but for
+	// that we need to parse the args from command input.
+	err := RootCmd.ParseFlags(os.Args[1:])
+	// Handle the err != nil case later
+	if err == nil {
+		debugLogger, _ := RootCmd.Flags().GetBool("debug")
+		quietLogger, _ := RootCmd.Flags().GetBool("quiet")
+		if debugLogger && quietLogger {
+			log.Fatal("option --debug cannot be combined with --quiet")
+		}
+		if debugLogger {
+			log.SetLogLevel(logger.LOG_DEBUG)
+		} else if quietLogger {
+			log.SetLogLevel(logger.LOG_NONE)
+		}
+	}
 }
 
 var (
@@ -177,7 +200,7 @@ func Execute(initSkipped bool) {
 	if git.InsideGitRepo() {
 		defaultRemote = guessDefaultRemote()
 		if defaultRemote == "" {
-			log.Println("No default remote found")
+			log.Infoln("No default remote found")
 		}
 
 		// Check if the user fork exists
@@ -208,7 +231,7 @@ func Execute(initSkipped bool) {
 		}
 
 		// Passthrough to git for any unrecognized commands
-		log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
+		log.Warnln("lab's git passthrough command support will be removed in a later release.")
 		err = git.New(os.Args[1:]...).Run()
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
@@ -229,7 +252,7 @@ func Execute(initSkipped bool) {
 		// Pass unknown flags to git, if it also doesn't handle it, let lab
 		// handle the exit msg (help) and code.
 		if !initSkipped {
-			log.Println("Warning: lab's git passthrough command support will be removed in a later release.")
+			log.Warnln("lab's git passthrough command support will be removed in a later release.")
 			gitCmd := git.New(os.Args[1:]...)
 			gitCmd.Stderr = nil
 			gitCmd.Stdout = nil

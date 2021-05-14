@@ -3,7 +3,6 @@ package git
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,7 +15,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pkg/errors"
 	gitconfig "github.com/tcnksm/go-gitconfig"
+	"github.com/zaquestion/lab/internal/logger"
 )
+
+// Get internal lab logger instance
+var log = logger.GetInstance()
 
 // New looks up the git binary and returns a cmd which outputs to stdout
 func New(args ...string) *exec.Cmd {

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/rsteube/carapace"

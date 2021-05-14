@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"log"
 	"net/url"
 	"path"
 	"strconv"

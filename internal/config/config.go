@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,8 +19,12 @@ import (
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
+	"github.com/zaquestion/lab/internal/logger"
 	"golang.org/x/crypto/ssh/terminal"
 )
+
+// Get internal lab logger instance
+var log = logger.GetInstance()
 
 const defaultGitLabHost = "https://gitlab.com"
 
@@ -195,7 +198,7 @@ func getUser(host, token string, skipVerify bool) string {
 	lab, _ := gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"))
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
-		log.Print(err)
+		log.Infoln(err)
 		UserConfigError()
 	}
 
@@ -217,7 +220,7 @@ func GetToken() string {
 		args := strings.Split(MainConfig.GetString("core.load_token"), " ")
 		_token, err := exec.Command(args[0], args[1:]...).Output()
 		if err != nil {
-			log.Print(err)
+			log.Infoln(err)
 			UserConfigError()
 		}
 		token = string(_token)

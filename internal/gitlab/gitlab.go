@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -23,7 +22,11 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
+	"github.com/zaquestion/lab/internal/logger"
 )
+
+// Get internal lab logger instance
+var log = logger.GetInstance()
 
 var (
 	// ErrActionRepeated is returned when a GitLab action is executed again.  For example
@@ -92,7 +95,7 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 		},
 	}
 
-	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"))
+	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"), gitlab.WithCustomLeveledLogger(log))
 }
 
 func InitWithCustomCA(_host, _user, _token, caFile string) error {
@@ -284,7 +287,7 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 	//   https://docs.gitlab.com/ee/api/project_import_export.html#import-status
 	status, _, err := lab.ProjectImportExport.ImportStatus(fork.ID, nil)
 	if err != nil {
-		log.Printf("Impossible to get fork status: %s\n", err)
+		log.Infof("Impossible to get fork status: %s\n", err)
 	} else {
 		if wait {
 			for {
