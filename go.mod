@@ -24,6 +24,7 @@ require (
 	github.com/muesli/reflow v0.2.0 // indirect
 	github.com/muesli/termenv v0.7.4
 	github.com/onsi/gomega v1.4.3 // indirect
+	github.com/otiai10/copy v1.6.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/tview v0.0.0-20210125085121-dbc1f32bb1d0
