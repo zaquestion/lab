@@ -28,6 +28,9 @@ import (
 // Get internal lab logger instance
 var log = logger.GetInstance()
 
+// 100 is the maximum allowed by the API
+const maxItemsPerPage = 100
+
 var (
 	// ErrActionRepeated is returned when a GitLab action is executed again.  For example
 	// this can be returned when an MR is approved twice.
@@ -404,7 +407,7 @@ func MRGet(project interface{}, mrNum int) (*gitlab.MergeRequest, error) {
 // MRList lists the MRs on a GitLab project
 func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
 	if n == -1 {
-		opts.PerPage = 100
+		opts.PerPage = maxItemsPerPage
 	}
 	p, err := FindProject(project)
 	if err != nil {
@@ -482,8 +485,7 @@ func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) 
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListMergeRequestDiscussionsOptions{
 		// 100 is the maximum allowed by the API
-		PerPage: 100,
-		Page:    1,
+		PerPage: maxItemsPerPage,
 	}
 
 	for {
@@ -497,7 +499,7 @@ func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) 
 		discussions = append(discussions, d...)
 
 		// if we've seen all the pages, then we can break here
-		if opt.Page >= resp.TotalPages {
+		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
 
@@ -662,7 +664,7 @@ func IssueGet(project interface{}, issueNum int) (*gitlab.Issue, error) {
 // IssueList gets a list of issues on a GitLab Project
 func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
 	if n == -1 {
-		opts.PerPage = 100
+		opts.PerPage = maxItemsPerPage
 	}
 	p, err := FindProject(project)
 	if err != nil {
@@ -760,8 +762,7 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListIssueDiscussionsOptions{
 		// 100 is the maximum allowed by the API
-		PerPage: 100,
-		Page:    1,
+		PerPage: maxItemsPerPage,
 	}
 
 	for {
@@ -775,7 +776,7 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 		discussions = append(discussions, d...)
 
 		// if we've seen all the pages, then we can break here
-		if opt.Page >= resp.TotalPages {
+		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
 
@@ -829,7 +830,7 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 	labels := []*gitlab.Label{}
 	opt := &gitlab.ListLabelsOptions{
 		ListOptions: gitlab.ListOptions{
-			Page: 1,
+			PerPage: maxItemsPerPage,
 		},
 	}
 
@@ -842,7 +843,7 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 		labels = append(labels, l...)
 
 		// if we've seen all the pages, then we can break here
-		if opt.Page >= resp.TotalPages {
+		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
 
@@ -886,7 +887,6 @@ func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bra
 	}
 
 	branches := []*gitlab.Branch{}
-	opts.ListOptions.Page = 1
 	for {
 		bList, resp, err := lab.Branches.ListBranches(p.ID, opts)
 		if err != nil {
@@ -894,7 +894,7 @@ func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bra
 		}
 		branches = append(branches, bList...)
 
-		if opts.Page >= resp.TotalPages {
+		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
 		opts.Page = resp.NextPage
@@ -927,7 +927,6 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 	}
 
 	milestones := []*gitlab.Milestone{}
-	opt.ListOptions.Page = 1
 	for {
 		m, resp, err := lab.Milestones.ListMilestones(p.ID, opt)
 		if err != nil {
@@ -937,7 +936,7 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 		milestones = append(milestones, m...)
 
 		// if we've seen all the pages, then we can break here
-		if opt.Page >= resp.TotalPages {
+		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
 
@@ -960,7 +959,6 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 		IncludeParentMilestones: &includeParents,
 	}
 
-	gopt.ListOptions.Page = 1
 	for {
 		groupMilestones, resp, err := lab.GroupMilestones.ListGroupMilestones(p.Namespace.ID, gopt)
 		if err != nil {
@@ -983,7 +981,7 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 		}
 
 		// if we've seen all the pages, then we can break here
-		if gopt.Page >= resp.TotalPages {
+		if resp.CurrentPage >= resp.TotalPages {
 			break
 		}
 
@@ -1035,7 +1033,7 @@ func ProjectSnippetDelete(pid interface{}, id int) error {
 // ProjectSnippetList lists snippets on a project
 func ProjectSnippetList(pid interface{}, opts gitlab.ListProjectSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
 	if n == -1 {
-		opts.PerPage = 100
+		opts.PerPage = maxItemsPerPage
 	}
 	list, resp, err := lab.ProjectSnippets.ListSnippets(pid, &opts)
 	if err != nil {
@@ -1081,7 +1079,7 @@ func SnippetDelete(id int) error {
 // SnippetList lists snippets on a project
 func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
 	if n == -1 {
-		opts.PerPage = 100
+		opts.PerPage = maxItemsPerPage
 	}
 	list, resp, err := lab.Snippets.ListSnippets(&opts)
 	if err != nil {
@@ -1224,7 +1222,7 @@ func GroupSearch(query string) (*gitlab.Group, error) {
 func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: 500,
+			PerPage: maxItemsPerPage,
 		},
 	}
 
@@ -1683,7 +1681,7 @@ func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID 
 
 func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 	if n == -1 {
-		opts.PerPage = 100
+		opts.PerPage = maxItemsPerPage
 	}
 
 	list, resp, err := lab.Todos.ListTodos(&opts)
