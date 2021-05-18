@@ -56,22 +56,27 @@ var todoListCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			var state string
+			var (
+				state string
+				title string
+			)
 			if todo.TargetType == "MergeRequest" {
 				mr, err := lab.MRGet(todo.Project.ID, id)
 				if err != nil {
 					log.Fatal(err)
 				}
 				state = mr.State
-				if mr.WorkInProgress {
+				if mr.State == "opened" && mr.WorkInProgress {
 					state = "draft"
 				}
+				title = mr.Title
 			} else {
 				issue, err := lab.IssueGet(todo.Project.ID, id)
 				if err != nil {
 					log.Fatal(err)
 				}
 				state = issue.State
+				title = issue.Title
 			}
 
 			switch state {
@@ -85,7 +90,7 @@ var todoListCmd = &cobra.Command{
 				state = red(state)
 			}
 
-			fmt.Printf("%s %d %s ", state, todo.ID, todo.TargetURL)
+			fmt.Printf("%s %d \"%s\" ", state, todo.ID, title)
 
 			name := todo.Author.Name
 			if lab.User() == todo.Author.Username {
@@ -113,6 +118,8 @@ var todoListCmd = &cobra.Command{
 			default:
 				fmt.Printf("Unknown action %s\n", todo.ActionName)
 			}
+
+			fmt.Printf("       %s\n", todo.TargetURL)
 		}
 	},
 }
