@@ -110,7 +110,7 @@ Command-specific flags can be set in the config files.
 ```
 # Completions
 
-`lab` provides completions for [Bash], [Elvish], [Fish], [Powershell], [Xonsh] and [Zsh].
+`lab` provides completions for [Bash], [Elvish], [Fish], [Oil], [Powershell], [Xonsh] and [Zsh].
 Scripts can be directly sourced (though using pre-generated versions is recommended to avoid shell startup delay):
 
 ```sh
@@ -122,6 +122,9 @@ eval (lab completion|slurp)
 
 # fish (~/.config/fish/config.fish)
 lab completion | source
+
+# oil
+source <(gh _carapace)
 
 # powershell (~/.config/powershell/Microsoft.PowerShell_profile.ps1)
 Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
@@ -183,6 +186,7 @@ Enter GitLab host (default: https://gitlab.com):
 [Bash]:https://www.gnu.org/software/bash/
 [Elvish]:https://elv.sh/
 [Fish]:https://fishshell.com/
+[Oil]:http://www.oilshell.org/
 [Powershell]:https://microsoft.com/powershell
 [Xonsh]:https://xon.sh/
 [Zsh]:https://www.zsh.org/
