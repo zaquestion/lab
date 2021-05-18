@@ -63,6 +63,9 @@ var todoListCmd = &cobra.Command{
 					log.Fatal(err)
 				}
 				state = mr.State
+				if mr.WorkInProgress {
+					state = "draft"
+				}
 			} else {
 				issue, err := lab.IssueGet(todo.Project.ID, id)
 				if err != nil {
@@ -76,6 +79,8 @@ var todoListCmd = &cobra.Command{
 				state = green("open  ")
 			case "merged":
 				state = cyan("merged")
+			case "draft":
+				state = green("draft ")
 			default:
 				state = red(state)
 			}
