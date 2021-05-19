@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"text/template"
 
+	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/git"
@@ -130,6 +131,7 @@ func init() {
 			log.SetLogLevel(logger.LOG_NONE)
 		}
 	}
+	carapace.Gen(RootCmd)
 }
 
 var (
