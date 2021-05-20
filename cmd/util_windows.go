@@ -1,7 +1,5 @@
 // This file contains Windows specific calls.
 
-// +build windows
-
 package cmd
 
 // Even though Windows has a POSIX layer, it's implemented in userspace and,
