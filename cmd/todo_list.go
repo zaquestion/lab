@@ -44,39 +44,14 @@ var todoListCmd = &cobra.Command{
 				continue
 			}
 
-			delim := "merge_requests/"
-			if todo.TargetType == "Issue" {
-				delim = "issues/"
-			}
-
-			s := strings.Split(todo.TargetURL, delim)
-			s = strings.Split(s[1], "#")
-			id, err := strconv.Atoi(s[0])
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			var (
-				state string
-				title string
-			)
+			var state string
 			if todo.TargetType == "MergeRequest" {
-				mr, err := lab.MRGet(todo.Project.ID, id)
-				if err != nil {
-					log.Fatal(err)
-				}
-				state = mr.State
-				if mr.State == "opened" && mr.WorkInProgress {
+				state = todo.Target.State
+				if todo.Target.State == "opened" && todo.Target.WorkInProgress {
 					state = "draft"
 				}
-				title = mr.Title
 			} else {
-				issue, err := lab.IssueGet(todo.Project.ID, id)
-				if err != nil {
-					log.Fatal(err)
-				}
-				state = issue.State
-				title = issue.Title
+				state = todo.Target.State
 			}
 
 			switch state {
@@ -90,7 +65,7 @@ var todoListCmd = &cobra.Command{
 				state = red(state)
 			}
 
-			fmt.Printf("%s %d \"%s\" ", state, todo.ID, title)
+			fmt.Printf("%s %d \"%s\" ", state, todo.ID, todo.Target.Title)
 
 			name := todo.Author.Name
 			if lab.User() == todo.Author.Username {
