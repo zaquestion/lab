@@ -1,6 +1,6 @@
 // This file contains Darwin (MacOS) and *BSD specific calls.
 
-// +build darwin
+// +build freebsd openbsd dragonfly darwin
 
 package cmd
 
