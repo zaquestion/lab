@@ -1,6 +1,6 @@
-// This file contains Darwin (MacOS) specific calls.
+// This file contains Darwin (MacOS) and *BSD specific calls.
 
-// +build darwin
+// +build freebsd openbsd dragonfly darwin
 
 package cmd
 
@@ -8,8 +8,8 @@ package cmd
 // by Linux ARM64 not having the DUP2() anymore. With that, we need to
 // repeat the other code and func declarations that are the same.
 
-// FIXME: there MUST be some better way to do that... only dupFD2() should be
-// here.
+// FIXME: there MUST be some better way to do that... only dupFD2() should
+// be here.
 
 import "syscall"
 

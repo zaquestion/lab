@@ -1,13 +1,10 @@
 // This file contains Linux specific calls.
 
-// +build !windows,!darwin
-
 package cmd
 
 // Since we're using some system calls that are platform-specific, we need
-// to make sure we have a small layer of compatibility for Unix-like and
-// Windows operating systems. For now, this file is still valid for BSDs
-// (MacOS NOT included)
+// to make sure we have a small layer of compatibility for Linux, Windows
+// and *BSD operating systems.
 
 import "syscall"
 
