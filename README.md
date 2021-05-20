@@ -124,7 +124,7 @@ eval (lab completion|slurp)
 lab completion | source
 
 # oil
-source <(gh _carapace)
+source <(lab completion)
 
 # powershell (~/.config/powershell/Microsoft.PowerShell_profile.ps1)
 Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
