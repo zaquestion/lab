@@ -16,6 +16,7 @@ var (
 	todoNumRet string
 	targetType string
 	todoPretty bool
+	todoAll    bool
 )
 
 var todoListCmd = &cobra.Command{
@@ -101,7 +102,7 @@ var todoListCmd = &cobra.Command{
 
 func todoList(args []string) ([]*gitlab.Todo, error) {
 	num, err := strconv.Atoi(todoNumRet)
-	if err != nil {
+	if todoAll || (err != nil) {
 		num = -1
 	}
 
@@ -132,6 +133,7 @@ func init() {
 	todoListCmd.Flags().StringVarP(
 		&todoNumRet, "number", "n", "10",
 		"number of todos to return")
+	todoListCmd.Flags().BoolVarP(&todoAll, "all", "a", false, "list all Todos")
 
 	todoCmd.AddCommand(todoListCmd)
 }
