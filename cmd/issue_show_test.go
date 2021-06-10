@@ -21,8 +21,7 @@ func Test_issueShow(t *testing.T) {
 	}
 
 	out := string(b)
-	require.Contains(t, out, `
-#1 test issue for lab list
+	require.Contains(t, out, `#1 test issue for lab list
 ===================================
 
 -----------------------------------

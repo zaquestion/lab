@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/charmbracelet/glamour"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -207,26 +208,27 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		subscribed = "Yes"
 	}
 
-	fmt.Printf(`
-!%d %s
-===================================
-%s
------------------------------------
-Project: %s
-Branches: %s->%s
-Status: %s
-Assignee: %s
-Author: %s
-Approved By: %s
-Approvers: %s
-Approval Groups: %s
-Reviewers: %s
-Milestone: %s
-Labels: %s
-Issues Closed by this MR: %s
-Subscribed: %s
-WebURL: %s
-`,
+	fmt.Printf(
+		heredoc.Doc(`
+			!%d %s
+			===================================
+			%s
+			-----------------------------------
+			Project: %s
+			Branches: %s->%s
+			Status: %s
+			Assignee: %s
+			Author: %s
+			Approved By: %s
+			Approvers: %s
+			Approval Groups: %s
+			Reviewers: %s
+			Milestone: %s
+			Labels: %s
+			Issues Closed by this MR: %s
+			Subscribed: %s
+			WebURL: %s
+		`),
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
 		mr.TargetBranch, state, assignee, mr.Author.Username,
 		approvedByUsers, approvers, approverGroups, reviewers, milestone, labels,

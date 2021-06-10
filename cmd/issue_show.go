@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/charmbracelet/glamour"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -112,24 +113,24 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 		subscribed = "Yes"
 	}
 
-	fmt.Printf(`
-#%d %s
-===================================
-%s
------------------------------------
-Project: %s
-Status: %s
-Assignees: %s
-Author: %s
-Milestone: %s
-Due Date: %s
-Time Stats: %s
-Labels: %s
-Related MRs: %s
-MRs that will close this Issue: %s
-Subscribed: %s
-WebURL: %s
-`,
+	fmt.Printf(
+		heredoc.Doc(`#%d %s
+			===================================
+			%s
+			-----------------------------------
+			Project: %s
+			Status: %s
+			Assignees: %s
+			Author: %s
+			Milestone: %s
+			Due Date: %s
+			Time Stats: %s
+			Labels: %s
+			Related MRs: %s
+			MRs that will close this Issue: %s
+			Subscribed: %s
+			WebURL: %s
+		`),
 		issue.IID, issue.Title, issue.Description, project, state, strings.Join(assignees, ", "),
 		issue.Author.Username, milestone, dueDate, timestats,
 		strings.Join(issue.Labels, ", "),

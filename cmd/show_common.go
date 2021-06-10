@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/araddon/dateparse"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/glamour/ansi"
@@ -232,24 +233,28 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 				// system notes are informational messages only
 				// and cannot have replies.  Do not output the
 				// note.ID
-				printit(`
-* %s %s at %s
-`,
+				printit(
+					heredoc.Doc(`
+						* %s %s at %s
+					`),
 					note.Author.Username, splitNote[0], time.Time(*note.UpdatedAt).String())
 				if len(splitNote) == 2 {
 					if renderMarkdown {
 						splitNote[1], _ = mdRenderer.Render(splitNote[1])
 					}
-					printit(`%s
-`,
+					printit(
+						heredoc.Doc(`
+							%s
+						`),
 						splitNote[1])
 				}
 				continue
 			}
 
-			printit(`
-%s-----------------------------------
-`,
+			printit(
+				heredoc.Doc(`
+					%s-----------------------------------
+				`),
 				indentHeader)
 
 			if time.Time(*note.UpdatedAt).After(comparetime) {

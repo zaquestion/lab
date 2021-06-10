@@ -9,6 +9,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -119,9 +120,10 @@ func issueMsg(templateName string, msgs []string) (string, string, error) {
 }
 
 func issueText(templateName string) (string, error) {
-	const tmpl = `{{.InitMsg}}
-{{.CommentChar}} Write a message for this issue. The first block
-{{.CommentChar}} of text is the title and the rest is the description.`
+	tmpl := heredoc.Doc(`
+		{{.InitMsg}}
+		{{.CommentChar}} Write a message for this issue. The first block
+		{{.CommentChar}} of text is the title and the rest is the description.`)
 
 	templateFile := filepath.Join("issue_templates", templateName)
 	templateFile += ".md"

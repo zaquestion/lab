@@ -9,6 +9,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -103,8 +104,9 @@ func noteMsg(msgs []string, isMR bool, body string) (string, error) {
 }
 
 func noteText(body string) (string, error) {
-	const tmpl = `{{.InitMsg}}
-{{.CommentChar}} Write a message for this note. Commented lines are discarded.`
+	tmpl := heredoc.Doc(`
+		{{.InitMsg}}
+		{{.CommentChar}} Write a message for this note. Commented lines are discarded.`)
 
 	initMsg := body
 	commentChar := git.CommentChar()

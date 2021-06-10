@@ -187,10 +187,11 @@ func issueGetCurrentAssignees(issue *gitlab.Issue) []string {
 // editText returns an issue editing template that is suitable for loading
 // into an editor
 func editText(title string, body string) (string, error) {
-	const tmpl = `{{.InitMsg}}
+	tmpl := heredoc.Doc(`
+		{{.InitMsg}}
 
-{{.CommentChar}} Edit the title and/or description. The first block of text
-{{.CommentChar}} is the title and the rest is the description.`
+		{{.CommentChar}} Edit the title and/or description. The first block of text
+		{{.CommentChar}} is the title and the rest is the description.`)
 
 	msg := &struct {
 		InitMsg     string
