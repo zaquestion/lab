@@ -23,7 +23,7 @@ var mrCreateCmd = &cobra.Command{
 	Use:              "create [remote [remote_branch]]",
 	Aliases:          []string{"new"},
 	Short:            "Open a merge request on GitLab",
-	Long:             `Creates a merge request (default: MR created on default branch of origin)`,
+	Long:             "Creates a merge request.",
 	Args:             cobra.MaximumNArgs(2),
 	PersistentPreRun: LabPersistentPreRun,
 	Run:              runMRCreate,
@@ -72,7 +72,7 @@ func init() {
 
 func verifyRemoteAndBranch(projectID int, remote string, branch string) error {
 	if _, err := lab.GetCommit(projectID, branch); err != nil {
-		return fmt.Errorf("Aborting MR create, %s:%s is not a valid reference\n", remote, branch)
+		return fmt.Errorf("aborting MR create, %s:%s is not a valid reference", remote, branch)
 	}
 	return nil
 }
@@ -292,7 +292,7 @@ func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, cover
 		}
 	}
 	if numCommits == 0 {
-		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits\n", target, source)
+		return "", fmt.Errorf("aborting: The resulting Merge Request from %s to %s has 0 commits", target, source)
 	}
 
 	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}

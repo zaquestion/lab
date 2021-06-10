@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -12,10 +13,11 @@ var labelCreateCmd = &cobra.Command{
 	Use:     "create [remote] <name>",
 	Aliases: []string{"add"},
 	Short:   "Create a new label",
-	Long:    ``,
-	Example: `lab label create my-label
-lab label create --color cornflowerblue --description "Blue as a cornflower" blue
-lab label create --color #6495ed --description "Also blue as a cornflower" blue2`,
+	Example: heredoc.Doc(`
+		lab label create my-label
+		lab label create --color cornflowerblue --description "Blue as a cornflower" blue
+		lab label create --color #6495ed --description "Also blue as a cornflower" blue2
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -19,13 +20,19 @@ var ciCreateCmd = &cobra.Command{
 	Use:     "create [branch]",
 	Aliases: []string{"run"},
 	Short:   "Create a CI pipeline",
-	Long: `Run the CI pipeline for the given or current branch if none provided. This API uses your GitLab token to create CI pipelines
+	Long: heredoc.Doc(`
+		Run the CI pipeline for the given or current branch if none provided.
+		This API uses your GitLab token to create CI pipelines
 
-Project will be inferred from branch if not provided
+		Project will be inferred from branch if not provided
 
-Note: "lab ci create" differs from "lab ci trigger" which is a different API`,
-	Example: `lab ci create feature_branch
-lab ci create -p engineering/integration_tests master`,
+		Note: "lab ci create" differs from "lab ci trigger" which is a
+		different API
+	`),
+	Example: heredoc.Doc(`
+		lab ci create feature_branch
+		lab ci create -p engineering/integration_tests master
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)
@@ -47,14 +54,19 @@ lab ci create -p engineering/integration_tests master`,
 var ciTriggerCmd = &cobra.Command{
 	Use:   "trigger [branch]",
 	Short: "Trigger a CI pipeline",
-	Long: `Runs a trigger for a CI pipeline on the given or current branch if none provided. This API supports variables and must be called with a trigger token or from within GitLab CI.
+	Long: heredoc.Doc(`
+		Runs a trigger for a CI pipeline on the given or current branch if none provided.
+		This API supports variables and must be called with a trigger token or from within GitLab CI.
 
-Project will be inferred from branch if not provided
+		Project will be inferred from branch if not provided
 
-Note: "lab ci trigger" differs from "lab ci create" which is a different API`,
-	Example: `lab ci trigger feature_branch
-lab ci trigger -p engineering/integration_tests master
-lab ci trigger -p engineering/integration_tests -v foo=bar master`,
+		Note: "lab ci trigger" differs from "lab ci create" which is a different API
+	`),
+	Example: heredoc.Doc(`
+		lab ci trigger feature_branch
+		lab ci trigger -p engineering/integration_tests master
+		lab ci trigger -p engineering/integration_tests -v foo=bar master
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)

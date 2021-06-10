@@ -6,6 +6,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -19,9 +20,10 @@ var ciStatusCmd = &cobra.Command{
 	Use:     "status [branch]",
 	Aliases: []string{"run"},
 	Short:   "Textual representation of a CI pipeline",
-	Long:    ``,
-	Example: `lab ci status
-lab ci status --wait`,
+	Example: heredoc.Doc(`
+		lab ci status
+		lab ci status --wait
+	`),
 	RunE:             nil,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -40,12 +41,13 @@ var listCmd = &cobra.Command{
 	Use:     "list [remote] [search]",
 	Aliases: []string{"ls", "search"},
 	Short:   "List merge requests",
-	Long:    ``,
 	Args:    cobra.MaximumNArgs(2),
-	Example: `lab mr list
-lab mr list "search terms"         # search merge requests for "search terms"
-lab mr search "search terms"       # same as above
-lab mr list remote "search terms"  # search "remote" for merge requests with "search terms"`,
+	Example: heredoc.Doc(`
+		lab mr list
+		lab mr list "search terms"
+		lab mr list --target-branch main
+		lab mr list remote --target-branch main --label my-label --all
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)

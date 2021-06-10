@@ -1,6 +1,7 @@
 module github.com/zaquestion/lab
 
 require (
+	github.com/MakeNowJust/heredoc/v2 v2.0.1
 	github.com/Microsoft/go-winio v0.4.15 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/alecthomas/chroma v0.8.1 // indirect

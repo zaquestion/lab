@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/gdamore/tcell/v2"
 	"github.com/pkg/errors"
 	"github.com/rivo/tview"
@@ -32,16 +33,17 @@ var (
 var ciViewCmd = &cobra.Command{
 	Use:   "view [remote [branch/tag]]",
 	Short: "View, run, trace, and/or cancel CI jobs current pipeline",
-	Long: `Supports viewing, running, tracing, and canceling jobs
+	Long: heredoc.Doc(`
+		Supports viewing, running, tracing, and canceling jobs.
 
-'r', 'p' to run/retry/play a job -- Tab navigates modal and Enter to confirm
-'t' to toggle trace/logs (runs in background, so you can jump in and out)
-'T' to toggle trace/logs by suspending application (similar to lab ci trace)
-'c' to cancel job
+		The <tab> key navigates and <enter> confirms. Also supports vi style
+		(hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
 
-Supports vi style (hjkl,Gg) bindings and arrow keys for navigating jobs and logs.
-
-Feedback Encouraged!: https://github.com/zaquestion/lab/issues`,
+		'r', 'p' to run/retry/play a job
+		't' to toggle trace/logs (runs in background)
+		'T' to toggle trace/logs (suspending application)
+		'c' to cancel job
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()

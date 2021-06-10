@@ -11,7 +11,6 @@ var milestoneDeleteCmd = &cobra.Command{
 	Use:              "delete [remote] <name>",
 	Aliases:          []string{"remove"},
 	Short:            "Deletes an existing milestone",
-	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

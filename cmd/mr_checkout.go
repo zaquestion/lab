@@ -28,7 +28,6 @@ var (
 var checkoutCmd = &cobra.Command{
 	Use:              "checkout [remote] <id>",
 	Short:            "Checkout an open merge request",
-	Long:             ``,
 	Args:             cobra.RangeArgs(1, 2),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

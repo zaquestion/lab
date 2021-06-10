@@ -14,14 +14,12 @@ var mrThumbCmd = &cobra.Command{
 	Aliases:          []string{},
 	Short:            "Thumb operations on merge requests",
 	PersistentPreRun: LabPersistentPreRun,
-	Long:             ``,
 }
 
 var mrThumbUpCmd = &cobra.Command{
 	Use:              "up [remote] <id>",
 	Aliases:          []string{},
 	Short:            "Thumb up merge request",
-	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
@@ -46,7 +44,6 @@ var mrThumbDownCmd = &cobra.Command{
 	Use:     "down [remote] <id>",
 	Aliases: []string{},
 	Short:   "Thumbs down merge request",
-	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)
 		if err != nil {

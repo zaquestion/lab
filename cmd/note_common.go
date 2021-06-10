@@ -15,7 +15,6 @@ import (
 )
 
 func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
-
 	var err error
 
 	body := ""

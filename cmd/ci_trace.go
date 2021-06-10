@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -20,10 +21,24 @@ import (
 
 // ciLintCmd represents the lint command
 var ciTraceCmd = &cobra.Command{
-	Use:              "trace [remote [[branch:]job]]",
-	Aliases:          []string{"logs"},
-	Short:            "Trace the output of a ci job",
-	Long:             `If a job is not specified the latest running job or last job in the pipeline is used`,
+	Use:     "trace [remote] [branch[:job]]",
+	Aliases: []string{"logs"},
+	Short:   "Trace the output of a ci job",
+	Long: heredoc.Doc(`
+		Download the CI pipeline job artifacts for the given or current branch if
+		none provided. If a job is not specified the latest running job or last
+		job in the pipeline is used
+
+		The branch name, when using with the --merge-request option, can be the
+		merge request number, which matches the branch name internally.	The "job"
+		portion is the given job name, which may contain whitespace characters
+		and which, for this specific case, must be quoted.
+	`),
+	Example: heredoc.Doc(`
+		lab ci trace upstream feature_branch
+		lab ci trace upstream 18 --merge-request
+		lab ci trace upstream 18:'my custom stage' --merge-request
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -20,13 +21,13 @@ var issueEditCmd = &cobra.Command{
 	Use:     "edit [remote] <id>[:<comment_id>]",
 	Aliases: []string{"update"},
 	Short:   "Edit or update an issue",
-	Long:    ``,
-	Example: `lab issue edit <id>                                # update issue via $EDITOR
-lab issue update <id>                              # same as above
-lab issue edit <id> -m "new title"                 # update title
-lab issue edit <id> -m "new title" -m "new desc"   # update title & description
-lab issue edit <id> -l newlabel --unlabel oldlabel # relabel issue
-lab issue edit <id>:<comment_id>                   # update a comment on MR`,
+	Example: heredoc.Doc(`
+		lab issue edit <id>
+		lab issue edit <id> -m "new title"
+		lab issue edit <id> -m "new title" -m "new desc"
+		lab issue edit <id> -l new_label --unlabel old_label
+		lab issue edit <id>:<comment_id>
+	`),
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

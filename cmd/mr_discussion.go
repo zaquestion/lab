@@ -20,7 +20,6 @@ import (
 var mrCreateDiscussionCmd = &cobra.Command{
 	Use:              "discussion [remote] <id>",
 	Short:            "Start a discussion on an MR on GitLab",
-	Long:             ``,
 	Aliases:          []string{"block", "thread"},
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

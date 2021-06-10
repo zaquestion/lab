@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
@@ -14,20 +15,24 @@ import (
 var projectCreateCmd = &cobra.Command{
 	Use:   "create [path]",
 	Short: "Create a new project on GitLab",
-	Long: `Create a new project on GitLab.
+	Long: heredoc.Doc(`
+		Create a new project on GitLab.
 
-path refers to the path on GitLab not including the group/namespace. If no path
-or name is provided and the current directory is a git repo, the name of the
-current working directory will be used.`,
-	Example: `# this command...                          # creates this project
-lab project create                         # user/<curr dir> named <curr dir>
-                                           # (above only works w/i git repo)
-lab project create myproject               # user/myproject named myproject
-lab project create myproject -n "new proj" # user/myproject named "new proj"
-lab project create -n "new proj"           # user/new-proj named "new proj"
+		"path" refers to the path on GitLab not including the group/namespace.
+		If no path or name is provided and the current directory is a git repo,
+		the name of the	current working directory will be used.
+	`),
+	Example: heredoc.Doc(`
+		# this command...                          # creates this project
+		lab project create                         # user/<curr dir> named <curr dir>
+		                                           # (above only works within a git repo)
+		lab project create myproject               # user/myproject named myproject
+		lab project create myproject -n "new proj" # user/myproject named "new proj"
+		lab project create -n "new proj"           # user/new-proj named "new proj"
 
-lab project create mygroup/myproject       # mygroup/myproject named myproject
-lab project create -g mygroup myproject    # mygroup/myproject named myproject`,
+		lab project create mygroup/myproject       # mygroup/myproject named myproject
+		lab project create -g mygroup myproject    # mygroup/myproject named myproject
+	`),
 	Args:             cobra.MaximumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

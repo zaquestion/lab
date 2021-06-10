@@ -15,7 +15,6 @@ var (
 var todoDoneCmd = &cobra.Command{
 	Use:              "done",
 	Short:            "Mark todo list entry as Done",
-	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		if all {
