@@ -11,7 +11,7 @@ var mrNoteCmd = &cobra.Command{
 	Aliases:          []string{"comment", "reply", "resolve"},
 	Short:            "Add a note or comment to an MR on GitLab",
 	PersistentPreRun: LabPersistentPreRun,
-	Run:              NoteRunFn,
+	Run:              noteRunFn,
 }
 
 func init() {
