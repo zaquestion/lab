@@ -418,8 +418,8 @@ func Test_flag_config_FT(t *testing.T) {
 func Test_versionCmd(t *testing.T) {
 
 	t.Run("version", func(t *testing.T) {
-		lab_cmd := exec.Command(labBinaryPath, "version")
-		out, err := lab_cmd.CombinedOutput()
+		labCmd := exec.Command(labBinaryPath, "version")
+		out, err := labCmd.CombinedOutput()
 		if err != nil {
 			t.Log(string(out))
 			t.Fatal(err)

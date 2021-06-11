@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	CommandPrefix string
+	commandPrefix string
 	// http vs ssh protocol control flag
 	useHTTP bool
 )
@@ -39,13 +39,13 @@ func flagConfig(fs *flag.FlagSet) {
 
 		switch f.Value.Type() {
 		case "bool":
-			configValue = getMainConfig().GetBool(CommandPrefix + f.Name)
+			configValue = getMainConfig().GetBool(commandPrefix + f.Name)
 			configString = strconv.FormatBool(configValue.(bool))
 		case "string":
-			configValue = getMainConfig().GetString(CommandPrefix + f.Name)
+			configValue = getMainConfig().GetString(commandPrefix + f.Name)
 			configString = configValue.(string)
 		case "stringSlice":
-			configValue = getMainConfig().GetStringSlice(CommandPrefix + f.Name)
+			configValue = getMainConfig().GetStringSlice(commandPrefix + f.Name)
 			configString = strings.Join(configValue.([]string), " ")
 		case "int":
 			log.Fatal("ERROR: found int flag, use string instead: ", f.Value.Type(), f)
@@ -382,18 +382,18 @@ func filterCommentArg(args []string) (int, []string, error) {
 // would return 'issue_list.'
 func setCommandPrefix(scmd *cobra.Command) {
 	for _, command := range RootCmd.Commands() {
-		if CommandPrefix != "" {
+		if commandPrefix != "" {
 			break
 		}
 		commandName := strings.Split(command.Use, " ")[0]
 		if scmd == command {
-			CommandPrefix = commandName + "."
+			commandPrefix = commandName + "."
 			break
 		}
 		for _, subcommand := range command.Commands() {
 			subCommandName := commandName + "_" + strings.Split(subcommand.Use, " ")[0]
 			if scmd == subcommand {
-				CommandPrefix = subCommandName + "."
+				commandPrefix = subCommandName + "."
 				break
 			}
 		}
