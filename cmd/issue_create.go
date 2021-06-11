@@ -60,7 +60,7 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		labels, err := MapLabels(rn, labelTerms)
+		labels, err := mapLabels(rn, labelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}

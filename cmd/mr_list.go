@@ -70,7 +70,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		return nil, err
 	}
 
-	labels, err := MapLabels(rn, mrLabels)
+	labels, err := mapLabels(rn, mrLabels)
 	if err != nil {
 		return nil, err
 	}

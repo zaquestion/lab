@@ -55,7 +55,7 @@ var labelListCmd = &cobra.Command{
 	},
 }
 
-func MapLabels(rn string, labelTerms []string) ([]string, error) {
+func mapLabels(rn string, labelTerms []string) ([]string, error) {
 	// Don't bother fetching project labels if nothing is being really requested
 	if len(labelTerms) == 0 {
 		return []string{}, nil

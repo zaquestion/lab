@@ -19,7 +19,7 @@ var labelDeleteCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		labels, err := MapLabels(rn, []string{name})
+		labels, err := mapLabels(rn, []string{name})
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -61,7 +61,7 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 	}
 	issueSearch = search
 
-	labels, err := MapLabels(rn, issueLabels)
+	labels, err := mapLabels(rn, issueLabels)
 	if err != nil {
 		return nil, err
 	}
