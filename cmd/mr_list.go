@@ -55,7 +55,7 @@ var listCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		for _, mr := range mrs {

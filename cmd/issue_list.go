@@ -45,7 +45,7 @@ var issueListCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		for _, issue := range issues {

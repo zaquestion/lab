@@ -418,20 +418,20 @@ func isOutputTerminal() bool {
 	return true
 }
 
-type Pager struct {
+type pager struct {
 	proc   *os.Process
 	stdout int
 }
 
 // If standard output is a terminal, redirect output to an external
 // pager until the returned object's Close() method is called
-func NewPager(fs *flag.FlagSet) *Pager {
+func newPager(fs *flag.FlagSet) *pager {
 	cmdLine, env := git.PagerCommand()
 	args := strings.Split(cmdLine, " ")
 
 	noPager, _ := fs.GetBool("no-pager")
 	if !isOutputTerminal() || noPager || args[0] == "cat" {
-		return &Pager{}
+		return &pager{}
 	}
 
 	pr, pw, _ := os.Pipe()
@@ -446,19 +446,20 @@ func NewPager(fs *flag.FlagSet) *Pager {
 	savedStdout, _ := dupFD(sysStdout)
 	_ = dupFD2(int(pw.Fd()), sysStdout)
 
-	return &Pager{
+	return &pager{
 		proc:   proc,
 		stdout: savedStdout,
 	}
 }
 
-func (pager *Pager) Close() {
-	if pager.stdout > 0 {
-		_ = dupFD2(pager.stdout, sysStdout)
-		_ = closeFD(pager.stdout)
+// Close closes the pager
+func (p *pager) Close() {
+	if p.stdout > 0 {
+		_ = dupFD2(p.stdout, sysStdout)
+		_ = closeFD(p.stdout)
 	}
-	if pager.proc != nil {
-		pager.proc.Wait()
+	if p.proc != nil {
+		p.proc.Wait()
 	}
 }
 

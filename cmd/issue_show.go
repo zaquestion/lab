@@ -41,7 +41,7 @@ var issueShowCmd = &cobra.Command{
 			renderMarkdown = !noMarkdown
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		printIssue(issue, rn, renderMarkdown)
