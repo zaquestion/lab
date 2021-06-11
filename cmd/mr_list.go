@@ -85,7 +85,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrAssignee != "" {
 		mrAssigneeID = getUserID(mrAssignee)
 		if mrAssigneeID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", mrAssignee))
+			log.Fatalf("%s user not found\n", mrAssignee)
 		}
 	} else if mrMine {
 		assigneeID, err := lab.UserID()
@@ -98,7 +98,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrAuthor != "" {
 		mrAuthorID = getUserID(mrAuthor)
 		if mrAuthorID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", mrAuthor))
+			log.Fatalf("%s user not found\n", mrAuthor)
 		}
 	}
 
@@ -113,7 +113,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrReviewer != "" {
 		mrReviewerID = getUserID(mrReviewer)
 		if mrReviewerID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", mrReviewer))
+			log.Fatalf("%s user not found\n", mrReviewer)
 		}
 	}
 

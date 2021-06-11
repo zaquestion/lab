@@ -73,7 +73,7 @@ func init() {
 
 func verifyRemoteAndBranch(projectID int, remote string, branch string) error {
 	if _, err := lab.GetCommit(projectID, branch); err != nil {
-		return fmt.Errorf("Aborting MR create, %s:%s is not a valid reference", remote, branch)
+		return fmt.Errorf("%s:%s is not a valid reference", remote, branch)
 	}
 	return nil
 }
@@ -124,7 +124,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		sourceRemote = sourceParts[0]
 		sourceBranch = sourceParts[1]
 		if sourceRemote == "" || sourceBranch == "" {
-			log.Fatal(fmt.Errorf("Error: Source remote must have format remote:remote_branch.\n"))
+			log.Fatalf("source remote must have format remote:remote_branch.\n")
 		}
 
 		_, err := git.IsRemote(sourceRemote)
@@ -154,7 +154,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		targetRemote = args[0]
 		ok, err := git.IsRemote(targetRemote)
 		if err != nil || !ok {
-			log.Fatal(fmt.Errorf("%s is not a valid remote\n", targetRemote))
+			log.Fatalf("%s is not a valid remote\n", targetRemote)
 		}
 	}
 	targetProjectName, err := git.PathWithNameSpace(targetRemote)
@@ -232,7 +232,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	}
 
 	if title == "" {
-		log.Fatal("aborting MR due to empty MR msg")
+		log.Fatal("empty MR message")
 	}
 
 	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
@@ -293,7 +293,7 @@ func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, cover
 		}
 	}
 	if numCommits == 0 {
-		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits", target, source)
+		return "", fmt.Errorf("the resulting MR from %s to %s has 0 commits", target, source)
 	}
 
 	tmpl := heredoc.Doc(`

@@ -84,14 +84,14 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 	if issueAuthor != "" {
 		issueAuthorID = getUserID(issueAuthor)
 		if issueAuthorID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", issueAuthor))
+			log.Fatalf("%s user not found\n", issueAuthor)
 		}
 	}
 
 	if issueAssignee != "" {
 		issueAssigneeID = getUserID(issueAssignee)
 		if issueAssigneeID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", issueAssignee))
+			log.Fatalf("%s user not found\n", issueAssignee)
 		}
 	}
 
