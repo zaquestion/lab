@@ -108,9 +108,8 @@ func determineNamespacePath(args []string, name string) (string, string) {
 		ps := strings.Split(args[0], "/")
 		if len(ps) == 1 {
 			return "", ps[0]
-		} else {
-			return strings.Join(ps[:len(ps)-1], "/"), ps[len(ps)-1]
 		}
+		return strings.Join(ps[:len(ps)-1], "/"), ps[len(ps)-1]
 	}
 	if path == "" && name == "" && git.InsideGitRepo() {
 		wd, err := git.WorkingDir()
