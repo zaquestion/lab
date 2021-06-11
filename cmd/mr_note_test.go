@@ -12,7 +12,7 @@ import (
 )
 
 // #3952 is not special, it's just a place to dump discussions as mr #1 filled up, long term should update the tests clean up what they create
-const mrCommentSlashDiscussionDumpsterID = "3952"
+const mrCommentSlashDiscussionDumpsterID = "3953"
 
 func Test_mrCreateNote(t *testing.T) {
 	tests := []struct {
