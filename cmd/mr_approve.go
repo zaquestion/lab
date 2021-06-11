@@ -14,7 +14,7 @@ var mrApproveCmd = &cobra.Command{
 	Use:              "approve [remote] <id>",
 	Aliases:          []string{},
 	Short:            "Approve merge request",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

@@ -25,7 +25,7 @@ var cloneCmd = &cobra.Command{
 		lab clone company/awesome-repo
 		lab clone company/backend-team/awesome-repo
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])
 		if err == gitlab.ErrProjectNotFound {

@@ -25,7 +25,7 @@ var ciStatusCmd = &cobra.Command{
 		lab ci status --wait
 	`),
 	RunE:             nil,
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn  string

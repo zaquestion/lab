@@ -33,7 +33,7 @@ var ciCreateCmd = &cobra.Command{
 		lab ci create feature_branch
 		lab ci create -p engineering/integration_tests master
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)
 		if err != nil {
@@ -67,7 +67,7 @@ var ciTriggerCmd = &cobra.Command{
 		lab ci trigger -p engineering/integration_tests master
 		lab ci trigger -p engineering/integration_tests -v foo=bar master
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)
 		if err != nil {

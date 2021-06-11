@@ -21,7 +21,7 @@ var labelListCmd = &cobra.Command{
 		lab label list "search term"
 		lab label list remote "search term"
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, labelSearch, err := parseArgsRemoteAndProject(args)
 		if err != nil {

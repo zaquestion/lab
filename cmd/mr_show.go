@@ -25,7 +25,7 @@ var mrShowCmd = &cobra.Command{
 	Aliases:          []string{"get"},
 	ArgAliases:       []string{"s"},
 	Short:            "Describe a merge request",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

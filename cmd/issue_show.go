@@ -19,7 +19,7 @@ var issueShowCmd = &cobra.Command{
 	Aliases:          []string{"get"},
 	ArgAliases:       []string{"s"},
 	Short:            "Describe an issue",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		rn, issueNum, err := parseArgsRemoteAndID(args)

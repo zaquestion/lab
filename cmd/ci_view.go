@@ -44,7 +44,7 @@ var ciViewCmd = &cobra.Command{
 		'T' to toggle trace/logs (suspending application)
 		'c' to cancel job
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()
 		defer recoverPanic(a)

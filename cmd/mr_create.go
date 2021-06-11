@@ -26,7 +26,7 @@ var mrCreateCmd = &cobra.Command{
 	Short:            "Open a merge request on GitLab",
 	Long:             "Creates a merge request.",
 	Args:             cobra.MaximumNArgs(2),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run:              runMRCreate,
 }
 

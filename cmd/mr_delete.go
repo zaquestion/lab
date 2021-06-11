@@ -17,7 +17,7 @@ var mrDeleteCmd = &cobra.Command{
 		of the main remote.
 	`),
 	Args:             cobra.MaximumNArgs(2),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

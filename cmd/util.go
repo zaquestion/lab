@@ -463,7 +463,7 @@ func (p *pager) Close() {
 	}
 }
 
-func LabPersistentPreRun(cmd *cobra.Command, args []string) {
+func labPersistentPreRun(cmd *cobra.Command, args []string) {
 	flagConfig(cmd.Flags())
 }
 

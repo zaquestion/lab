@@ -27,7 +27,7 @@ var mrEditCmd = &cobra.Command{
 		lab mr edit <id> -l new_label --unlabel old_label
 		lab mr edit <id>:<comment_id>
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		commentNum, branchArgs, err := filterCommentArg(args)
 		if err != nil {

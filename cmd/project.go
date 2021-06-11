@@ -9,7 +9,7 @@ var projectCmd = &cobra.Command{
 	Use:              "project",
 	Aliases:          []string{"repo"},
 	Short:            "Perform project level operations on GitLab",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 }
 
 func init() {

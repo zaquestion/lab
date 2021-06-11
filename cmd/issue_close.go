@@ -16,7 +16,7 @@ var issueCloseCmd = &cobra.Command{
 	Aliases:          []string{"delete"},
 	Short:            "Close issue by ID",
 	Args:             cobra.MinimumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Example: heredoc.Doc(`
 		lab issue close 1234
 		lab issue close --duplicate 123 1234

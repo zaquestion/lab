@@ -9,7 +9,7 @@ var projectBrowseCmd = &cobra.Command{
 	Use:              "browse [remote]",
 	Aliases:          []string{"b"},
 	Short:            "View project in a browser",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, _, err := parseArgsRemoteAndID(args)
 		if err != nil {

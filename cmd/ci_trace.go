@@ -39,7 +39,7 @@ var ciTraceCmd = &cobra.Command{
 		lab ci trace upstream 18 --merge-request
 		lab ci trace upstream 18:'my custom stage' --merge-request
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn      string

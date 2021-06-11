@@ -38,7 +38,7 @@ var forkCmd = &cobra.Command{
 		lab fork origin --name new-awasome-project
 	`),
 	Args:             cobra.MaximumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		skipClone, _ = cmd.Flags().GetBool("skip-clone")
 		noWaitFork, _ := cmd.Flags().GetBool("no-wait")

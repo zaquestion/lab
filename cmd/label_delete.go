@@ -11,7 +11,7 @@ var labelDeleteCmd = &cobra.Command{
 	Use:              "delete [remote] <name>",
 	Aliases:          []string{"remove"},
 	Short:            "Deletes an existing label",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, name, err := parseArgsRemoteAndProject(args)

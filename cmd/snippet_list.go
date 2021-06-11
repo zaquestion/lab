@@ -21,7 +21,7 @@ var snippetListCmd = &cobra.Command{
 	Use:              "list [remote]",
 	Aliases:          []string{"ls"},
 	Short:            "List personal or project snippets",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		snips, err := snippetList(args)
 		if err != nil {

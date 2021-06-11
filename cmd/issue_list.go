@@ -38,7 +38,7 @@ var issueListCmd = &cobra.Command{
 		lab issue list "search terms"
 		lab issue list remote "search terms"
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := issueList(args)
 		if err != nil {

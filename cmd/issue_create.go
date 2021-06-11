@@ -23,7 +23,7 @@ var issueCreateCmd = &cobra.Command{
 	Aliases:          []string{"new"},
 	Short:            "Open an issue on GitLab",
 	Args:             cobra.MaximumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {

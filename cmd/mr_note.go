@@ -10,7 +10,7 @@ var mrNoteCmd = &cobra.Command{
 	Use:              "note [remote] <id>[:<comment_id>]",
 	Aliases:          []string{"comment", "reply", "resolve"},
 	Short:            "Add a note or comment to an MR on GitLab",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run:              noteRunFn,
 }
 

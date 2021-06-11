@@ -12,7 +12,7 @@ var mergeRequestCmd = &cobra.Command{
 	Short:            mrCreateCmd.Short,
 	Long:             mrCreateCmd.Long,
 	Args:             mrCreateCmd.Args,
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		runMRCreate(cmd, args)
 	},

@@ -13,7 +13,7 @@ var issueBrowseCmd = &cobra.Command{
 	Use:              "browse [remote] <id>",
 	Aliases:          []string{"b"},
 	Short:            "View issue in a browser",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, num, err := parseArgsRemoteAndID(args)
 		if err != nil {

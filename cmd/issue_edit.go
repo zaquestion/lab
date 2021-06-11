@@ -29,7 +29,7 @@ var issueEditCmd = &cobra.Command{
 		lab issue edit <id>:<comment_id>
 	`),
 	Args:             cobra.MinimumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		rn, idString, err := parseArgsRemoteAndProject(args)

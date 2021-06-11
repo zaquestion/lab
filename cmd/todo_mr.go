@@ -12,7 +12,7 @@ var todoMRCmd = &cobra.Command{
 	Use:              "mr",
 	Short:            "Add a Merge Request to Todo list",
 	Example:          "lab todo mr 1234    #adds MR 1234 to user's Todo list",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, err := getRemoteName("")
 		if err != nil {

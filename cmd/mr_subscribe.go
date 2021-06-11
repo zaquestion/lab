@@ -13,7 +13,7 @@ var mrSubscribeCmd = &cobra.Command{
 	Use:              "subscribe [remote] <id>",
 	Aliases:          []string{},
 	Short:            "Subscribe to merge request",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

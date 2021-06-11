@@ -13,7 +13,7 @@ var mrUnsubscribeCmd = &cobra.Command{
 	Use:              "unsubscribe [remote] <id>",
 	Aliases:          []string{},
 	Short:            "Unubscribe from merge request",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

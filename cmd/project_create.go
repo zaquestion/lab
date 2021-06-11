@@ -34,7 +34,7 @@ var projectCreateCmd = &cobra.Command{
 		lab project create -g mygroup myproject    # mygroup/myproject named myproject
 	`),
 	Args:             cobra.MaximumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			name, _  = cmd.Flags().GetString("name")

@@ -10,7 +10,7 @@ import (
 var mrRebaseCmd = &cobra.Command{
 	Use:              "rebase [remote] <id>",
 	Short:            "Rebase an open merge request",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

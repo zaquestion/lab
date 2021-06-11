@@ -16,7 +16,7 @@ var issueMoveCmd = &cobra.Command{
 	Long:             ``,
 	Example:          "lab issue move 5 zaquestion/test/           # FQDN must match",
 	Args:             cobra.MinimumNArgs(2),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		// get this rn
 		srcRN, err := getRemoteName(defaultRemote)

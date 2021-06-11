@@ -13,7 +13,7 @@ var milestoneCreateCmd = &cobra.Command{
 	Aliases:          []string{"add"},
 	Short:            "Create a new milestone",
 	Example:          "lab milestone create my-milestone",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, title, err := parseArgsRemoteAndProject(args)

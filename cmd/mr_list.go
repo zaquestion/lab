@@ -48,7 +48,7 @@ var listCmd = &cobra.Command{
 		lab mr list --target-branch main
 		lab mr list remote --target-branch main --label my-label --all
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)
 		if err != nil {
