@@ -9,16 +9,6 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
-// editGetLabels returns a string slice of labels based on the current
-// labels and flags from the command line, and a bool indicating whether
-// the labels have changed
-func editGetLabels(idLabels []string, labels []string, unlabels []string) ([]string, bool, error) {
-	// add the new labels to the current labels, then remove the "unlabels"
-	labels = difference(union(idLabels, labels), unlabels)
-
-	return labels, !same(idLabels, labels), nil
-}
-
 // GetUpdateUsers returns an int slice of user IDs based on the
 // current users and flags from the command line, and a bool
 // indicating whether the users have changed
