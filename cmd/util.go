@@ -1,4 +1,5 @@
 // This file contains common functions that are shared in the lab package
+
 package cmd
 
 import (

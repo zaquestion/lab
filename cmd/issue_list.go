@@ -55,10 +55,11 @@ var issueListCmd = &cobra.Command{
 }
 
 func issueList(args []string) ([]*gitlab.Issue, error) {
-	rn, issueSearch, err := parseArgsRemoteAndProject(args)
+	rn, search, err := parseArgsRemoteAndProject(args)
 	if err != nil {
 		return nil, err
 	}
+	issueSearch = search
 
 	labels, err := MapLabels(rn, issueLabels)
 	if err != nil {
