@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 
@@ -8,10 +9,13 @@ import (
 )
 
 var mrDeleteCmd = &cobra.Command{
-	Use:              "delete [remote] <id>",
-	Aliases:          []string{"del"},
-	Short:            "Delete a merge request on GitLab",
-	Long:             `Delete a merge request (default: MR created on default branch of origin)`,
+	Use:     "delete [remote] <id>",
+	Aliases: []string{"del"},
+	Short:   "Delete a merge request on GitLab",
+	Long: heredoc.Doc(`
+		Delete a specific merge request or the one created on the default
+		of the main remote.
+	`),
 	Args:             cobra.MaximumNArgs(2),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

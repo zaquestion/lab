@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/action"
@@ -13,13 +14,14 @@ import (
 var issueCloseCmd = &cobra.Command{
 	Use:              "close [remote] <id>",
 	Aliases:          []string{"delete"},
-	Short:            "Close issue by id",
-	Long:             ``,
+	Short:            "Close issue by ID",
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
-	Example: `lab issue close 1234
-lab issue close --duplicate 123 1234
-lab issue close --duplicate other-project#123 1234`,
+	Example: heredoc.Doc(`
+		lab issue close 1234
+		lab issue close --duplicate 123 1234
+		lab issue close --duplicate other-project#123 1234
+	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)
 		if err != nil {

@@ -13,7 +13,6 @@ var issueNoteCmd = &cobra.Command{
 	Use:              "note [remote] <id>[:<comment_id>]",
 	Aliases:          []string{"comment", "reply"},
 	Short:            "Add a note or comment to an issue on GitLab",
-	Long:             ``,
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run:              NoteRunFn,

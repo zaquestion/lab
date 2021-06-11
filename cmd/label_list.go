@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -15,11 +16,11 @@ var labelListCmd = &cobra.Command{
 	Use:     "list [remote] [search]",
 	Aliases: []string{"ls", "search"},
 	Short:   "List labels",
-	Long:    ``,
-	Example: `lab label list                       # list all labels
-lab label list "search term"         # search labels for "search term"
-lab label search "search term"       # same as above
-lab label list remote "search term"  # search "remote" for labels with "search term"`,
+	Example: heredoc.Doc(`
+		lab label list
+		lab label list "search term"
+		lab label list remote "search term"
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, labelSearch, err := parseArgsRemoteAndProject(args)

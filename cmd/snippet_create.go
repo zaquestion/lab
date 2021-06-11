@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -28,9 +29,9 @@ var (
 var snippetCreateCmd = &cobra.Command{
 	Use:   "create [remote]",
 	Short: "Create a personal or project snippet",
-	Long: `
-Source snippets from stdin, file, or in editor from scratch
-Optionally add a title & description with -m`,
+	Long: heredoc.Doc(`
+		Source snippets from stdin, file, or in editor from scratch.
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
@@ -132,9 +133,10 @@ func snipCode(path string) (string, error) {
 		}
 	}
 
-	var tmpl = `
-{{.CommentChar}} In this mode you are writing a snippet from scratch
-{{.CommentChar}} The first block is the title and the rest is the contents.`
+	tmpl := heredoc.Doc(`
+		{{.CommentChar}} In this mode you are writing a snippet from scratch
+		{{.CommentChar}} The first block is the title and the rest is the contents.
+	`)
 
 	text, err := snipText(tmpl)
 	if err != nil {

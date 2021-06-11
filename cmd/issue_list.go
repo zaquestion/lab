@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -32,11 +33,11 @@ var issueListCmd = &cobra.Command{
 	Use:     "list [remote] [search]",
 	Aliases: []string{"ls", "search"},
 	Short:   "List issues",
-	Long:    ``,
-	Example: `lab issue list                        # list all open issues
-lab issue list "search terms"         # search issues for "search terms"
-lab issue search "search terms"       # same as above
-lab issue list remote "search terms"  # search "remote" for issues with "search terms"`,
+	Example: heredoc.Doc(`
+		lab issue list
+		lab issue list "search terms"
+		lab issue list remote "search terms"
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := issueList(args)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	"github.com/tcnksm/go-gitconfig"
 	"github.com/xanzy/go-gitlab"
@@ -25,9 +26,17 @@ var (
 
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
-	Use:              "fork [remote|upstream-to-fork]",
-	Short:            "Fork a remote repository on GitLab and add as remote",
-	Long:             ``,
+	Use:   "fork [remote|repo]",
+	Short: "Fork a remote repository on GitLab and add as remote",
+	Long: heredoc.Doc(`
+		Fork a remote repository on user's location of choice.
+		Both an already existent remote or a repository path can be specified.
+	`),
+	Example: heredoc.Doc(`
+		lab fork origin
+		lab fork upstream --remote-name origin
+		lab fork origin --name new-awasome-project
+	`),
 	Args:             cobra.MaximumNArgs(1),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

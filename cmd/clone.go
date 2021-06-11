@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	retry "github.com/avast/retry-go"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/git"
@@ -14,11 +15,16 @@ import (
 // NOTE: There is special handling for "clone" in cmd/root.go
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
-	Short: "GitLab repo aware clone command",
-	Long: `Clone supports these shorthands
-- repo
-- namespace/repo
-- namespace/group/repo`,
+	Short: "GitLab aware clone repo command",
+	Long: heredoc.Doc(`
+		Clone a repository, similarly to 'git clone', but aware of GitLab
+		specific settings.
+	`),
+	Example: heredoc.Doc(`
+		lab clone awesome-repo
+		lab clone company/awesome-repo
+		lab clone company/backend-team/awesome-repo
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])

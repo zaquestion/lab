@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/action"
@@ -12,9 +13,22 @@ import (
 )
 
 var ciArtifactsCmd = &cobra.Command{
-	Use:              "artifacts [remote [[branch:]job]]",
-	Short:            "Download artifacts of a ci job",
-	Long:             `If a job is not specified the latest job with artifacts is used`,
+	Use:   "artifacts [remote] [branch[:job]]",
+	Short: "Download artifacts of a ci job",
+	Long: heredoc.Doc(`
+		Download the CI pipeline job artifacts for the given or current branch if
+		none provided.
+
+		The branch name, when using with the --merge-request option, can be the
+		merge request number, which matches the branch name internally.	The "job"
+		portion is the given job name, which may contain whitespace characters
+		and which, for this specific case, must be quoted.
+	`),
+	Example: heredoc.Doc(`
+		lab ci artifacts upstream feature_branch
+		lab ci artifacts upstream 125 --merge-request
+		lab ci artifacts upstream 125:'my custom stage' --merge-request
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (

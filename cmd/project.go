@@ -10,8 +10,6 @@ var projectCmd = &cobra.Command{
 	Aliases:          []string{"repo"},
 	Short:            "Perform project level operations on GitLab",
 	PersistentPreRun: LabPersistentPreRun,
-	Long:             ``,
-	//Run: func(cmd *cobra.Command, args []string) {},
 }
 
 func init() {

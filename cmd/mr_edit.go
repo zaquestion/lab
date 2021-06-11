@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -19,14 +20,13 @@ var mrEditCmd = &cobra.Command{
 	Use:     "edit [remote] <id>[:<comment_id>]",
 	Aliases: []string{"update"},
 	Short:   "Edit or update an MR",
-	Long:    ``,
-	Example: `lab MR edit <id>                                # update MR via $EDITOR
-lab MR update <id>                              # same as above
-lab MR update <branch-name>                     # same, but get MR ID from local branch
-lab MR edit <id> -m "new title"                 # update title
-lab MR edit <id> -m "new title" -m "new desc"   # update title & description
-lab MR edit <id> -l newlabel --unlabel oldlabel # relabel MR
-lab MR edit <id>:<comment_id>                   # update a comment on MR`,
+	Example: heredoc.Doc(`
+		lab mr edit <id>
+		lab mr edit <id> -m "new title"
+		lab mr edit <id> -m "new title" -m "new desc"
+		lab mr edit <id> -l new_label --unlabel old_label
+		lab mr edit <id>:<comment_id>
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		commentNum, branchArgs, err := filterCommentArg(args)

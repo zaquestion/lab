@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -23,7 +24,7 @@ var mrCreateCmd = &cobra.Command{
 	Use:              "create [remote [remote_branch]]",
 	Aliases:          []string{"new"},
 	Short:            "Open a merge request on GitLab",
-	Long:             `Creates a merge request (default: MR created on default branch of origin)`,
+	Long:             "Creates a merge request.",
 	Args:             cobra.MaximumNArgs(2),
 	PersistentPreRun: LabPersistentPreRun,
 	Run:              runMRCreate,
@@ -72,7 +73,7 @@ func init() {
 
 func verifyRemoteAndBranch(projectID int, remote string, branch string) error {
 	if _, err := lab.GetCommit(projectID, branch); err != nil {
-		return fmt.Errorf("Aborting MR create, %s:%s is not a valid reference\n", remote, branch)
+		return fmt.Errorf("Aborting MR create, %s:%s is not a valid reference", remote, branch)
 	}
 	return nil
 }
@@ -292,20 +293,22 @@ func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, cover
 		}
 	}
 	if numCommits == 0 {
-		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits\n", target, source)
+		return "", fmt.Errorf("Aborting: The resulting Merge Request from %s to %s has 0 commits", target, source)
 	}
 
-	const tmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
+	tmpl := heredoc.Doc(`
+		{{if .InitMsg}}{{.InitMsg}}{{end}}
 
-{{if .Tmpl}}{{.Tmpl}}{{end}}
-{{.CommentChar}} Requesting a merge into {{.Target}} from {{.Source}} ({{.NumCommits}} commits)
-{{.CommentChar}}
-{{.CommentChar}} Write a message for this merge request. The first block
-{{.CommentChar}} of text is the title and the rest is the description.{{if .CommitLogs}}
-{{.CommentChar}}
-{{.CommentChar}} Changes:
-{{.CommentChar}}
-{{.CommitLogs}}{{end}}`
+		{{if .Tmpl}}{{.Tmpl}}{{end}}
+		{{.CommentChar}} Requesting a merge into {{.Target}} from {{.Source}} ({{.NumCommits}} commits)
+		{{.CommentChar}}
+		{{.CommentChar}} Write a message for this merge request. The first block
+		{{.CommentChar}} of text is the title and the rest is the description.{{if .CommitLogs}}
+		{{.CommentChar}}
+		{{.CommentChar}} Changes:
+		{{.CommentChar}}
+		{{.CommitLogs}}{{end}}
+	`)
 
 	mrTmpl := lab.LoadGitLabTmpl(lab.TmplMR)
 

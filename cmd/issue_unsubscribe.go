@@ -12,7 +12,7 @@ import (
 var issueUnsubscribeCmd = &cobra.Command{
 	Use:              "unsubscribe [remote] <id>",
 	Aliases:          []string{},
-	Short:            "Unubscribe from issue",
+	Short:            "Unubscribe from an issue",
 	Long:             ``,
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

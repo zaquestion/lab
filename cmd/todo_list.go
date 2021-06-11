@@ -23,8 +23,7 @@ var todoListCmd = &cobra.Command{
 	Use:              "list",
 	Aliases:          []string{"ls"},
 	Short:            "List todos",
-	Long:             ``,
-	Example:          `lab todo list                        # list open todos"`,
+	Example:          "lab todo list",
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		todos, err := todoList(args)

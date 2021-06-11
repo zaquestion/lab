@@ -9,6 +9,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -20,7 +21,6 @@ import (
 var mrCreateDiscussionCmd = &cobra.Command{
 	Use:              "discussion [remote] <id>",
 	Short:            "Start a discussion on an MR on GitLab",
-	Long:             ``,
 	Aliases:          []string{"block", "thread"},
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -81,8 +81,9 @@ func mrDiscussionMsg(msgs []string) (string, error) {
 }
 
 func mrDiscussionText() (string, error) {
-	const tmpl = `{{.InitMsg}}
-{{.CommentChar}} Write a message for this discussion. Commented lines are discarded.`
+	tmpl := heredoc.Doc(`
+		{{.InitMsg}}
+		{{.CommentChar}} Write a message for this discussion. Commented lines are discarded.`)
 
 	initMsg := "\n"
 	commentChar := git.CommentChar()

@@ -12,7 +12,6 @@ var milestoneCreateCmd = &cobra.Command{
 	Use:              "create [remote] <name>",
 	Aliases:          []string{"add"},
 	Short:            "Create a new milestone",
-	Long:             ``,
 	Example:          "lab milestone create my-milestone",
 	PersistentPreRun: LabPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),

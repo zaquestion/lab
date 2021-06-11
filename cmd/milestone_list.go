@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -15,11 +16,11 @@ var milestoneListCmd = &cobra.Command{
 	Use:     "list [remote] [search]",
 	Aliases: []string{"ls", "search"},
 	Short:   "List milestones",
-	Long:    ``,
-	Example: `lab milestone list                       # list all milestones
-lab milestone list "search term"         # search milestones for "search term"
-lab milestone search "search term"       # same as above
-lab milestone list remote "search term"  # search "remote" for milestones with "search term"`,
+	Example: heredoc.Doc(`
+		lab milestone list
+		lab milestone list "search term"
+		lab milestone list remote "search term"
+	`),
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, milestoneSearch, err := parseArgsRemoteAndProject(args)
