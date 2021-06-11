@@ -21,7 +21,7 @@ func Test_mrCloseReopen(t *testing.T) {
 		{
 			desc:     "close-open",
 			opt:      "close",
-			expected: "Merge Request !19 closed",
+			expected: "Merge Request !740 closed",
 		},
 		{
 			desc:     "close-closed",
@@ -31,7 +31,7 @@ func Test_mrCloseReopen(t *testing.T) {
 		{
 			desc:     "reopen-closed",
 			opt:      "reopen",
-			expected: "Merge Request !19 reopened",
+			expected: "Merge Request !740 reopened",
 		},
 	}
 
@@ -39,7 +39,7 @@ func Test_mrCloseReopen(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-			cmd := exec.Command(labBinaryPath, "mr", test.opt, "19")
+			cmd := exec.Command(labBinaryPath, "mr", test.opt, "740")
 			cmd.Dir = repo
 
 			b, err := cmd.CombinedOutput()

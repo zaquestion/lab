@@ -124,7 +124,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 }
 
 var (
-	latestCreatedTestMR = "!329 MR for assign and review commands"
+	latestCreatedTestMR = "!740 MR to test close/reopen"
 	latestUpdatedTestMR = "!329 MR for assign and review commands"
 )
 
