@@ -81,7 +81,7 @@ func getBranchMR(rn, branch string) int {
 	var num int = 0
 
 	mrBranch, err := git.UpstreamBranch(branch)
-	if mrBranch == "" {
+	if err != nil {
 		// Fall back to local branch
 		mrBranch = branch
 	}
@@ -316,6 +316,10 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 		err    error
 	)
 	s, i, err := parseArgsRemoteAndID(args)
+	if err != nil {
+		return "", 0, err
+	}
+
 	if i == 0 {
 		s, branch, err = parseArgsRemoteAndString(args)
 		if err != nil {

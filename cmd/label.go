@@ -10,7 +10,6 @@ var labelCmd = &cobra.Command{
 	PersistentPreRun: LabPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
-		return
 	},
 }
 

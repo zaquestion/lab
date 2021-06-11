@@ -109,7 +109,12 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, 
 			}
 			fmt.Fprintf(w, "Showing logs for %s job #%d\n", job.Name, job.ID)
 		})
+
 		_, err = io.CopyN(ioutil.Discard, trace, offset)
+		if err != nil {
+			return err
+		}
+
 		lenT, err := io.Copy(w, trace)
 		if err != nil {
 			return err

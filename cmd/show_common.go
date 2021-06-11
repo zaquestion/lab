@@ -281,7 +281,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 		}
 	}
 
-	if sinceIsSet == false {
+	if !sinceIsSet {
 		config.WriteConfigEntry(CommandPrefix+issueEntry, newAccessTime, "", "")
 	}
 }
