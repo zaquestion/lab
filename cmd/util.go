@@ -175,12 +175,10 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	}
 
 	remote, branch, err := parseArgsRemoteAndString(args)
-	if branch == "" && err == nil {
-		branch, err = git.CurrentBranch()
-	}
-
 	if err != nil {
 		return "", "", err
+	} else if branch == "" {
+		branch, err = git.CurrentBranch()
 	}
 
 	remoteBranch, _ := git.UpstreamBranch(branch)
@@ -311,38 +309,33 @@ func parseArgsRemoteAndString(args []string) (string, string, error) {
 // If no number is specified, the MR id associated with the given branch
 // is returned, using the current branch as fallback.
 func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
-	var (
-		s      string
-		branch string
-		err    error
-	)
-	s, i, err := parseArgsRemoteAndID(args)
+	rn, id, err := parseArgsRemoteAndID(args)
+	if err == nil && id != 0 {
+		return rn, id, nil
+	}
+
+	rn, branch, err := parseArgsRemoteAndString(args)
 	if err != nil {
 		return "", 0, err
 	}
 
-	if i == 0 {
-		s, branch, err = parseArgsRemoteAndString(args)
-		if err != nil {
-			return "", 0, err
-		}
-
-		s, err = getRemoteName(s)
-		if err != nil {
-			return "", 0, err
-		}
-
-		if branch == "" {
-			i = int64(getCurrentBranchMR(s))
-		} else {
-			i = int64(getBranchMR(s, branch))
-		}
-		if i == 0 {
-			fmt.Println("Error: Cannot determine MR id.")
-			os.Exit(1)
-		}
+	rn, err = getRemoteName(rn)
+	if err != nil {
+		return "", 0, err
 	}
-	return s, i, nil
+
+	if branch == "" {
+		id = int64(getCurrentBranchMR(rn))
+	} else {
+		id = int64(getBranchMR(rn, branch))
+	}
+
+	if id == 0 {
+		err = fmt.Errorf("cannot determine MR id")
+		return "", 0, err
+	}
+
+	return rn, id, nil
 }
 
 // filterCommentArg separate the case where a command can have both the
