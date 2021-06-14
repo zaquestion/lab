@@ -116,7 +116,7 @@ func addFileLinePrefix(msg string) string {
 
 // Fatal prints the values and exit the program with os.Exit()
 func (l *logger) Fatal(values ...interface{}) {
-	values = append([]interface{}{addFileLinePrefix("")}, values...)
+	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatal(values...)
 }
 
@@ -128,7 +128,7 @@ func (l *logger) Fatalf(format string, values ...interface{}) {
 
 // Fatal prints the values in a new line and exit the program with os.Exit()
 func (l *logger) Fatalln(values ...interface{}) {
-	values = append([]interface{}{addFileLinePrefix("")}, values...)
+	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatalln(values...)
 }
 
