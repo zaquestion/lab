@@ -345,6 +345,8 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 	return s, i, nil
 }
 
+// filterCommentArg separate the case where a command can have both the
+// remote and "<mrID>:<commentID>" at the same time.
 func filterCommentArg(args []string) (int, []string, error) {
 	branchArgs := []string{}
 	idString := ""
@@ -359,16 +361,18 @@ func filterCommentArg(args []string) (int, []string, error) {
 		} else {
 			idString = args[0]
 		}
-	} else if len(args) > 1 {
+	} else if len(args) == 2 {
 		branchArgs = append(branchArgs, args[0])
 		idString = args[1]
+	} else {
+		return 0, branchArgs, fmt.Errorf("unsupported number of arguments")
 	}
 
 	if strings.Contains(idString, ":") {
 		ps := strings.Split(idString, ":")
 		branchArgs = append(branchArgs, ps[0])
 		idString = ps[1]
-	} else {
+	} else if idString != "" {
 		branchArgs = append(branchArgs, idString)
 		idString = ""
 	}
