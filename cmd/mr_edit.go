@@ -61,29 +61,31 @@ var mrEditCmd = &cobra.Command{
 			return
 		}
 
+		var labelsChanged bool
 		// get the labels to add
-		labelTerms, err := cmd.Flags().GetStringSlice("label")
+		addLabelTerms, err := cmd.Flags().GetStringSlice("label")
 		if err != nil {
 			log.Fatal(err)
 		}
-		labels, err := MapLabels(rn, labelTerms)
+		addLabels, err := MapLabels(rn, addLabelTerms)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if len(addLabels) > 0 {
+			labelsChanged = true
 		}
 
 		// get the labels to remove
-		unlabelTerms, err := cmd.Flags().GetStringSlice("unlabel")
+		rmLabelTerms, err := cmd.Flags().GetStringSlice("unlabel")
 		if err != nil {
 			log.Fatal(err)
 		}
-		unlabels, err := MapLabels(rn, unlabelTerms)
+		rmLabels, err := MapLabels(rn, rmLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		labels, labelsChanged, err := editGetLabels(mr.Labels, labels, unlabels)
-		if err != nil {
-			log.Fatal(err)
+		if len(rmLabels) > 0 {
+			labelsChanged = true
 		}
 
 		// get the assignees to add
@@ -243,7 +245,9 @@ var mrEditCmd = &cobra.Command{
 		}
 
 		if labelsChanged {
-			opts.Labels = labels
+			// empty arrays are just ignored
+			opts.AddLabels = addLabels
+			opts.RemoveLabels = rmLabels
 		}
 
 		if assigneesChanged {
