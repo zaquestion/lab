@@ -80,7 +80,7 @@ func (l *logger) SetStdDest(stdout io.Writer, stderr io.Writer) {
 // printKeysAndValues prints the keys and valus, as pairs, passed to those
 // functions in the way expected by go-retryablehttp LeveledLogger interface
 func printKeysAndValues(l *log.Logger, keysAndValues ...interface{}) {
-	for i := 0; i <= len(keysAndValues)/2; i += 2 {
+	for i := 0; i < len(keysAndValues)/2; i += 2 {
 		l.Printf("\t%s = %s\n", keysAndValues[i], keysAndValues[i+1])
 	}
 }
@@ -116,7 +116,7 @@ func addFileLinePrefix(msg string) string {
 
 // Fatal prints the values and exit the program with os.Exit()
 func (l *logger) Fatal(values ...interface{}) {
-	values = append([]interface{}{addFileLinePrefix("")}, values...)
+	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatal(values...)
 }
 
@@ -128,7 +128,7 @@ func (l *logger) Fatalf(format string, values ...interface{}) {
 
 // Fatal prints the values in a new line and exit the program with os.Exit()
 func (l *logger) Fatalln(values ...interface{}) {
-	values = append([]interface{}{addFileLinePrefix("")}, values...)
+	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatalln(values...)
 }
 
