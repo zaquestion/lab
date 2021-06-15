@@ -12,7 +12,7 @@ var snippetCmd = &cobra.Command{
 	Aliases:          []string{"snip"},
 	Short:            snippetCreateCmd.Short,
 	Long:             snippetCreateCmd.Long,
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			snippetListCmd.Run(cmd, args)

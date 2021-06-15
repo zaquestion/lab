@@ -25,7 +25,7 @@ var ciStatusCmd = &cobra.Command{
 		lab ci status --wait
 	`),
 	RunE:             nil,
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn  string
@@ -49,7 +49,7 @@ var ciStatusCmd = &cobra.Command{
 
 		pid := rn
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		w := tabwriter.NewWriter(os.Stdout, 2, 4, 1, byte(' '), 0)

@@ -184,7 +184,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 	)
 	comparetime, err = dateparse.ParseLocal(since)
 	if err != nil || comparetime.IsZero() {
-		comparetime = getMainConfig().GetTime(CommandPrefix + issueEntry)
+		comparetime = getMainConfig().GetTime(commandPrefix + issueEntry)
 		if comparetime.IsZero() {
 			comparetime = time.Now().UTC()
 		}
@@ -281,7 +281,7 @@ func printDiscussions(discussions []*gitlab.Discussion, since string, idstr stri
 		}
 	}
 
-	if sinceIsSet == false {
-		config.WriteConfigEntry(CommandPrefix+issueEntry, newAccessTime, "", "")
+	if !sinceIsSet {
+		config.WriteConfigEntry(commandPrefix+issueEntry, newAccessTime, "", "")
 	}
 }

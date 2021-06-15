@@ -34,7 +34,7 @@ func Test_issueReplyNote(t *testing.T) {
 		t.Fatal(err)
 	}
 	issueIDs := strings.Split(string(a), "\n")
-	issueID := strings.Trim(issueIDs[0], "https://gitlab.com/lab-testing/test/-/issues/")
+	issueID := strings.TrimPrefix(issueIDs[0], "https://gitlab.com/lab-testing/test/-/issues/")
 
 	note := exec.Command(labBinaryPath, "issue", "note", "lab-testing", issueID, "-m", "note text")
 	note.Dir = repo

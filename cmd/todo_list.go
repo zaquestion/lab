@@ -24,14 +24,14 @@ var todoListCmd = &cobra.Command{
 	Aliases:          []string{"ls"},
 	Short:            "List todos",
 	Example:          "lab todo list",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		todos, err := todoList(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		red := color.New(color.FgRed).SprintFunc()

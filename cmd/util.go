@@ -1,4 +1,5 @@
 // This file contains common functions that are shared in the lab package
+
 package cmd
 
 import (
@@ -21,7 +22,7 @@ import (
 )
 
 var (
-	CommandPrefix string
+	commandPrefix string
 	// http vs ssh protocol control flag
 	useHTTP bool
 )
@@ -38,13 +39,13 @@ func flagConfig(fs *flag.FlagSet) {
 
 		switch f.Value.Type() {
 		case "bool":
-			configValue = getMainConfig().GetBool(CommandPrefix + f.Name)
+			configValue = getMainConfig().GetBool(commandPrefix + f.Name)
 			configString = strconv.FormatBool(configValue.(bool))
 		case "string":
-			configValue = getMainConfig().GetString(CommandPrefix + f.Name)
+			configValue = getMainConfig().GetString(commandPrefix + f.Name)
 			configString = configValue.(string)
 		case "stringSlice":
-			configValue = getMainConfig().GetStringSlice(CommandPrefix + f.Name)
+			configValue = getMainConfig().GetStringSlice(commandPrefix + f.Name)
 			configString = strings.Join(configValue.([]string), " ")
 		case "int":
 			log.Fatal("ERROR: found int flag, use string instead: ", f.Value.Type(), f)
@@ -81,7 +82,7 @@ func getBranchMR(rn, branch string) int {
 	var num int = 0
 
 	mrBranch, err := git.UpstreamBranch(branch)
-	if mrBranch == "" {
+	if err != nil {
 		// Fall back to local branch
 		mrBranch = branch
 	}
@@ -174,12 +175,10 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	}
 
 	remote, branch, err := parseArgsRemoteAndString(args)
-	if branch == "" && err == nil {
-		branch, err = git.CurrentBranch()
-	}
-
 	if err != nil {
 		return "", "", err
+	} else if branch == "" {
+		branch, err = git.CurrentBranch()
 	}
 
 	remoteBranch, _ := git.UpstreamBranch(branch)
@@ -310,36 +309,37 @@ func parseArgsRemoteAndString(args []string) (string, string, error) {
 // If no number is specified, the MR id associated with the given branch
 // is returned, using the current branch as fallback.
 func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
-	var (
-		s      string
-		branch string
-		err    error
-	)
-	s, i, err := parseArgsRemoteAndID(args)
-	if i == 0 {
-		s, branch, err = parseArgsRemoteAndString(args)
-		if err != nil {
-			return "", 0, err
-		}
-
-		s, err = getRemoteName(s)
-		if err != nil {
-			return "", 0, err
-		}
-
-		if branch == "" {
-			i = int64(getCurrentBranchMR(s))
-		} else {
-			i = int64(getBranchMR(s, branch))
-		}
-		if i == 0 {
-			fmt.Println("Error: Cannot determine MR id.")
-			os.Exit(1)
-		}
+	rn, id, err := parseArgsRemoteAndID(args)
+	if err == nil && id != 0 {
+		return rn, id, nil
 	}
-	return s, i, nil
+
+	rn, branch, err := parseArgsRemoteAndString(args)
+	if err != nil {
+		return "", 0, err
+	}
+
+	rn, err = getRemoteName(rn)
+	if err != nil {
+		return "", 0, err
+	}
+
+	if branch == "" {
+		id = int64(getCurrentBranchMR(rn))
+	} else {
+		id = int64(getBranchMR(rn, branch))
+	}
+
+	if id == 0 {
+		err = fmt.Errorf("cannot determine MR id")
+		return "", 0, err
+	}
+
+	return rn, id, nil
 }
 
+// filterCommentArg separate the case where a command can have both the
+// remote and "<mrID>:<commentID>" at the same time.
 func filterCommentArg(args []string) (int, []string, error) {
 	branchArgs := []string{}
 	idString := ""
@@ -354,16 +354,18 @@ func filterCommentArg(args []string) (int, []string, error) {
 		} else {
 			idString = args[0]
 		}
-	} else if len(args) > 1 {
+	} else if len(args) == 2 {
 		branchArgs = append(branchArgs, args[0])
 		idString = args[1]
+	} else {
+		return 0, branchArgs, fmt.Errorf("unsupported number of arguments")
 	}
 
 	if strings.Contains(idString, ":") {
 		ps := strings.Split(idString, ":")
 		branchArgs = append(branchArgs, ps[0])
 		idString = ps[1]
-	} else {
+	} else if idString != "" {
 		branchArgs = append(branchArgs, idString)
 		idString = ""
 	}
@@ -377,18 +379,18 @@ func filterCommentArg(args []string) (int, []string, error) {
 // would return 'issue_list.'
 func setCommandPrefix(scmd *cobra.Command) {
 	for _, command := range RootCmd.Commands() {
-		if CommandPrefix != "" {
+		if commandPrefix != "" {
 			break
 		}
 		commandName := strings.Split(command.Use, " ")[0]
 		if scmd == command {
-			CommandPrefix = commandName + "."
+			commandPrefix = commandName + "."
 			break
 		}
 		for _, subcommand := range command.Commands() {
 			subCommandName := commandName + "_" + strings.Split(subcommand.Use, " ")[0]
 			if scmd == subcommand {
-				CommandPrefix = subCommandName + "."
+				commandPrefix = subCommandName + "."
 				break
 			}
 		}
@@ -413,20 +415,20 @@ func isOutputTerminal() bool {
 	return true
 }
 
-type Pager struct {
+type pager struct {
 	proc   *os.Process
 	stdout int
 }
 
 // If standard output is a terminal, redirect output to an external
 // pager until the returned object's Close() method is called
-func NewPager(fs *flag.FlagSet) *Pager {
+func newPager(fs *flag.FlagSet) *pager {
 	cmdLine, env := git.PagerCommand()
 	args := strings.Split(cmdLine, " ")
 
 	noPager, _ := fs.GetBool("no-pager")
 	if !isOutputTerminal() || noPager || args[0] == "cat" {
-		return &Pager{}
+		return &pager{}
 	}
 
 	pr, pw, _ := os.Pipe()
@@ -441,23 +443,24 @@ func NewPager(fs *flag.FlagSet) *Pager {
 	savedStdout, _ := dupFD(sysStdout)
 	_ = dupFD2(int(pw.Fd()), sysStdout)
 
-	return &Pager{
+	return &pager{
 		proc:   proc,
 		stdout: savedStdout,
 	}
 }
 
-func (pager *Pager) Close() {
-	if pager.stdout > 0 {
-		_ = dupFD2(pager.stdout, sysStdout)
-		_ = closeFD(pager.stdout)
+// Close closes the pager
+func (p *pager) Close() {
+	if p.stdout > 0 {
+		_ = dupFD2(p.stdout, sysStdout)
+		_ = closeFD(p.stdout)
 	}
-	if pager.proc != nil {
-		pager.proc.Wait()
+	if p.proc != nil {
+		p.proc.Wait()
 	}
 }
 
-func LabPersistentPreRun(cmd *cobra.Command, args []string) {
+func labPersistentPreRun(cmd *cobra.Command, args []string) {
 	flagConfig(cmd.Flags())
 }
 

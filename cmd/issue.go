@@ -8,7 +8,7 @@ var issueCmd = &cobra.Command{
 	Use:              "issue",
 	Short:            `Describe, list, and create issues`,
 	Long:             ``,
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			issueListCmd.Run(cmd, args)

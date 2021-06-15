@@ -48,14 +48,14 @@ var listCmd = &cobra.Command{
 		lab mr list --target-branch main
 		lab mr list remote --target-branch main --label my-label --all
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		for _, mr := range mrs {
@@ -70,7 +70,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		return nil, err
 	}
 
-	labels, err := MapLabels(rn, mrLabels)
+	labels, err := mapLabels(rn, mrLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrAssignee != "" {
 		mrAssigneeID = getUserID(mrAssignee)
 		if mrAssigneeID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", mrAssignee))
+			log.Fatalf("%s user not found\n", mrAssignee)
 		}
 	} else if mrMine {
 		assigneeID, err := lab.UserID()
@@ -98,7 +98,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrAuthor != "" {
 		mrAuthorID = getUserID(mrAuthor)
 		if mrAuthorID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", mrAuthor))
+			log.Fatalf("%s user not found\n", mrAuthor)
 		}
 	}
 
@@ -113,7 +113,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	if mrReviewer != "" {
 		mrReviewerID = getUserID(mrReviewer)
 		if mrReviewerID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", mrReviewer))
+			log.Fatalf("%s user not found\n", mrReviewer)
 		}
 	}
 
@@ -212,18 +212,18 @@ func init() {
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
 		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 			}
+			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 		}),
 		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Milestones(project, action.MilestoneOpts{Active: true})
 			}
+			return action.Milestones(project, action.MilestoneOpts{Active: true})
 		}),
 		"state": carapace.ActionValues("all", "opened", "closed", "merged"),
 	})

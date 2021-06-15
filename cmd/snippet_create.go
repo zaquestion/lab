@@ -32,7 +32,7 @@ var snippetCreateCmd = &cobra.Command{
 	Long: heredoc.Doc(`
 		Source snippets from stdin, file, or in editor from scratch.
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {

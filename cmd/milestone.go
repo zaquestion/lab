@@ -7,7 +7,7 @@ import (
 var milestoneCmd = &cobra.Command{
 	Use:              "milestone",
 	Short:            "List and search milestones",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},

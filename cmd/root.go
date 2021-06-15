@@ -266,7 +266,7 @@ func Execute(initSkipped bool) {
 		}
 	}
 
-	// Set CommandPrefix
+	// Set commandPrefix
 	scmd, _, _ := cmd.Find(os.Args)
 	setCommandPrefix(scmd)
 

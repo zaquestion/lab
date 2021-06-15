@@ -12,7 +12,7 @@ import (
 var issueReopenCmd = &cobra.Command{
 	Use:              "reopen [remote] <id>",
 	Short:            "Reopen a closed issue",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)
 		if err != nil {

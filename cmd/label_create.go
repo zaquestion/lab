@@ -18,7 +18,7 @@ var labelCreateCmd = &cobra.Command{
 		lab label create --color cornflowerblue --description "Blue as a cornflower" blue
 		lab label create --color #6495ed --description "Also blue as a cornflower" blue2
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, name, err := parseArgsRemoteAndProject(args)

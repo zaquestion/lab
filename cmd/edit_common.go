@@ -27,7 +27,7 @@ func getUpdateUsers(currentUsers []string, users []string, remove []string) ([]i
 		userIDs = make([]int, len(users))
 		for i, a := range users {
 			if getUserID(a) == nil {
-				return nil, false, fmt.Errorf("Error: %s is not a valid username\n", a)
+				return nil, false, fmt.Errorf("%s is not a valid username", a)
 			}
 			userIDs[i] = *getUserID(a)
 		}

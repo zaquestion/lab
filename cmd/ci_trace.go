@@ -39,7 +39,7 @@ var ciTraceCmd = &cobra.Command{
 		lab ci trace upstream 18 --merge-request
 		lab ci trace upstream 18:'my custom stage' --merge-request
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn      string
@@ -72,7 +72,7 @@ var ciTraceCmd = &cobra.Command{
 		}
 		projectID = project.ID
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		err = doTrace(context.Background(), os.Stdout, projectID, pipelineID, jobName)
@@ -109,7 +109,12 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, 
 			}
 			fmt.Fprintf(w, "Showing logs for %s job #%d\n", job.Name, job.ID)
 		})
+
 		_, err = io.CopyN(ioutil.Discard, trace, offset)
+		if err != nil {
+			return err
+		}
+
 		lenT, err := io.Copy(w, trace)
 		if err != nil {
 			return err

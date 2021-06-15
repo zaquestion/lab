@@ -16,7 +16,7 @@ var issueCloseCmd = &cobra.Command{
 	Aliases:          []string{"delete"},
 	Short:            "Close issue by ID",
 	Args:             cobra.MinimumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Example: heredoc.Doc(`
 		lab issue close 1234
 		lab issue close --duplicate 123 1234
@@ -33,16 +33,16 @@ var issueCloseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		dupId, _ := cmd.Flags().GetString("duplicate")
-		if dupId != "" {
-			if !strings.Contains(dupId, "#") {
-				dupId = "#" + dupId
+		dupID, _ := cmd.Flags().GetString("duplicate")
+		if dupID != "" {
+			if !strings.Contains(dupID, "#") {
+				dupID = "#" + dupID
 			}
-			err = lab.IssueDuplicate(p.ID, int(id), dupId)
+			err = lab.IssueDuplicate(p.ID, int(id), dupID)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("Issue #%d closed as duplicate of %s\n", id, dupId)
+			fmt.Printf("Issue #%d closed as duplicate of %s\n", id, dupID)
 		} else {
 			err = lab.IssueClose(p.ID, int(id))
 			if err != nil {

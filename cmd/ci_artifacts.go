@@ -29,7 +29,7 @@ var ciArtifactsCmd = &cobra.Command{
 		lab ci artifacts upstream 125 --merge-request
 		lab ci artifacts upstream 125:'my custom stage' --merge-request
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			rn      string

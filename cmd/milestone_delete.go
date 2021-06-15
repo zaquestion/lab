@@ -11,7 +11,7 @@ var milestoneDeleteCmd = &cobra.Command{
 	Use:              "delete [remote] <name>",
 	Aliases:          []string{"remove"},
 	Short:            "Deletes an existing milestone",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, name, err := parseArgsRemoteAndProject(args)
@@ -31,11 +31,11 @@ func init() {
 	carapace.Gen(milestoneDeleteCmd).PositionalCompletion(
 		action.Remotes(),
 		carapace.ActionCallback(func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Milestones(project, action.MilestoneOpts{Active: true})
 			}
+			return action.Milestones(project, action.MilestoneOpts{Active: true})
 		}),
 	)
 }

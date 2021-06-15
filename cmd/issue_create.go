@@ -23,7 +23,7 @@ var issueCreateCmd = &cobra.Command{
 	Aliases:          []string{"new"},
 	Short:            "Open an issue on GitLab",
 	Args:             cobra.MaximumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
 		if err != nil {
@@ -60,7 +60,7 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		labels, err := MapLabels(rn, labelTerms)
+		labels, err := mapLabels(rn, labelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -170,18 +170,18 @@ func init() {
 
 	carapace.Gen(issueCreateCmd).FlagCompletion(carapace.ActionMap{
 		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 			}
+			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 		}),
 		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Milestones(project, action.MilestoneOpts{Active: true})
 			}
+			return action.Milestones(project, action.MilestoneOpts{Active: true})
 		}),
 	})
 

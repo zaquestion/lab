@@ -53,9 +53,7 @@ func Test_issueShow_updated_comments(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
+	out := stripansi.Strip(string(b))
 
-	out := string(b)
-	out = stripansi.Strip(out) // This is required because glamour adds a lot of ansi chars
-
-	require.Contains(t, string(b), `updated comment at`)
+	require.Contains(t, string(out), `updated comment at`)
 }

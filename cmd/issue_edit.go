@@ -29,7 +29,7 @@ var issueEditCmd = &cobra.Command{
 		lab issue edit <id>:<comment_id>
 	`),
 	Args:             cobra.MinimumNArgs(1),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		rn, idString, err := parseArgsRemoteAndProject(args)
@@ -72,7 +72,7 @@ var issueEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		addLabels, err := MapLabels(rn, addLabelTerms)
+		addLabels, err := mapLabels(rn, addLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -85,7 +85,7 @@ var issueEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		rmLabels, err := MapLabels(rn, rmLabelTerms)
+		rmLabels, err := mapLabels(rn, rmLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -233,18 +233,18 @@ func init() {
 
 	carapace.Gen(issueEditCmd).FlagCompletion(carapace.ActionMap{
 		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 			}
+			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 		}),
 		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Milestones(project, action.MilestoneOpts{Active: true})
 			}
+			return action.Milestones(project, action.MilestoneOpts{Active: true})
 		}),
 	})
 

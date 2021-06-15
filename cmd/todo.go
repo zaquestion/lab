@@ -7,7 +7,7 @@ import (
 var todoCmd = &cobra.Command{
 	Use:              "todo",
 	Short:            "Check out the todo list for MR or issues",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		if list, _ := cmd.Flags().GetBool("list"); list {
 			todoListCmd.Run(cmd, args)

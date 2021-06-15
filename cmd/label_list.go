@@ -21,7 +21,7 @@ var labelListCmd = &cobra.Command{
 		lab label list "search term"
 		lab label list remote "search term"
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, labelSearch, err := parseArgsRemoteAndProject(args)
 		if err != nil {
@@ -35,7 +35,7 @@ var labelListCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		for _, label := range labels {
@@ -55,7 +55,7 @@ var labelListCmd = &cobra.Command{
 	},
 }
 
-func MapLabels(rn string, labelTerms []string) ([]string, error) {
+func mapLabels(rn string, labelTerms []string) ([]string, error) {
 	// Don't bother fetching project labels if nothing is being really requested
 	if len(labelTerms) == 0 {
 		return []string{}, nil

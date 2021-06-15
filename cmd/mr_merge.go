@@ -22,7 +22,7 @@ var mrMergeCmd = &cobra.Command{
 		this command will sets the merge to only happen when the pipeline
 		succeeds.
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {

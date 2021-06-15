@@ -14,7 +14,7 @@ var todoIssueCmd = &cobra.Command{
 		lab todo issue 5678       #adds Issue 1234 to user's Todo list
 	`),
 	Hidden:           true,
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, err := getRemoteName("")
 		if err != nil {

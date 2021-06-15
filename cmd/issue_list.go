@@ -38,14 +38,14 @@ var issueListCmd = &cobra.Command{
 		lab issue list "search terms"
 		lab issue list remote "search terms"
 	`),
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := issueList(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
 		for _, issue := range issues {
@@ -55,12 +55,13 @@ var issueListCmd = &cobra.Command{
 }
 
 func issueList(args []string) ([]*gitlab.Issue, error) {
-	rn, issueSearch, err := parseArgsRemoteAndProject(args)
+	rn, search, err := parseArgsRemoteAndProject(args)
 	if err != nil {
 		return nil, err
 	}
+	issueSearch = search
 
-	labels, err := MapLabels(rn, issueLabels)
+	labels, err := mapLabels(rn, issueLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -84,14 +85,14 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 	if issueAuthor != "" {
 		issueAuthorID = getUserID(issueAuthor)
 		if issueAuthorID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", issueAuthor))
+			log.Fatalf("%s user not found\n", issueAuthor)
 		}
 	}
 
 	if issueAssignee != "" {
 		issueAssigneeID = getUserID(issueAssignee)
 		if issueAssigneeID == nil {
-			log.Fatal(fmt.Errorf("%s user not found\n", issueAssignee))
+			log.Fatalf("%s user not found\n", issueAssignee)
 		}
 	}
 
@@ -157,18 +158,18 @@ func init() {
 	issueCmd.AddCommand(issueListCmd)
 	carapace.Gen(issueListCmd).FlagCompletion(carapace.ActionMap{
 		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 			}
+			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
 		}),
 		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
-			if project, _, err := parseArgsRemoteAndProject(c.Args); err != nil {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
 				return carapace.ActionMessage(err.Error())
-			} else {
-				return action.Milestones(project, action.MilestoneOpts{Active: true})
 			}
+			return action.Milestones(project, action.MilestoneOpts{Active: true})
 		}),
 		"state": carapace.ActionValues("all", "opened", "closed"),
 	})

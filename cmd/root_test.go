@@ -249,13 +249,11 @@ func Test_config_gitConfig_FF(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// both configs set to false, comments should not be output
-	require.NotContains(t, string(b), `commented at`)
+	require.NotContains(t, string(out), `commented at`)
 }
 
 func Test_config_gitConfig_FT(t *testing.T) {
@@ -275,14 +273,12 @@ func Test_config_gitConfig_FT(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// .config set to false and .git set to true, comments should be
 	// output
-	require.Contains(t, string(b), `commented at`)
+	require.Contains(t, string(out), `commented at`)
 }
 
 func Test_config_gitConfig_TF(t *testing.T) {
@@ -302,14 +298,12 @@ func Test_config_gitConfig_TF(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// .config set to true and .git set to false, comments should not be
 	// output
-	require.NotContains(t, string(b), `commented at`)
+	require.NotContains(t, string(out), `commented at`)
 }
 
 func Test_config_gitConfig_TT(t *testing.T) {
@@ -329,13 +323,11 @@ func Test_config_gitConfig_TT(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// both configs set to true, comments should be output
-	require.Contains(t, string(b), `commented at`)
+	require.Contains(t, string(out), `commented at`)
 }
 
 // Some flag and config tests do not have to be run.
@@ -365,13 +357,11 @@ func Test_flag_config_TT(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// both configs set to true, comments should be output
-	require.Contains(t, string(b), `commented at`)
+	require.Contains(t, string(out), `commented at`)
 }
 
 // flag set, config false == comments
@@ -392,13 +382,11 @@ func Test_flag_config_TF(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// both configs set to true, comments should be output
-	require.Contains(t, string(b), `commented at`)
+	require.Contains(t, string(out), `commented at`)
 }
 
 // flag (explicitly) unset, config true == no comments
@@ -419,21 +407,19 @@ func Test_flag_config_FT(t *testing.T) {
 		t.Log(string(b))
 		t.Error(err)
 	}
-
-	out := string(b)
-	out = stripansi.Strip(out)
+	out := stripansi.Strip(string(b))
 
 	os.Remove(configFile())
 	// configs overridden on the command line, comments should not be output
-	require.NotContains(t, string(b), `commented at`)
+	require.NotContains(t, string(out), `commented at`)
 }
 
 // Make sure the version command don't break things in the future
 func Test_versionCmd(t *testing.T) {
 
 	t.Run("version", func(t *testing.T) {
-		lab_cmd := exec.Command(labBinaryPath, "version")
-		out, err := lab_cmd.CombinedOutput()
+		labCmd := exec.Command(labBinaryPath, "version")
+		out, err := labCmd.CombinedOutput()
 		if err != nil {
 			t.Log(string(out))
 			t.Fatal(err)

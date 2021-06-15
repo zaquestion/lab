@@ -25,7 +25,7 @@ var mrShowCmd = &cobra.Command{
 	Aliases:          []string{"get"},
 	ArgAliases:       []string{"s"},
 	Short:            "Describe a merge request",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
@@ -63,7 +63,7 @@ var mrShowCmd = &cobra.Command{
 			}
 			git.Show(remote+"/"+mr.TargetBranch, mr.SHA, mrShowPatchReverse)
 		} else {
-			pager := NewPager(cmd.Flags())
+			pager := newPager(cmd.Flags())
 			defer pager.Close()
 
 			printMR(mr, rn, renderMarkdown)

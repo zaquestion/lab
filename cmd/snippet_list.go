@@ -21,13 +21,13 @@ var snippetListCmd = &cobra.Command{
 	Use:              "list [remote]",
 	Aliases:          []string{"ls"},
 	Short:            "List personal or project snippets",
-	PersistentPreRun: LabPersistentPreRun,
+	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		snips, err := snippetList(args)
 		if err != nil {
 			log.Fatal(err)
 		}
-		pager := NewPager(cmd.Flags())
+		pager := newPager(cmd.Flags())
 		defer pager.Close()
 		for _, snip := range snips {
 			fmt.Printf("#%d %s\n", snip.ID, snip.Title)
