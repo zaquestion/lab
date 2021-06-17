@@ -242,12 +242,17 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	draft, _ := cmd.Flags().GetBool("draft")
 	if draft {
-		isWIP := hasPrefix(title, "wip:")
+		// GitLab 14.0 will remove WIP support in favor of Draft
+		isWIP := hasPrefix(title, "wip:") ||
+			hasPrefix(title, "[wip]")
+		if isWIP {
+			log.Fatal("the use of \"WIP\" terminology is deprecated, use \"Draft\" instead")
+		}
+
 		isDraft := hasPrefix(title, "draft:") ||
 			hasPrefix(title, "[draft]") ||
 			hasPrefix(title, "(draft)")
-
-		if !isWIP && !isDraft {
+		if !isDraft {
 			title = "Draft: " + title
 		}
 	}

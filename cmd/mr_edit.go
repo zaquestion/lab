@@ -228,7 +228,11 @@ var mrEditCmd = &cobra.Command{
 		}
 
 		if draft {
-			if !isWIP && !isDraft {
+			if isWIP {
+				log.Fatal("the use of \"WIP\" terminology is deprecated, use \"Draft\" instead")
+			}
+
+			if !isDraft {
 				title = "Draft: " + title
 			}
 		}
