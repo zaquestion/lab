@@ -205,14 +205,19 @@ var mrEditCmd = &cobra.Command{
 			log.Fatal("aborting: empty mr title")
 		}
 
-		isWIP := strings.EqualFold(title[0:4], "wip:")
-		isDraft := strings.EqualFold(title[0:6], "draft:") ||
-			strings.EqualFold(title[0:7], "[draft]") ||
-			strings.EqualFold(title[0:7], "(draft)")
+		isWIP := hasPrefix(title, "wip:") ||
+			hasPrefix(title, "[wip]")
+		isDraft := hasPrefix(title, "draft:") ||
+			hasPrefix(title, "[draft]") ||
+			hasPrefix(title, "(draft)")
 
 		if ready {
 			if isWIP {
-				title = strings.TrimPrefix(title, title[0:4])
+				if title[0] == '[' {
+					title = strings.TrimPrefix(title, title[0:5])
+				} else {
+					title = strings.TrimPrefix(title, title[0:4])
+				}
 			} else if isDraft {
 				if title[0] == '(' || title[0] == '[' {
 					title = strings.TrimPrefix(title, title[0:7])
@@ -223,7 +228,11 @@ var mrEditCmd = &cobra.Command{
 		}
 
 		if draft {
-			if !isWIP && !isDraft {
+			if isWIP {
+				log.Fatal("the use of \"WIP\" terminology is deprecated, use \"Draft\" instead")
+			}
+
+			if !isDraft {
 				title = "Draft: " + title
 			}
 		}
