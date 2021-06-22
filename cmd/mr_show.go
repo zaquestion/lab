@@ -63,12 +63,12 @@ var mrShowCmd = &cobra.Command{
 			}
 			git.Show(remote+"/"+mr.TargetBranch, mr.SHA, mrShowPatchReverse)
 			return
-		} else {
-			pager := newPager(cmd.Flags())
-			defer pager.Close()
-
-			printMR(mr, rn, renderMarkdown)
 		}
+
+		pager := newPager(cmd.Flags())
+		defer pager.Close()
+
+		printMR(mr, rn, renderMarkdown)
 
 		showComments, _ := cmd.Flags().GetBool("comments")
 		if showComments {
