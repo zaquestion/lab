@@ -120,13 +120,13 @@ func (l *Logger) Fatal(values ...interface{}) {
 	l.errorLogger.Fatal(values...)
 }
 
-// Fatal prints formated strings and exit the program with os.Exit()
+// Fatalf prints formated strings and exit the program with os.Exit()
 func (l *Logger) Fatalf(format string, values ...interface{}) {
 	values = append([]interface{}{addFileLinePrefix("")}, values...)
 	l.errorLogger.Fatalf("%s "+format, values...)
 }
 
-// Fatal prints the values in a new line and exit the program with os.Exit()
+// Fatalln prints the values in a new line and exit the program with os.Exit()
 func (l *Logger) Fatalln(values ...interface{}) {
 	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatalln(values...)
