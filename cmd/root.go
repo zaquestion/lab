@@ -126,9 +126,9 @@ func init() {
 			log.Fatal("option --debug cannot be combined with --quiet")
 		}
 		if debugLogger {
-			log.SetLogLevel(logger.LOG_DEBUG)
+			log.SetLogLevel(logger.LogLevelDebug)
 		} else if quietLogger {
-			log.SetLogLevel(logger.LOG_NONE)
+			log.SetLogLevel(logger.LogLevelNone)
 		}
 	}
 	carapace.Gen(RootCmd)
