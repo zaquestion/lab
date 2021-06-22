@@ -62,6 +62,7 @@ func User() string {
 	return user
 }
 
+// UserID get the current user ID from gitlab server
 func UserID() (int, error) {
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
@@ -101,6 +102,9 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"), gitlab.WithCustomLeveledLogger(log))
 }
 
+// InitWithCustomCA open the HTTP client using a custom CA file (a self signed
+// one for instance) instead of relying only on those installed in the current
+// system database
 func InitWithCustomCA(_host, _user, _token, caFile string) error {
 	caCert, err := ioutil.ReadFile(caFile)
 	if err != nil {
@@ -903,6 +907,7 @@ func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bra
 	return branches, nil
 }
 
+// MilestoneGet get a specific milestone from the list of available ones
 func MilestoneGet(project string, name string) (*gitlab.Milestone, error) {
 	opts := &gitlab.ListMilestonesOptions{
 		Search: &name,
@@ -1531,6 +1536,8 @@ func AddIssueDiscussionNote(project string, issueNum int, discussionID string, b
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
+// UpdateIssueDiscussionNote updates a specific discussion or note in the
+// specified issue number
 func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1547,6 +1554,8 @@ func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
+// UpdateMRDiscussionNote updates a specific discussion or note in the
+// specified MR ID.
 func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1563,6 +1572,8 @@ func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, n
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
+// ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
+// being closed
 func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
 
 	var retArray []int
@@ -1584,6 +1595,8 @@ func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
 	return retArray, nil
 }
 
+// ListMRsRelatedToIssue return a list of MR IDs that has any relations to a
+// certain issue
 func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
 
 	var retArray []int
@@ -1605,6 +1618,8 @@ func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
 	return retArray, nil
 }
 
+// ListIssuesClosedOnMerge retuns a list of issue numbers that were closed by
+// an MR being merged
 func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
 	var retArray []int
 
@@ -1626,6 +1641,7 @@ func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
 
 }
 
+// MoveIssue moves one issue from one project to another
 func MoveIssue(project string, issueNum int, dest string) (string, error) {
 	srcProject, err := FindProject(project)
 	if err != nil {
@@ -1648,6 +1664,7 @@ func MoveIssue(project string, issueNum int, dest string) (string, error) {
 	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
 }
 
+// GetMRApprovalsConfiguration returns the current MR approval rule
 func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeRequestApprovals, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1662,6 +1679,7 @@ func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeReques
 	return configuration, err
 }
 
+// ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
 func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID int) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1679,6 +1697,7 @@ func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID 
 	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrNum, noteID), nil
 }
 
+// TodoList retuns a list of *gitlab.Todo refering to user's Todo list
 func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
@@ -1714,6 +1733,7 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 	return list, nil
 }
 
+// TodoMarkDone marks a specific Todo as done
 func TodoMarkDone(todoNum int) error {
 	_, err := lab.Todos.MarkTodoAsDone(todoNum)
 	if err != nil {
@@ -1722,6 +1742,7 @@ func TodoMarkDone(todoNum int) error {
 	return nil
 }
 
+// TodoMarkAllDone marks all Todos items as done
 func TodoMarkAllDone() error {
 	_, err := lab.Todos.MarkAllTodosAsDone()
 	if err != nil {
@@ -1730,6 +1751,7 @@ func TodoMarkAllDone() error {
 	return nil
 }
 
+// TodoMRCreate create a Todo item for an specific MR
 func TodoMRCreate(project string, mrNum int) (int, error) {
 	p, err := FindProject(project)
 	if err != nil {

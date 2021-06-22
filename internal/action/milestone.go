@@ -10,6 +10,8 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+// MilestoneOpts store filtering information for the milestones to be
+// completed by Milestones().
 type MilestoneOpts struct {
 	Active bool
 }
@@ -22,6 +24,8 @@ func (o MilestoneOpts) format() string {
 	}
 }
 
+// Milestones returns a carapace.Action containing all possible milestones with
+// their description
 func Milestones(project string, opts MilestoneOpts) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		state := opts.format()

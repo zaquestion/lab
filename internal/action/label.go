@@ -8,6 +8,7 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
+// Labels returns a carapace.Action containing all possible labels
 func Labels(project string) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		if labels, err := lab.LabelList(project); err != nil {

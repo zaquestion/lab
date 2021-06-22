@@ -8,6 +8,7 @@ import (
 	"github.com/zaquestion/lab/internal/git"
 )
 
+// Remotes returns a carapace.Action containing all possible remote values
 func Remotes() carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		remotes, err := git.Remotes()
@@ -18,6 +19,8 @@ func Remotes() carapace.Action {
 	})
 }
 
+// RemoteBranches returns a carapace.Action containing all possible remote
+// branches values
 func RemoteBranches(argIndex int) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		remote := ""
@@ -32,6 +35,7 @@ func RemoteBranches(argIndex int) carapace.Action {
 	})
 }
 
+// Snippets retuns a carapace.Action containing all available snippets
 func Snippets(snippetList func(args []string) ([]*gitlab.Snippet, error)) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		snips, err := snippetList(c.Args[:0])
@@ -48,6 +52,7 @@ func Snippets(snippetList func(args []string) ([]*gitlab.Snippet, error)) carapa
 	})
 }
 
+// Issues retuns a carapace.Action containing all available issues
 func Issues(issueList func(args []string) ([]*gitlab.Issue, error)) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		issues, err := issueList(c.Args[:0])
@@ -64,6 +69,8 @@ func Issues(issueList func(args []string) ([]*gitlab.Issue, error)) carapace.Act
 	})
 }
 
+// MergeRequests retuns a carapace.Action containing all available merge
+// requests
 func MergeRequests(mrList func(args []string) ([]*gitlab.MergeRequest, error)) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		mergeRequests, err := mrList(c.Args[:0])
