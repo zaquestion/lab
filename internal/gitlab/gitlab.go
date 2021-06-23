@@ -720,20 +720,20 @@ func IssueClose(pid interface{}, id int) error {
 }
 
 // IssueDuplicate closes an issue as duplicate of another
-func IssueDuplicate(pid interface{}, id int, dupId string) error {
+func IssueDuplicate(pid interface{}, id int, dupID string) error {
 	// Not exposed in API, go through quick action
-	body := "/duplicate " + dupId
+	body := "/duplicate " + dupID
 
 	_, _, err := lab.Notes.CreateIssueNote(pid, id, &gitlab.CreateIssueNoteOptions{
 		Body: &body,
 	})
 	if err != nil {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupID)
 	}
 
 	issue, _, err := lab.Issues.GetIssue(pid, id)
 	if issue == nil || issue.State != "closed" {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupID)
 	}
 	return nil
 }
