@@ -1177,11 +1177,11 @@ type JobStruct struct {
 	// A project ID can either be a string or an integer
 	ProjectID interface{}
 }
-type JobSorter struct{ Jobs []JobStruct }
+type jobSorter struct{ Jobs []JobStruct }
 
-func (s JobSorter) Len() int      { return len(s.Jobs) }
-func (s JobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
-func (s JobSorter) Less(i, j int) bool {
+func (s jobSorter) Len() int      { return len(s.Jobs) }
+func (s jobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
+func (s jobSorter) Less(i, j int) bool {
 	return time.Time(*s.Jobs[i].Job.CreatedAt).Before(time.Time(*s.Jobs[j].Job.CreatedAt))
 }
 
@@ -1313,7 +1313,7 @@ func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 
 	// ListPipelineJobs returns jobs sorted by ID in descending order,
 	// while we want them to be ordered chronologically
-	sort.Sort(JobSorter{list})
+	sort.Sort(jobSorter{list})
 
 	return list, nil
 }
