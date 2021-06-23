@@ -1556,7 +1556,7 @@ func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string
 
 // UpdateMRDiscussionNote updates a specific discussion or note in the
 // specified MR ID.
-func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
+func UpdateMRDiscussionNote(project string, mrNum int, discussionID string, noteID int, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return "", err
@@ -1565,7 +1565,7 @@ func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, n
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, issueNum, discussionID, noteID, opts)
+	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, mrNum, discussionID, noteID, opts)
 	if err != nil {
 		return "", err
 	}
