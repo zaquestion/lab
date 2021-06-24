@@ -125,7 +125,7 @@ func Log(sha1, sha2 string) (string, error) {
 		"--no-color",
 		"--format=%h (%aN)%n%w(78,3,3)%s%n",
 		"--cherry",
-		fmt.Sprintf("%s...%s", sha1, sha2))
+		fmt.Sprintf("%s..%s", sha1, sha2))
 	cmd.Stdout = nil
 	outputs, err := cmd.Output()
 	if err != nil {
@@ -370,7 +370,7 @@ func GetUnifiedDiff(BaseSHA string, HeadSHA string, oldPath string, newPath stri
 
 // NumberCommits returns the number of commits between two commit refs
 func NumberCommits(sha1, sha2 string) int {
-	cmd := New("log", "--oneline", fmt.Sprintf("%s...%s", sha1, sha2))
+	cmd := New("log", "--oneline", fmt.Sprintf("%s..%s", sha1, sha2))
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	CmdOut, err := cmd.Output()
