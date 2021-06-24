@@ -75,7 +75,7 @@ var forkCmd = &cobra.Command{
 			remote = "origin"
 		}
 
-		project, err := git.PathWithNameSpace(remote)
+		project, err := git.PathWithNamespace(remote)
 		if err != nil {
 			log.Fatal(err)
 		}

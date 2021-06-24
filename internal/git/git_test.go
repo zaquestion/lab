@@ -95,7 +95,7 @@ func TestCurrentBranch(t *testing.T) {
 	require.Equal(t, expectedBranch, branch)
 }
 
-func TestPathWithNameSpace(t *testing.T) {
+func TestPathWithNamespace(t *testing.T) {
 	tests := []struct {
 		desc        string
 		remote      string
@@ -198,7 +198,7 @@ func TestPathWithNameSpace(t *testing.T) {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
-			path, err := PathWithNameSpace(test.remote)
+			path, err := PathWithNamespace(test.remote)
 			if test.expectedErr != "" {
 				assert.EqualError(t, err, test.expectedErr)
 			} else {

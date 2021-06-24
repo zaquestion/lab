@@ -133,7 +133,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	sourceProjectName, err := git.PathWithNameSpace(sourceRemote)
+	sourceProjectName, err := git.PathWithNamespace(sourceRemote)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 			log.Fatalf("%s is not a valid remote\n", targetRemote)
 		}
 	}
-	targetProjectName, err := git.PathWithNameSpace(targetRemote)
+	targetProjectName, err := git.PathWithNamespace(targetRemote)
 	if err != nil {
 		log.Fatal(err)
 	}

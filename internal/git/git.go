@@ -162,10 +162,10 @@ func UpstreamBranch(branch string) (string, error) {
 	return strings.TrimPrefix(upstreamBranch, "refs/heads/"), nil
 }
 
-// PathWithNameSpace returns the owner/repository for the current repo
+// PathWithNamespace returns the owner/repository for the current repo
 // Such as zaquestion/lab
 // Respects GitLab subgroups (https://docs.gitlab.com/ce/user/group/subgroups/)
-func PathWithNameSpace(remote string) (string, error) {
+func PathWithNamespace(remote string) (string, error) {
 	remoteURL, err := gitconfig.Local("remote." + remote + ".pushurl")
 	if err != nil || remoteURL == "" {
 		remoteURL, err = gitconfig.Local("remote." + remote + ".url")
@@ -198,7 +198,7 @@ func PathWithNameSpace(remote string) (string, error) {
 
 // RepoName returns the name of the repository, such as "lab"
 func RepoName() (string, error) {
-	o, err := PathWithNameSpace("origin")
+	o, err := PathWithNamespace("origin")
 	if err != nil {
 		return "", err
 	}

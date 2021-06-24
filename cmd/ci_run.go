@@ -112,7 +112,7 @@ func getCIRunOptions(cmd *cobra.Command, args []string) (interface{}, string, er
 	}
 
 	remote := determineSourceRemote(branch)
-	rn, err := git.PathWithNameSpace(remote)
+	rn, err := git.PathWithNamespace(remote)
 	if err != nil {
 		return nil, "", err
 	}

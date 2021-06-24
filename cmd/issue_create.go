@@ -55,7 +55,7 @@ var issueCreateCmd = &cobra.Command{
 				remote = args[0]
 			}
 		}
-		rn, err := git.PathWithNameSpace(remote)
+		rn, err := git.PathWithNamespace(remote)
 		if err != nil {
 			log.Fatal(err)
 		}
