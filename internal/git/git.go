@@ -108,8 +108,8 @@ func PagerCommand() (string, []string) {
 }
 
 // LastCommitMessage returns the last commits message as one line
-func LastCommitMessage() (string, error) {
-	cmd := New("show", "-s", "--format=%s%n%+b", "HEAD")
+func LastCommitMessage(sha string) (string, error) {
+	cmd := New("show", "-s", "--format=%s%n%+b", sha)
 	cmd.Stdout = nil
 	msg, err := cmd.Output()
 	if err != nil {
