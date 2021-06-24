@@ -153,20 +153,6 @@ func CurrentBranch() (string, error) {
 	return strings.TrimSpace(string(branch)), nil
 }
 
-// CurrentUpstreamBranch returns the upstream of the currently checked out branch
-func CurrentUpstreamBranch() (string, error) {
-	localBranch, err := CurrentBranch()
-	if err != nil {
-		return "", err
-	}
-
-	branch, err := UpstreamBranch(localBranch)
-	if err != nil {
-		return "", err
-	}
-	return branch, nil
-}
-
 // UpstreamBranch returns the upstream of the specified branch
 func UpstreamBranch(branch string) (string, error) {
 	upstreamBranch, err := gitconfig.Local("branch." + branch + ".merge")
