@@ -17,7 +17,7 @@ func Test_mrText(t *testing.T) {
 	require.Contains(t, text, `
 
 I am the default merge request template for lab
-# Requesting a merge into origin:master from origin:mrtest (12 commits)
+# Requesting a merge into origin:master from origin:mrtest (1 commits)
 #
 # Write a message for this merge request. The first block
 # of text is the title and the rest is the description.
@@ -37,7 +37,7 @@ func Test_mrText_CoverLetter(t *testing.T) {
 	require.Contains(t, coverLetter, `
 
 I am the default merge request template for lab
-# Requesting a merge into origin:master from origin:mrtest (12 commits)
+# Requesting a merge into origin:master from origin:mrtest (1 commits)
 #
 # Write a message for this merge request. The first block
 # of text is the title and the rest is the description.
