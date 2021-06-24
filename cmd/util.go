@@ -137,7 +137,7 @@ func parseArgsRemoteAndID(args []string) (string, int64, error) {
 	if remote == "" {
 		remote = defaultRemote
 	}
-	rn, err := git.PathWithNameSpace(remote)
+	rn, err := git.PathWithNamespace(remote)
 	if err != nil {
 		return "", 0, err
 	}
@@ -257,7 +257,7 @@ func getRemoteName(remote string) (string, error) {
 		return "", errors.Errorf("%s is not a valid remote", remote)
 	}
 
-	remote, err = git.PathWithNameSpace(remote)
+	remote, err = git.PathWithNamespace(remote)
 	if err != nil {
 		return "", err
 	}

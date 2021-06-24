@@ -74,7 +74,7 @@ var snippetCreateCmd = &cobra.Command{
 		}
 		// See if we're in a git repo or if global is set to determine
 		// if this should be a personal snippet
-		rn, _ := git.PathWithNameSpace(remote)
+		rn, _ := git.PathWithNamespace(remote)
 		if global || rn == "" {
 			opts := gitlab.CreateSnippetOptions{
 				Title:       gitlab.String(title),
