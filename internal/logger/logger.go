@@ -13,16 +13,16 @@ import (
 
 // Logger levels available
 const (
-	LOG_NONE = iota
-	LOG_ERROR
-	LOG_INFO
-	LOG_DEBUG
+	LogLevelNone = iota
+	LogLevelError
+	LogLevelInfo
+	LogLevelDebug
 )
 
-// This internal logger will have a different log.Logger for each level,
-// allowing different destination (file or fd) in different levels and
-// also different prefixes.
-type logger struct {
+// Logger represents lab's internal logger structure, which has a different
+// log.Logger for each level, allowing different destination (file or fd) in
+// different levels and also different prefixes.
+type Logger struct {
 	level       int
 	errorLogger *log.Logger
 	warnLogger  *log.Logger
@@ -31,17 +31,17 @@ type logger struct {
 }
 
 // Internal instance that is used by anyone getting it through GetInstance()
-var internalLogger *logger
+var internalLogger *Logger
 
 // A way to avoid multiple initialization of the same logger
 var once sync.Once
 
 // GetInstance returns the default lab internal logger
-func GetInstance() *logger {
+func GetInstance() *Logger {
 	once.Do(func() {
-		internalLogger = &logger{
+		internalLogger = &Logger{
 			// Set INFO as default level. The user can change it
-			level: LOG_INFO,
+			level: LogLevelInfo,
 			// Setting Lmsgprefix preffix make the prefix to be printed before
 			// the actual message, but after the LstdFlags (date and time)
 			errorLogger: log.New(os.Stderr, "ERROR: ", log.LstdFlags|log.Lmsgprefix),
@@ -54,9 +54,9 @@ func GetInstance() *logger {
 }
 
 // SetLogLevel set the level of the internal logger.
-// Allowed values are LOG_{ERROR,INFO,DEBUG,NONE}.
-func (l *logger) SetLogLevel(level int) error {
-	if !(level >= LOG_NONE && level <= LOG_DEBUG) {
+// Allowed values are LogLevel{Error,Info,Debug,None}.
+func (l *Logger) SetLogLevel(level int) error {
+	if !(level >= LogLevelNone && level <= LogLevelDebug) {
 		return errors.New("invalid log level")
 	}
 	l.level = level
@@ -64,13 +64,13 @@ func (l *logger) SetLogLevel(level int) error {
 }
 
 // LogLevel return de current log level of the internal logger
-func (l *logger) LogLevel() int {
+func (l *Logger) LogLevel() int {
 	return l.level
 }
 
 // SetStdDest sets what's the desired stdout and stderr for the internal
 // log. It can be any io.Writer value.
-func (l *logger) SetStdDest(stdout io.Writer, stderr io.Writer) {
+func (l *Logger) SetStdDest(stdout io.Writer, stderr io.Writer) {
 	l.errorLogger.SetOutput(stderr)
 	l.warnLogger.SetOutput(stdout)
 	l.infoLogger.SetOutput(stdout)
@@ -115,19 +115,19 @@ func addFileLinePrefix(msg string) string {
 }
 
 // Fatal prints the values and exit the program with os.Exit()
-func (l *logger) Fatal(values ...interface{}) {
+func (l *Logger) Fatal(values ...interface{}) {
 	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatal(values...)
 }
 
-// Fatal prints formated strings and exit the program with os.Exit()
-func (l *logger) Fatalf(format string, values ...interface{}) {
+// Fatalf prints formated strings and exit the program with os.Exit()
+func (l *Logger) Fatalf(format string, values ...interface{}) {
 	values = append([]interface{}{addFileLinePrefix("")}, values...)
 	l.errorLogger.Fatalf("%s "+format, values...)
 }
 
-// Fatal prints the values in a new line and exit the program with os.Exit()
-func (l *logger) Fatalln(values ...interface{}) {
+// Fatalln prints the values in a new line and exit the program with os.Exit()
+func (l *Logger) Fatalln(values ...interface{}) {
 	values = append([]interface{}{addFileLinePrefix(" ")}, values...)
 	l.errorLogger.Fatalln(values...)
 }
@@ -136,8 +136,8 @@ func (l *logger) Fatalln(values ...interface{}) {
 // These parameters match the retryablehttp.LeveledLogger, which we want to
 // satisfy for silencing their debug messages being printed in the stdout.
 // Error message are always printed, regardless the log level.
-func (l *logger) Error(msg string, keysAndValues ...interface{}) {
-	if l.level >= LOG_ERROR {
+func (l *Logger) Error(msg string, keysAndValues ...interface{}) {
+	if l.level >= LogLevelError {
 		l.errorLogger.Print(addFileLinePrefix(msg))
 		printKeysAndValues(l.errorLogger, keysAndValues...)
 	}
@@ -145,8 +145,8 @@ func (l *logger) Error(msg string, keysAndValues ...interface{}) {
 
 // Errorf prints formated error message (prefixed with "ERROR:").
 // Error message are always printed, regardless the log level.
-func (l *logger) Errorf(format string, values ...interface{}) {
-	if l.level >= LOG_ERROR {
+func (l *Logger) Errorf(format string, values ...interface{}) {
+	if l.level >= LogLevelError {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.errorLogger.Printf("%s "+format, values...)
 	}
@@ -154,8 +154,8 @@ func (l *logger) Errorf(format string, values ...interface{}) {
 
 // Errorln prints error values in a new line (prefixed with "ERROR:").
 // Error message are always printed, regardless the log level.
-func (l *logger) Errorln(values ...interface{}) {
-	if l.level >= LOG_ERROR {
+func (l *Logger) Errorln(values ...interface{}) {
+	if l.level >= LogLevelError {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.errorLogger.Println(values...)
 	}
@@ -164,27 +164,27 @@ func (l *logger) Errorln(values ...interface{}) {
 // Warn prints warning messages (prefixed with "WARNING:").
 // These parameters match the retryablehttp.LeveledLogger, which we want to
 // satisfy for silencing their debug messages being printed in the stdout.
-// Warning messages require at least LOG_INFO level.
-func (l *logger) Warn(msg string, keysAndValues ...interface{}) {
-	if l.level >= LOG_INFO {
+// Warning messages require at least LogLevelInfo level.
+func (l *Logger) Warn(msg string, keysAndValues ...interface{}) {
+	if l.level >= LogLevelInfo {
 		l.warnLogger.Print(addFileLinePrefix(msg))
 		printKeysAndValues(l.warnLogger, keysAndValues...)
 	}
 }
 
 // Warnf prints formated warning message (prefixed with "WARNING:").
-// Warning messages require at least LOG_INFO level.
-func (l *logger) Warnf(format string, values ...interface{}) {
-	if l.level >= LOG_INFO {
+// Warning messages require at least LogLevelInfo level.
+func (l *Logger) Warnf(format string, values ...interface{}) {
+	if l.level >= LogLevelInfo {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.warnLogger.Printf("%s "+format, values...)
 	}
 }
 
 // Warnln prints warning values in a new line (prefixed with "WARNING:").
-// Warning messages require at least LOG_INFO level.
-func (l *logger) Warnln(values ...interface{}) {
-	if l.level >= LOG_INFO {
+// Warning messages require at least LogLevelInfo level.
+func (l *Logger) Warnln(values ...interface{}) {
+	if l.level >= LogLevelInfo {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.warnLogger.Println(values...)
 	}
@@ -193,27 +193,27 @@ func (l *logger) Warnln(values ...interface{}) {
 // Info prints informational messages (prefixed with "INFO:").
 // These parameters match the retryablehttp.LeveledLogger, which we want to
 // satisfy for silencing their debug messages being printed in the stdout.
-// Info messages require at least LOG_INFO level.
-func (l *logger) Info(msg string, keysAndValues ...interface{}) {
-	if l.level >= LOG_INFO {
+// Info messages require at least LogLevelInfo level.
+func (l *Logger) Info(msg string, keysAndValues ...interface{}) {
+	if l.level >= LogLevelInfo {
 		l.infoLogger.Print(addFileLinePrefix(msg))
 		printKeysAndValues(l.infoLogger, keysAndValues...)
 	}
 }
 
 // Infof prints formated informational message (prefixed with "INFO:").
-// Info messages require at least LOG_INFO level.
-func (l *logger) Infof(format string, values ...interface{}) {
-	if l.level >= LOG_INFO {
+// Info messages require at least LogLevelInfo level.
+func (l *Logger) Infof(format string, values ...interface{}) {
+	if l.level >= LogLevelInfo {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.infoLogger.Printf("%s "+format, values...)
 	}
 }
 
 // Infoln prints info values in a new line (prefixed with "INFO:").
-// Info messages require at least LOG_INFO level.
-func (l *logger) Infoln(values ...interface{}) {
-	if l.level >= LOG_INFO {
+// Info messages require at least LogLevelInfo level.
+func (l *Logger) Infoln(values ...interface{}) {
+	if l.level >= LogLevelInfo {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.infoLogger.Println(values...)
 	}
@@ -222,27 +222,27 @@ func (l *logger) Infoln(values ...interface{}) {
 // Debug prints warning messages (prefixed with "DEBUG:").
 // These parameters match the retryablehttp.LeveledLogger, which we want to
 // satisfy for silencing thier debug messages being printed in the stdout.
-// Debug messages require at least LOG_DEBUG level.
-func (l *logger) Debug(msg string, keysAndValues ...interface{}) {
-	if l.level >= LOG_DEBUG {
+// Debug messages require at least LogLevelDebug level.
+func (l *Logger) Debug(msg string, keysAndValues ...interface{}) {
+	if l.level >= LogLevelDebug {
 		l.debugLogger.Print(addFileLinePrefix(msg))
 		printKeysAndValues(l.debugLogger, keysAndValues...)
 	}
 }
 
 // Debugf prints formated debug message (prefixed with "DEBUG:").
-// Debug messages require at least LOG_DEBUG level.
-func (l *logger) Debugf(format string, values ...interface{}) {
-	if l.level >= LOG_DEBUG {
+// Debug messages require at least LogLevelDebug level.
+func (l *Logger) Debugf(format string, values ...interface{}) {
+	if l.level >= LogLevelDebug {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.debugLogger.Printf("%s "+format, values...)
 	}
 }
 
 // Debugln prints debug values in a new line (prefixed with "DEBUG:").
-// Debug messages require at least LOG_DEBUG level.
-func (l *logger) Debugln(values ...interface{}) {
-	if l.level >= LOG_DEBUG {
+// Debug messages require at least LogLevelDebug level.
+func (l *Logger) Debugln(values ...interface{}) {
+	if l.level >= LogLevelDebug {
 		values = append([]interface{}{addFileLinePrefix("")}, values...)
 		l.debugLogger.Println(values...)
 	}

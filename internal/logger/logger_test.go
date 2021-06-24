@@ -19,7 +19,7 @@ func TestGetInstance(t *testing.T) {
 func TestLogLevel(t *testing.T) {
 	log := GetInstance()
 	// Check default log level
-	require.Equal(t, LOG_INFO, log.LogLevel())
+	require.Equal(t, LogLevelInfo, log.LogLevel())
 
 	// Set invalid log level
 	err := log.SetLogLevel(100)
@@ -30,9 +30,9 @@ func TestLogLevel(t *testing.T) {
 	require.EqualError(t, err, "invalid log level")
 
 	// Set a different and valid log level
-	err = log.SetLogLevel(LOG_DEBUG)
+	err = log.SetLogLevel(LogLevelDebug)
 	require.NoError(t, err)
-	require.Equal(t, LOG_DEBUG, log.LogLevel())
+	require.Equal(t, LogLevelDebug, log.LogLevel())
 }
 
 func Test_addFileLinePrefix(t *testing.T) {
@@ -47,7 +47,7 @@ func TestLogFunctions(t *testing.T) {
 	type logFuncln func(...interface{})
 
 	log := GetInstance()
-	log.SetLogLevel(LOG_DEBUG)
+	log.SetLogLevel(LogLevelDebug)
 
 	tests := []struct {
 		name   string

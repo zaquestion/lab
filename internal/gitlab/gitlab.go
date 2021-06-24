@@ -62,6 +62,7 @@ func User() string {
 	return user
 }
 
+// UserID get the current user ID from gitlab server
 func UserID() (int, error) {
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
@@ -101,6 +102,9 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"), gitlab.WithCustomLeveledLogger(log))
 }
 
+// InitWithCustomCA open the HTTP client using a custom CA file (a self signed
+// one for instance) instead of relying only on those installed in the current
+// system database
 func InitWithCustomCA(_host, _user, _token, caFile string) error {
 	caCert, err := ioutil.ReadFile(caFile)
 	if err != nil {
@@ -716,20 +720,20 @@ func IssueClose(pid interface{}, id int) error {
 }
 
 // IssueDuplicate closes an issue as duplicate of another
-func IssueDuplicate(pid interface{}, id int, dupId string) error {
+func IssueDuplicate(pid interface{}, id int, dupID string) error {
 	// Not exposed in API, go through quick action
-	body := "/duplicate " + dupId
+	body := "/duplicate " + dupID
 
 	_, _, err := lab.Notes.CreateIssueNote(pid, id, &gitlab.CreateIssueNoteOptions{
 		Body: &body,
 	})
 	if err != nil {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupID)
 	}
 
 	issue, _, err := lab.Issues.GetIssue(pid, id)
 	if issue == nil || issue.State != "closed" {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupId)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupID)
 	}
 	return nil
 }
@@ -903,6 +907,7 @@ func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bra
 	return branches, nil
 }
 
+// MilestoneGet get a specific milestone from the list of available ones
 func MilestoneGet(project string, name string) (*gitlab.Milestone, error) {
 	opts := &gitlab.ListMilestonesOptions{
 		Search: &name,
@@ -1172,11 +1177,11 @@ type JobStruct struct {
 	// A project ID can either be a string or an integer
 	ProjectID interface{}
 }
-type JobSorter struct{ Jobs []JobStruct }
+type jobSorter struct{ Jobs []JobStruct }
 
-func (s JobSorter) Len() int      { return len(s.Jobs) }
-func (s JobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
-func (s JobSorter) Less(i, j int) bool {
+func (s jobSorter) Len() int      { return len(s.Jobs) }
+func (s jobSorter) Swap(i, j int) { s.Jobs[i], s.Jobs[j] = s.Jobs[j], s.Jobs[i] }
+func (s jobSorter) Less(i, j int) bool {
 	return time.Time(*s.Jobs[i].Job.CreatedAt).Before(time.Time(*s.Jobs[j].Job.CreatedAt))
 }
 
@@ -1308,7 +1313,7 @@ func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 
 	// ListPipelineJobs returns jobs sorted by ID in descending order,
 	// while we want them to be ordered chronologically
-	sort.Sort(JobSorter{list})
+	sort.Sort(jobSorter{list})
 
 	return list, nil
 }
@@ -1531,6 +1536,8 @@ func AddIssueDiscussionNote(project string, issueNum int, discussionID string, b
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
+// UpdateIssueDiscussionNote updates a specific discussion or note in the
+// specified issue number
 func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1547,7 +1554,9 @@ func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
-func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
+// UpdateMRDiscussionNote updates a specific discussion or note in the
+// specified MR ID.
+func UpdateMRDiscussionNote(project string, mrNum int, discussionID string, noteID int, body string) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
 		return "", err
@@ -1556,13 +1565,15 @@ func UpdateMRDiscussionNote(project string, issueNum int, discussionID string, n
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, issueNum, discussionID, noteID, opts)
+	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, mrNum, discussionID, noteID, opts)
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
+// ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
+// being closed
 func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
 
 	var retArray []int
@@ -1584,6 +1595,8 @@ func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
 	return retArray, nil
 }
 
+// ListMRsRelatedToIssue return a list of MR IDs that has any relations to a
+// certain issue
 func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
 
 	var retArray []int
@@ -1605,6 +1618,8 @@ func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
 	return retArray, nil
 }
 
+// ListIssuesClosedOnMerge retuns a list of issue numbers that were closed by
+// an MR being merged
 func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
 	var retArray []int
 
@@ -1626,6 +1641,7 @@ func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
 
 }
 
+// MoveIssue moves one issue from one project to another
 func MoveIssue(project string, issueNum int, dest string) (string, error) {
 	srcProject, err := FindProject(project)
 	if err != nil {
@@ -1648,6 +1664,7 @@ func MoveIssue(project string, issueNum int, dest string) (string, error) {
 	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
 }
 
+// GetMRApprovalsConfiguration returns the current MR approval rule
 func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeRequestApprovals, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1662,6 +1679,7 @@ func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeReques
 	return configuration, err
 }
 
+// ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
 func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID int) (string, error) {
 	p, err := FindProject(project)
 	if err != nil {
@@ -1679,6 +1697,7 @@ func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID 
 	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrNum, noteID), nil
 }
 
+// TodoList retuns a list of *gitlab.Todo refering to user's Todo list
 func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
@@ -1714,6 +1733,7 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 	return list, nil
 }
 
+// TodoMarkDone marks a specific Todo as done
 func TodoMarkDone(todoNum int) error {
 	_, err := lab.Todos.MarkTodoAsDone(todoNum)
 	if err != nil {
@@ -1722,6 +1742,7 @@ func TodoMarkDone(todoNum int) error {
 	return nil
 }
 
+// TodoMarkAllDone marks all Todos items as done
 func TodoMarkAllDone() error {
 	_, err := lab.Todos.MarkAllTodosAsDone()
 	if err != nil {
@@ -1730,6 +1751,7 @@ func TodoMarkAllDone() error {
 	return nil
 }
 
+// TodoMRCreate create a Todo item for an specific MR
 func TodoMRCreate(project string, mrNum int) (int, error) {
 	p, err := FindProject(project)
 	if err != nil {

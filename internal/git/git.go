@@ -241,6 +241,7 @@ func RemoteAdd(name, url, dir string) error {
 	return nil
 }
 
+// Remotes get the list of remotes available in the current repo dir
 func Remotes() ([]string, error) {
 	repo, err := gogit.PlainOpen(".")
 	if err != nil {
@@ -258,6 +259,7 @@ func Remotes() ([]string, error) {
 	return names, nil
 }
 
+// RemoteBranches get the list of branches the specified remote has
 func RemoteBranches(remote string) ([]string, error) {
 	repo, err := gogit.PlainOpen(".")
 	if err != nil {
@@ -352,6 +354,7 @@ func GetLocalRemotesFromFile() (string, error) {
 	return string(remotes), nil
 }
 
+// GetUnifiedDiff return the full/unified patch diff, with max context length
 func GetUnifiedDiff(BaseSHA string, HeadSHA string, oldPath string, newPath string) (string, error) {
 	// I hate magic numbers as much as the next person but I cannot
 	// figure out a better way to get a unified diff for an entire file.
@@ -365,6 +368,7 @@ func GetUnifiedDiff(BaseSHA string, HeadSHA string, oldPath string, newPath stri
 	return string(diff), nil
 }
 
+// NumberCommits returns the number of commits between two commit refs
 func NumberCommits(sha1, sha2 string) int {
 	cmd := New("log", "--oneline", fmt.Sprintf("%s...%s", sha1, sha2))
 	cmd.Stdout = nil
