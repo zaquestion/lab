@@ -2,10 +2,10 @@ VERSION ?= $(shell git describe --long --tags)
 GOURL ?= github.com/zaquestion/lab
 
 build:
-	GO111MODULE=on go build -ldflags "-X \"main.version=$(VERSION)\"" $(GOURL)
+	GO111MODULE=on go build -ldflags "-X 'main.version=$(VERSION)'" $(GOURL)
 
 install: build
-	GO111MODULE=on go install $(GOURL)
+	GO111MODULE=on go install -ldflags "-X 'main.version=$(VERSION)'" $(GOURL)
 
 test:
 	bash -c "trap 'trap - SIGINT SIGTERM ERR; mv testdata/.git testdata/test.git; rm coverage-* 2>&1 > /dev/null; exit 1' SIGINT SIGTERM ERR; $(MAKE) internal-test"
