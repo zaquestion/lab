@@ -132,7 +132,7 @@ func Log(sha1, sha2 string) (string, error) {
 		return "", errors.Errorf("Can't load git log %s..%s", sha1, sha2)
 	}
 
-	diffCmd := New("diff", "--stat", sha1)
+	diffCmd := New("diff", "--stat", fmt.Sprintf("%s...", sha1))
 	diffCmd.Stdout = nil
 	diffOutput, err := diffCmd.Output()
 	if err != nil {
