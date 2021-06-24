@@ -63,7 +63,7 @@ func TestCommentChar(t *testing.T) {
 }
 
 func TestLastCommitMessage(t *testing.T) {
-	lcm, err := LastCommitMessage()
+	lcm, err := LastCommitMessage("HEAD")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -292,7 +292,7 @@ func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, cover
 	numCommits := git.NumberCommits(target, source)
 	if numCommits == 1 {
 		var err error
-		commitMsg, err = git.LastCommitMessage()
+		commitMsg, err = git.LastCommitMessage(source)
 		if err != nil {
 			return "", err
 		}
