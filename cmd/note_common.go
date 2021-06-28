@@ -4,16 +4,88 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
 
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
+
+func noteRunFn(cmd *cobra.Command, args []string) {
+	isMR := false
+	if os.Args[1] == "mr" {
+		isMR = true
+	}
+
+	reply, branchArgs, err := filterCommentArg(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var (
+		rn    string
+		idNum int = 0
+	)
+
+	if isMR {
+		s, mrNum, _ := parseArgsWithGitBranchMR(branchArgs)
+		if mrNum == 0 {
+			fmt.Println("Error: Cannot determine MR id.")
+			os.Exit(1)
+		}
+		idNum = int(mrNum)
+		rn = s
+	} else {
+		s, issueNum, _ := parseArgsRemoteAndID(branchArgs)
+		if issueNum == 0 {
+			fmt.Println("Error: Cannot determine issue id.")
+			os.Exit(1)
+		}
+		idNum = int(issueNum)
+		rn = s
+	}
+
+	msgs, err := cmd.Flags().GetStringArray("message")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	filename, err := cmd.Flags().GetString("file")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	linebreak, err := cmd.Flags().GetBool("force-linebreak")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if reply != 0 {
+		resolve, err := cmd.Flags().GetBool("resolve")
+		if err != nil {
+			log.Fatal(err)
+		}
+		// 'lab mr resolve' always overrides options
+		if os.Args[2] == "resolve" {
+			resolve = true
+		}
+
+		quote, err := cmd.Flags().GetBool("quote")
+		if err != nil {
+			log.Fatal(err)
+		}
+		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak, resolve, msgs)
+		return
+	}
+
+	createNote(rn, isMR, int(idNum), msgs, filename, linebreak)
+}
 
 func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
 	var err error
