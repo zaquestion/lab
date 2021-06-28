@@ -19,7 +19,7 @@ import (
 
 func noteRunFn(cmd *cobra.Command, args []string) {
 	isMR := false
-	if os.Args[1] == "mr" {
+	if cmd.Parent().Name() == "mr" {
 		isMR = true
 	}
 
@@ -72,7 +72,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 			log.Fatal(err)
 		}
 		// 'lab mr resolve' always overrides options
-		if os.Args[2] == "resolve" {
+		if cmd.CalledAs() == "resolve" {
 			resolve = true
 		}
 
@@ -80,6 +80,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak, resolve, msgs)
 		return
 	}
