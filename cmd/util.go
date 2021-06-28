@@ -357,8 +357,6 @@ func filterCommentArg(args []string) (int, []string, error) {
 	} else if len(args) == 2 {
 		branchArgs = append(branchArgs, args[0])
 		idString = args[1]
-	} else {
-		return 0, branchArgs, fmt.Errorf("unsupported number of arguments")
 	}
 
 	if strings.Contains(idString, ":") {
