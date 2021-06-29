@@ -76,7 +76,6 @@ var ciStatusCmd = &cobra.Command{
 
 			// filter out old jobs
 			jobs = latestJobs(jobs)
-
 			if len(jobs) == 0 {
 				log.Fatal("no CI jobs found in pipeline ", pipelineID, " on remote ", rn)
 				return
@@ -97,7 +96,7 @@ var ciStatusCmd = &cobra.Command{
 			fmt.Fprintln(w)
 
 			// don't spam the api TOO much
-			time.Sleep(1 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 
 		fmt.Fprintf(w, "\nPipeline Status: %s\n", jobs[0].Pipeline.Status)
