@@ -119,10 +119,17 @@ func displayDiff(diff string, chunkNum int, newLine int, oldLine int) {
 
 func displayCommitDiscussion(idNum int, note *gitlab.Note) {
 
-	// The GitLab API only supports showing comments on the entire
-	// changeset and not per-commit.  IOW, all diffs are shown against
-	// HEAD.  This is confusing in some scenarios, however it's what the
-	// API provides.
+	// Previously, the GitLab API only supports showing comments on the
+	// entire changeset and not per-commit.  IOW, all diffs were shown
+	// against HEAD.  This was confusing in some scenarios, however it
+	// was what the API provided.
+	//
+	// At some point, note.Position.HeadSHA was changed to report the
+	// commit that was being commented on, and note.Position.BaseSHA
+	// points to the commit just before it.  I cannot find the GitLab
+	// commit that changed this behaviour but it has changed.
+	//
+	// I am leaving this comment here in case it ever changes again.
 
 	// Get a unified diff for the entire file
 	diff, err := git.GetUnifiedDiff(note.Position.BaseSHA, note.Position.HeadSHA, note.Position.OldPath, note.Position.NewPath)
@@ -139,8 +146,10 @@ func displayCommitDiscussion(idNum int, note *gitlab.Note) {
 	// In general, only have to display the NewPath, however there
 	// are some unusual cases where the OldPath may be displayed
 	if note.Position.NewPath == note.Position.OldPath {
+		fmt.Println("commit:" + note.Position.HeadSHA)
 		fmt.Println("File:" + note.Position.NewPath)
 	} else {
+		fmt.Println("commit:" + note.Position.HeadSHA)
 		fmt.Println("Files[old:" + note.Position.OldPath + " new:" + note.Position.NewPath + "]")
 	}
 
