@@ -121,11 +121,14 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	if sourceTarget != "" {
 		sourceParts := strings.Split(sourceTarget, ":")
+		if len(sourceParts) < 2 ||
+			strings.TrimSpace(sourceParts[0]) == "" ||
+			strings.TrimSpace(sourceParts[1]) == "" {
+			log.Fatalf("source remote must have format remote:remote_branch")
+		}
+
 		sourceRemote = sourceParts[0]
 		sourceBranch = sourceParts[1]
-		if sourceRemote == "" || sourceBranch == "" {
-			log.Fatalf("source remote must have format remote:remote_branch.\n")
-		}
 
 		_, err := git.IsRemote(sourceRemote)
 		if err != nil {
