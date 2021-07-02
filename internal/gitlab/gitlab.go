@@ -1784,3 +1784,35 @@ func TodoIssueCreate(project string, issueNum int) (int, error) {
 	}
 	return todo.ID, nil
 }
+
+func GetCommitDiff(project string, sha string) ([]*gitlab.Diff, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	var diffs []*gitlab.Diff
+	opt := &gitlab.GetCommitDiffOptions{
+		PerPage: maxItemsPerPage,
+	}
+
+	for {
+		ds, resp, err := lab.Commits.GetCommitDiff(p.ID, sha, opt)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+
+		diffs = append(diffs, ds...)
+
+		// if we've seen all the pages, then we can break here
+		if resp.CurrentPage >= resp.TotalPages {
+			break
+		}
+
+		// otherwise, update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return diffs, nil
+}
