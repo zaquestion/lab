@@ -105,26 +105,27 @@ func Test_mrShow_diffs(t *testing.T) {
 	}
 
 	require.Contains(t, out, `
+commit:5f4397445f620e1a6f22e0ce59e18cbf22f0ddff
 File:test
-  4   4  
-  5   5  
-  6   6  line 6 This is a test file with some text in it.
-  7   7  
-  8     -line 8 This is the second test line in the file.
-      8 +line 8 This is an edit of line 8.
-
+|        @@ -5,7 +5,7 @@
+|  5   5  
+|  6   6  line 6 This is a test file with some text in it.
+|  7   7  
+|  8     -line 8 This is the second test line in the file.
+|      8 +line 8 This is an edit of line 8.
 
     This is a comment on the deleted line 8.
 `)
 
 	require.Contains(t, out, `
+commit:5f4397445f620e1a6f22e0ce59e18cbf22f0ddff
 File:test
-      6 +line 6 This is a test file with some text in it.
-      7 +
-      8 +line 8 This is an edit of line 8.
-      9 +
-     10 +line 10 This is the third line in the file.
-
+|  6   6  line 6 This is a test file with some text in it.
+|  7   7  
+|  8     -line 8 This is the second test line in the file.
+|      8 +line 8 This is an edit of line 8.
+|  9   9  
+| 10  10  line 10 This is the third line in the file.
 
     This is a comment on line 10.
 `)

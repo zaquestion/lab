@@ -340,20 +340,6 @@ func GetLocalRemotesFromFile() (string, error) {
 	return string(remotes), nil
 }
 
-// GetUnifiedDiff return the full/unified patch diff, with max context length
-func GetUnifiedDiff(BaseSHA string, HeadSHA string, oldPath string, newPath string) (string, error) {
-	// I hate magic numbers as much as the next person but I cannot
-	// figure out a better way to get a unified diff for an entire file.
-	cmd := New("diff", "-U99999999", "--no-renames", BaseSHA, HeadSHA, "--", oldPath, "--", newPath)
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	diff, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return string(diff), nil
-}
-
 // NumberCommits returns the number of commits between two commit refs
 func NumberCommits(sha1, sha2 string) int {
 	cmd := New("log", "--oneline", fmt.Sprintf("%s..%s", sha1, sha2))
