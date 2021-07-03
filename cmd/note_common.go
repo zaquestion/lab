@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -66,6 +67,11 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	commit, err := cmd.Flags().GetString("commit")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if reply != 0 {
 		resolve, err := cmd.Flags().GetBool("resolve")
 		if err != nil {
@@ -85,10 +91,119 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createNote(rn, isMR, int(idNum), msgs, filename, linebreak)
+	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit)
 }
 
-func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool) {
+func createCommitNote(rn string, mrID int, sha string, newFile string, oldFile string, oldline int, newline int, comment string, block bool) {
+	linetype := "old"
+	line := oldline
+	if oldline == -1 {
+		linetype = "new"
+		line = newline
+	}
+
+	if block {
+		webURL, err := lab.CreateMergeRequestCommitDiscussion(rn, mrID, sha, newFile, oldFile, line, linetype, comment)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(webURL)
+		return
+	}
+
+	webURL, err := lab.CreateCommitComment(rn, sha, newFile, oldFile, line, linetype, comment)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(webURL)
+}
+
+func getCommitBody(project string, commit string) (body string) {
+	//body is going to be the commit diff
+	ds, err := lab.GetCommitDiff(project, commit)
+	if err != nil {
+		fmt.Printf("    Could not get diff for commit %s.\n", commit)
+		log.Fatal(err)
+	}
+
+	if len(ds) == 0 {
+		log.Fatal("    No diff found for %s.", commit)
+	}
+
+	for _, d := range ds {
+		body = body + fmt.Sprintf("| newfile: %s oldfile: %s\n", d.NewPath, d.OldPath)
+		body = body + displayDiff(d.Diff, 0, 0, true)
+	}
+
+	return body
+}
+
+func createCommitComments(project string, mrID int, commit string, body string, block bool) {
+	// Go through the body line-by-line and find lines that do not
+	// begin with |.  These lines are comments that have been made
+	// on the patch.  The lines that begin with | contain patch
+	// tracking information (new line & old line number pairs,
+	// and file information)
+	scanner := bufio.NewScanner(strings.NewReader(body))
+	newfile := ""
+	oldfile := ""
+	oldLineNum := -1
+	newLineNum := -1
+	comments := ""
+	for scanner.Scan() {
+		if strings.HasPrefix(scanner.Text(), "| newfile:") {
+			if comments != "" {
+				createCommitNote(project, mrID, commit, newfile, oldfile, oldLineNum, newLineNum, comments, block)
+				comments = ""
+			}
+			// read filename
+			f := strings.Split(scanner.Text(), " ")
+			newfile = f[2]
+			if len(f) < 5 {
+				oldfile = ""
+			} else {
+				oldfile = f[4]
+			}
+		} else if strings.HasPrefix(scanner.Text(), "|") {
+			if comments != "" {
+				createCommitNote(project, mrID, commit, newfile, oldfile, oldLineNum, newLineNum, comments, block)
+				comments = ""
+			}
+			// read line numbers
+			fs := strings.Split(scanner.Text(), " ")
+
+			oldLineNum = -1
+			newLineNum = -1
+			for _, f := range fs {
+				if f == "" || f == "|" || f == "@@" {
+					continue
+				}
+				val, err := strconv.Atoi(f)
+				if err != nil {
+					// NaN
+					if strings.HasPrefix(f, "+") {
+						newLineNum = oldLineNum
+						oldLineNum = -1
+					}
+					break
+				} else {
+					// Number
+					if oldLineNum == -1 {
+						oldLineNum = val
+					} else {
+						newLineNum = val
+						break
+					}
+				}
+			}
+		} else {
+			// this is a comment (combine for a filename)
+			comments = comments + "\n" + scanner.Text()
+		}
+	}
+
+}
+func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string) {
 	var err error
 
 	body := ""
@@ -111,7 +226,12 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 				"merged": "MERGED",
 			}[mr.State]
 
-			body = fmt.Sprintf("\n# This comment is being applied to %s Merge Request %d.", state, idNum)
+			if commit != "" {
+				body = getCommitBody(rn, commit)
+				body += fmt.Sprintf("\n# This comment is being applied to %s Merge Request %d commit %s.\n# Do not delete patch tracking lines that begin with '|'.", state, idNum, commit[:len(commit)])
+			} else {
+				body += fmt.Sprintf("\n# This comment is being applied to %s Merge Request %d.", state, idNum)
+			}
 		} else {
 			issue, err := lab.IssueGet(rn, idNum)
 			if err != nil {
@@ -137,7 +257,7 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 		log.Fatal("aborting note due to empty note msg")
 	}
 
-	if linebreak {
+	if linebreak && commit == "" {
 		body = textToMarkdown(body)
 	}
 
@@ -146,9 +266,13 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 	)
 
 	if isMR {
-		noteURL, err = lab.MRCreateNote(rn, idNum, &gitlab.CreateMergeRequestNoteOptions{
-			Body: &body,
-		})
+		if commit != "" {
+			createCommitComments(rn, int(idNum), commit, body, false)
+		} else {
+			noteURL, err = lab.MRCreateNote(rn, idNum, &gitlab.CreateMergeRequestNoteOptions{
+				Body: &body,
+			})
+		}
 	} else {
 		noteURL, err = lab.IssueCreateNote(rn, idNum, &gitlab.CreateIssueNoteOptions{
 			Body: &body,

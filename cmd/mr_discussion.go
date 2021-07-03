@@ -25,7 +25,8 @@ var mrCreateDiscussionCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab mr discussion origin
 		lab mr discussion my_remote -m "discussion comment"
-		lab mr discussion upstream -F test_file.txt`),
+		lab mr discussion upstream -F test_file.txt
+		lab mr discussion --commit abcdef123456`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
@@ -43,6 +44,11 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		commit, err := cmd.Flags().GetString("commit")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		body := ""
 		if filename != "" {
 			content, err := ioutil.ReadFile(filename)
@@ -50,12 +56,21 @@ var mrCreateDiscussionCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 			body = string(content)
-		} else {
+		} else if commit == "" {
 			body, err = mrDiscussionMsg(msgs)
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 			}
+		} else {
+			body = getCommitBody(rn, commit)
+			body, err = noteMsg(nil, true, body)
+			if err != nil {
+				_, f, l, _ := runtime.Caller(0)
+				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			}
+			createCommitComments(rn, int(mrNum), commit, body, true)
+			return
 		}
 
 		if body == "" {
@@ -117,6 +132,7 @@ func mrDiscussionText() (string, error) {
 func init() {
 	mrCreateDiscussionCmd.Flags().StringSliceP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateDiscussionCmd.Flags().StringP("file", "F", "", "use the given file as the message")
+	mrCreateDiscussionCmd.Flags().StringP("commit", "c", "", "start a thread on a commit")
 
 	mrCmd.AddCommand(mrCreateDiscussionCmd)
 	carapace.Gen(mrCreateDiscussionCmd).PositionalCompletion(

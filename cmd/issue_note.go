@@ -28,6 +28,8 @@ func init() {
 	issueNoteCmd.Flags().Bool("quote", false, "quote note in reply")
 	issueNoteCmd.Flags().Bool("resolve", false, "[unused in issue note command]")
 	issueNoteCmd.Flags().MarkHidden("resolve")
+	issueNoteCmd.Flags().StringP("commit", "", "", "[unused in issue note command]")
+	issueNoteCmd.Flags().MarkHidden("commit")
 
 	issueCmd.AddCommand(issueNoteCmd)
 	carapace.Gen(issueNoteCmd).PositionalCompletion(

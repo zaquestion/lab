@@ -1799,7 +1799,9 @@ func GetCommitDiff(project string, sha string) ([]*gitlab.Diff, error) {
 	for {
 		ds, resp, err := lab.Commits.GetCommitDiff(p.ID, sha, opt)
 		if err != nil {
-			fmt.Println(err)
+			if resp.StatusCode == 404 {
+				log.Fatalf("Cannot find diff for commit %s.  Verify the commit ID or add more characters to the commit ID.", sha)
+			}
 			return nil, err
 		}
 
@@ -1815,4 +1817,100 @@ func GetCommitDiff(project string, sha string) ([]*gitlab.Diff, error) {
 	}
 
 	return diffs, nil
+}
+
+func CreateCommitComment(project string, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	// Ideally want to use lab.Commits.PostCommitComment, however,
+	// that API only support comments on linetype=new.
+	//
+	// https://gitlab.com/gitlab-org/gitlab/-/issues/335337
+
+	commitInfo, err := GetCommit(p.ID, sha)
+	if err != nil {
+		fmt.Printf("Could not get diff for commit %s.\n", sha)
+		return "", err
+	}
+
+	if len(commitInfo.ParentIDs) > 1 {
+		log.Fatalf("Commit %s has mulitple parents.  This interface cannot be used for comments.\n", sha)
+		return "", err
+	}
+
+	position := gitlab.NotePosition{
+		BaseSHA:      commitInfo.ParentIDs[0],
+		StartSHA:     commitInfo.ParentIDs[0],
+		HeadSHA:      sha,
+		PositionType: "text",
+	}
+
+	if linetype == "old" {
+		position.OldPath = oldFile
+		position.OldLine = line
+	} else {
+		position.NewPath = newFile
+		position.NewLine = line
+	}
+
+	opt := &gitlab.CreateCommitDiscussionOptions{
+		Body:     &comment,
+		Position: &position,
+	}
+
+	commitDiscussion, _, err := lab.Discussions.CreateCommitDiscussion(p.ID, sha, opt)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s#note_%d", commitInfo.WebURL, commitDiscussion.Notes[0].ID), nil
+}
+
+func CreateMergeRequestCommitDiscussion(project string, mrID int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return "", err
+	}
+
+	commitInfo, err := GetCommit(p.ID, sha)
+	if err != nil {
+		fmt.Printf("Could not get diff for commit %s.\n", sha)
+		return "", err
+	}
+
+	if len(commitInfo.ParentIDs) > 1 {
+		log.Fatalf("Commit %s has mulitple parents.  This interface cannot be used for comments.\n", sha)
+		return "", err
+	}
+
+	position := gitlab.NotePosition{
+		NewPath:      newFile,
+		OldPath:      oldFile,
+		BaseSHA:      commitInfo.ParentIDs[0],
+		StartSHA:     commitInfo.ParentIDs[0],
+		HeadSHA:      sha,
+		PositionType: "text",
+	}
+
+	if linetype == "new" {
+		position.NewLine = line
+	} else {
+		position.OldLine = line
+	}
+
+	opt := &gitlab.CreateMergeRequestDiscussionOptions{
+		Body:     &comment,
+		Position: &position,
+	}
+
+	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, mrID, opt)
+	if err != nil {
+		return "", err
+	}
+
+	note := discussion.Notes[0]
+	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
