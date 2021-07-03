@@ -34,25 +34,25 @@ func maxPadding(x int, y int) int {
 
 // printDiffLine does a color print of a diff lines.  Red lines are removals
 // and green lines are additions.
-func printDiffLine(strColor string, maxChars int, sOld string, sNew string, ltext string) {
+func printDiffLine(strColor string, maxChars int, sOld string, sNew string, ltext string) string {
 
 	switch strColor {
-	case "":
-		fmt.Printf("|%*s %*s %s\n", maxChars, sOld, maxChars, sNew, ltext)
 	case "green":
-		color.Green("|%*s %*s %s\n", maxChars, sOld, maxChars, sNew, ltext)
+		return color.GreenString("|%*s %*s %s\n", maxChars, sOld, maxChars, sNew, ltext)
 	case "red":
-		color.Red("|%*s %*s %s\n", maxChars, sOld, maxChars, sNew, ltext)
+		return color.RedString("|%*s %*s %s\n", maxChars, sOld, maxChars, sNew, ltext)
 	}
+	return fmt.Sprintf("|%*s %*s %s\n", maxChars, sOld, maxChars, sNew, ltext)
 }
 
 // displayDiff displays the diff referenced in a discussion
-func displayDiff(diff string, newLine int, oldLine int) {
+func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 	var (
-		oldLineNum   int = 0
-		newLineNum   int = 0
-		maxChars     int
-		output       bool = false
+		oldLineNum int = 0
+		newLineNum int = 0
+		maxChars   int
+		output     bool   = false
+		diffOutput string = ""
 	)
 
 	scanner := bufio.NewScanner(strings.NewReader(diff))
@@ -98,6 +98,11 @@ func displayDiff(diff string, newLine int, oldLine int) {
 				output = false
 			}
 
+			if outputAll {
+				mrShowNoColorDiff = true
+				output = true
+			}
+
 			// padding to align diff output (depends on the line numbers' length)
 			// The patch can have, for example, either
 			// @@ -1 +1 @@
@@ -141,14 +146,17 @@ func displayDiff(diff string, newLine int, oldLine int) {
 		if mrShowNoColorDiff {
 			strColor = ""
 		}
-		if newLine != 0 {
+		if outputAll {
+			diffOutput += printDiffLine(strColor, maxChars, sOld, sNew, ltext)
+		} else if newLine != 0 {
 			if newLineNum <= newLine && newLineNum >= (newLine-4) {
-				printDiffLine(strColor, maxChars, sOld, sNew, ltext)
+				diffOutput += printDiffLine(strColor, maxChars, sOld, sNew, ltext)
 			}
 		} else if oldLineNum <= oldLine && oldLineNum >= (oldLine-4) {
-			printDiffLine(strColor, maxChars, sOld, sNew, ltext)
+			diffOutput += printDiffLine(strColor, maxChars, sOld, sNew, ltext)
 		}
 	}
+	return diffOutput
 }
 
 func displayCommitDiscussion(project string, idNum int, note *gitlab.Note) {
@@ -168,7 +176,7 @@ func displayCommitDiscussion(project string, idNum int, note *gitlab.Note) {
 	// Get a unified diff for the entire file
 	ds, err := lab.GetCommitDiff(project, note.CommitID)
 	if err != nil {
-		fmt.Printf("    Could not get diff for commit %d.\n", note.CommitID)
+		fmt.Printf("    Could not get diff for commit %s.\n", note.CommitID)
 		return
 	}
 
@@ -188,11 +196,14 @@ func displayCommitDiscussion(project string, idNum int, note *gitlab.Note) {
 
 	for _, d := range ds {
 		if note.Position.NewPath == d.NewPath && note.Position.OldPath == d.OldPath {
-			if note.Position.LineRange == nil {
-				displayDiff(d.Diff, note.Position.NewLine, note.Position.OldLine)
-			} else {
-				displayDiff(d.Diff, note.Position.LineRange.StartRange.NewLine, note.Position.LineRange.StartRange.OldLine)
+			newLine := note.Position.NewLine
+			oldLine := note.Position.OldLine
+			if note.Position.LineRange != nil {
+				newLine = note.Position.LineRange.StartRange.NewLine
+				oldLine = note.Position.LineRange.StartRange.OldLine
 			}
+			diffstring := displayDiff(d.Diff, newLine, oldLine, false)
+			fmt.Printf(diffstring)
 		}
 	}
 	fmt.Println("")
