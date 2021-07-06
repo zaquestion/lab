@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -13,6 +14,9 @@ var mrSubscribeCmd = &cobra.Command{
 	Use:              "subscribe [remote] <id>",
 	Aliases:          []string{},
 	Short:            "Subscribe to merge request",
+	Example: heredoc.Doc(`
+		lab mr subscribe 11
+		lab mr subscribe origin 12`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

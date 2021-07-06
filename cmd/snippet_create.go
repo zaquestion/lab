@@ -30,8 +30,14 @@ var snippetCreateCmd = &cobra.Command{
 	Use:   "create [remote]",
 	Short: "Create a personal or project snippet",
 	Long: heredoc.Doc(`
-		Source snippets from stdin, file, or in editor from scratch.
-	`),
+		Source snippets from stdin, file, or in editor from scratch.`),
+	Example: heredoc.Doc(`
+		lab snippet create 
+		lab snippet create snippet_file.txt
+		lab snippet create -n "potato.go for GoLang"
+		lab snippet create -m "Snippet example" -M "Description message"
+		lab snippet create upstream --private
+		lab snippet create origin --public`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")
@@ -170,7 +176,7 @@ func snipText(tmpl string) (string, error) {
 func init() {
 	snippetCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "make snippet private; visible only to project members (default: internal)")
 	snippetCreateCmd.Flags().BoolVar(&public, "public", false, "make snippet public; can be accessed without any authentication (default: internal)")
-	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "(optional) name snippet to add code highlighting, e.g. potato.go for GoLang")
+	snippetCreateCmd.Flags().StringVarP(&name, "name", "n", "", "name snippet to add code highlighting")
 	snippetCreateCmd.Flags().StringArrayP("message", "m", []string{"-"}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	snippetCmd.Flags().AddFlagSet(snippetCreateCmd.Flags())
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
 
 	"github.com/rsteube/carapace"
@@ -21,6 +22,13 @@ var snippetListCmd = &cobra.Command{
 	Use:              "list [remote]",
 	Aliases:          []string{"ls"},
 	Short:            "List personal or project snippets",
+	Example: heredoc.Doc(`
+		lab snippet list 
+		lab snippet list -a
+		lab snippet list -n 10
+		lab snippet list -m "Snippet example" -M "Description message"
+		lab snippet list upstream --private
+		lab snippet list origin --public`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		snips, err := snippetList(args)

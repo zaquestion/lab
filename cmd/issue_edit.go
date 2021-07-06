@@ -22,12 +22,14 @@ var issueEditCmd = &cobra.Command{
 	Aliases: []string{"update"},
 	Short:   "Edit or update an issue",
 	Example: heredoc.Doc(`
-		lab issue edit <id>
-		lab issue edit <id> -m "new title"
-		lab issue edit <id> -m "new title" -m "new desc"
-		lab issue edit <id> -l new_label --unlabel old_label
-		lab issue edit <id>:<comment_id>
-	`),
+		lab issue edit 14
+		lab issue edit 14:2065489
+		lab issue edit 14 -a johndoe --unassign jackdoe
+		lab issue edit 14 -m "new title"
+		lab issue edit 14 -m "new title" -m "new desc"
+		lab issue edit 14 -l new_label --unlabel old_label
+		lab issue edit --milestone "NewYear"
+		lab issue edit --force-linebreak`),
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

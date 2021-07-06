@@ -23,6 +23,13 @@ var issueCreateCmd = &cobra.Command{
 	Aliases:          []string{"new"},
 	Short:            "Open an issue on GitLab",
 	Args:             cobra.MaximumNArgs(1),
+	Example: heredoc.Doc(`
+		lab issue create
+		lab issue create origin -a johndoe -a janedoe
+		lab issue create origin -l bug
+		lab issue create upstream -m "new issue related to the --help arg"
+		lab issue create upstream --milestone "July"
+		lab issue create upstream --template "API-BUG"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		msgs, err := cmd.Flags().GetStringArray("message")

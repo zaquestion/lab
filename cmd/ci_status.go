@@ -22,8 +22,8 @@ var ciStatusCmd = &cobra.Command{
 	Short:   "Textual representation of a CI pipeline",
 	Example: heredoc.Doc(`
 		lab ci status
-		lab ci status --wait
-	`),
+		lab ci status upstream 608 --merge-request
+		lab ci status 600 --wait`),
 	RunE:             nil,
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

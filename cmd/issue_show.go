@@ -19,12 +19,20 @@ var issueShowCmd = &cobra.Command{
 	Aliases:          []string{"get"},
 	ArgAliases:       []string{"s"},
 	Short:            "Describe an issue",
+	Example: heredoc.Doc(`
+		lab issue show 1
+		lab issue show origin 1 -c
+		lab issue show upstream 1 -M 
+		lab issue show upstream 1 --since "1970-01-01 00:00:00.000 +0000 UTC"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		rn, issueNum, err := parseArgsRemoteAndID(args)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if issueNum == 0 {
+			log.Fatalf("Specify <id> of issue to be show")
 		}
 
 		issue, err := lab.IssueGet(rn, int(issueNum))

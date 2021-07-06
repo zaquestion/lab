@@ -22,6 +22,10 @@ var mrCreateDiscussionCmd = &cobra.Command{
 	Use:              "discussion [remote] <id>",
 	Short:            "Start a discussion on an MR on GitLab",
 	Aliases:          []string{"block", "thread"},
+	Example: heredoc.Doc(`
+		lab mr discussion origin
+		lab mr discussion my_remote -m "discussion comment"
+		lab mr discussion upstream -F test_file.txt`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)

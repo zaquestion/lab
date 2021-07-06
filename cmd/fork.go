@@ -30,13 +30,15 @@ var forkCmd = &cobra.Command{
 	Short: "Fork a remote repository on GitLab and add as remote",
 	Long: heredoc.Doc(`
 		Fork a remote repository on user's location of choice.
-		Both an already existent remote or a repository path can be specified.
-	`),
+		Both an already existent remote or a repository path can be specified.`),
 	Example: heredoc.Doc(`
 		lab fork origin
 		lab fork upstream --remote-name origin
-		lab fork origin --name new-awasome-project
-	`),
+		lab fork origin --name new-awesome-project
+		lab fork origin -g TheCoolestGroup -n InitialProject
+		lab fork origin -p 'the_dot_git_path'
+		lab fork origin -n 'new_fork' -r 'new_fork_remote'
+		lab fork origin -s`),
 	Args:             cobra.MaximumNArgs(1),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

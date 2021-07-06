@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -21,6 +22,12 @@ var projectListCmd = &cobra.Command{
 	Use:              "list [search]",
 	Aliases:          []string{"ls", "search"},
 	Short:            "List your projects",
+	Example: heredoc.Doc(`
+		lab project list -a                
+		lab project list -m
+		lab project list --member		
+		lab project list --starred
+		lab project list -n 10`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		search, _, err := parseArgsStringAndID(args)

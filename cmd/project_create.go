@@ -20,19 +20,16 @@ var projectCreateCmd = &cobra.Command{
 
 		"path" refers to the path on GitLab not including the group/namespace.
 		If no path or name is provided and the current directory is a git repo,
-		the name of the	current working directory will be used.
-	`),
+		the name of the	current working directory will be used.`),
 	Example: heredoc.Doc(`
-		# this command...                          # creates this project
-		lab project create                         # user/<curr dir> named <curr dir>
-		                                           # (above only works within a git repo)
-		lab project create myproject               # user/myproject named myproject
-		lab project create myproject -n "new proj" # user/myproject named "new proj"
-		lab project create -n "new proj"           # user/new-proj named "new proj"
-
-		lab project create mygroup/myproject       # mygroup/myproject named myproject
-		lab project create -g mygroup myproject    # mygroup/myproject named myproject
-	`),
+		lab project create myproject               
+		lab project create myproject -n "new proj"
+		lab project create -g mygroup myproject		
+		lab project create mygroup/myproject -n "new proj"
+		lab project create myproject --http
+		lab project create myproject --internal
+		lab project create myproject --private
+		lab project create myproject --public`),
 	Args:             cobra.MaximumNArgs(1),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

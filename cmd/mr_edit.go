@@ -21,12 +21,20 @@ var mrEditCmd = &cobra.Command{
 	Aliases: []string{"update"},
 	Short:   "Edit or update an MR",
 	Example: heredoc.Doc(`
-		lab mr edit <id>
-		lab mr edit <id> -m "new title"
-		lab mr edit <id> -m "new title" -m "new desc"
-		lab mr edit <id> -l new_label --unlabel old_label
-		lab mr edit <id>:<comment_id>
-	`),
+		lab mr edit 2
+		lab mr edit 3 remote -m "new title"
+		lab mr edit 5 upstream -m "new title" -m "new desc"
+		lab mr edit 7 -l new_label --unlabel old_label
+		lab mr edit 11 upstream -a johndoe -a janedoe 
+		lab mr edit 17 upstream --unassign johndoe  
+		lab mr edit 13 upstream --milestone "summer"
+		lab mr edit 19 origin --target-branch other_branch
+		lab mr edit 23 upstream -F test_file
+		lab mr edit 29 upstream -F test_file --force-linebreak
+		lab mr edit 31 upstream --draft
+		lab mr edit 37 upstream --ready
+		lab mr edit 41 upstream -r johndoe -r janedoe
+		lab mr edit 43 upstream --unreview johndoe`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		commentNum, branchArgs, err := filterCommentArg(args)
@@ -354,7 +362,7 @@ func init() {
 	mrEditCmd.Flags().StringSliceP("assign", "a", []string{}, "add an assignee by username")
 	mrEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	mrEditCmd.Flags().String("milestone", "", "set milestone")
-	mrEditCmd.Flags().StringP("target-branch", "t", "", "set target branch")
+	mrEditCmd.Flags().StringP("target-branch", "t", "", "edit MR target branch")
 	mrEditCmd.Flags().StringP("file", "F", "", "use the given file as the description")
 	mrEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrEditCmd.Flags().Bool("draft", false, "mark the merge request as draft")

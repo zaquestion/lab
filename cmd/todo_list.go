@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
 	"strings"
 
@@ -23,7 +24,12 @@ var todoListCmd = &cobra.Command{
 	Use:              "list",
 	Aliases:          []string{"ls"},
 	Short:            "List todos",
-	Example:          "lab todo list",
+	Example:          heredoc.Doc(`
+		lab todo list
+		lab todo list -a
+		lab todo list -n 10
+		lab todo list -p 
+		lab todo list -t mr`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		todos, err := todoList(args)

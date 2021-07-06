@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -12,7 +13,9 @@ var milestoneCreateCmd = &cobra.Command{
 	Use:              "create [remote] <name>",
 	Aliases:          []string{"add"},
 	Short:            "Create a new milestone",
-	Example:          "lab milestone create my-milestone",
+	Example:          heredoc.Doc(`
+		lab milestone create my-milestone
+		lab milestone create upstream 'my title' --description 'Some Description'`),
 	PersistentPreRun: labPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
