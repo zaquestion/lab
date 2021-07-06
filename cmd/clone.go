@@ -18,13 +18,11 @@ var cloneCmd = &cobra.Command{
 	Short: "GitLab aware clone repo command",
 	Long: heredoc.Doc(`
 		Clone a repository, similarly to 'git clone', but aware of GitLab
-		specific settings.
-	`),
+		specific settings.`),
 	Example: heredoc.Doc(`
 		lab clone awesome-repo
-		lab clone company/awesome-repo
-		lab clone company/backend-team/awesome-repo
-	`),
+		lab clone company/awesome-repo --http
+		lab clone company/backend-team/awesome-repo`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlab.FindProject(args[0])

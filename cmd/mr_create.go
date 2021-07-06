@@ -21,11 +21,26 @@ import (
 
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
-	Use:              "create [remote [remote_branch]]",
-	Aliases:          []string{"new"},
-	Short:            "Open a merge request on GitLab",
-	Long:             "Creates a merge request.",
-	Args:             cobra.MaximumNArgs(2),
+	Use:     "create [remote [remote_branch]]",
+	Aliases: []string{"new"},
+	Short:   "Creates a merge request.",
+	Args:    cobra.MaximumNArgs(2),
+	Example: heredoc.Doc(`
+		lab mr create origin
+		lab mr create origin branch --allow-collaboration
+		lab mr create a_remote -a johndoe -a janedoe
+		lab mr create my_remote -c
+		lab mr create my_remote --draft
+		lab mr create my_remote -F a_file.txt
+		lab mr create my_remote -F a_file.txt --force-linebreak
+		lab mr create my_remote -l bug -l confirmed
+		lab mr create my_remote -m "A title message"
+		lab mr create my_remote -m "A MR title" -m "A MR description"
+		lab mr create my_remote --milestone "Fall"
+		lab mr create my_remote -d
+		lab mr create my_remote -r johndoe -r janedoe
+		lab mr create my_remote --source upstream:main origin main
+		lab mr create my_remote -s`),
 	PersistentPreRun: labPersistentPreRun,
 	Run:              runMRCreate,
 }
@@ -41,7 +56,7 @@ func init() {
 	mrCreateCmd.Flags().String("milestone", "", "set milestone by milestone title or ID")
 	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Description")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "do not comment changelog and diffstat")
+	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
 	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mrCreateCmd.Flags().String("source", "", "specify a remote source target in the form of remote:remote_branch")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
@@ -283,8 +298,9 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		// generate during Test_mrCreate. In the meantime API failures
 		// will exit 0
 		fmt.Fprintln(os.Stderr, err)
+	} else {
+		fmt.Println(mrURL + "/diffs")
 	}
-	fmt.Println(mrURL + "/diffs")
 }
 
 func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, coverLetterFormat bool) (string, error) {

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -10,9 +11,12 @@ import (
 )
 
 var mrUnsubscribeCmd = &cobra.Command{
-	Use:              "unsubscribe [remote] <id>",
-	Aliases:          []string{},
-	Short:            "Unubscribe from merge request",
+	Use:     "unsubscribe [remote] <id>",
+	Aliases: []string{},
+	Short:   "Unubscribe from merge request",
+	Example: heredoc.Doc(`
+		lab mr unsubscribe 11
+		lab mr unsubscribe origin 12`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

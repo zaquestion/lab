@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 	"os"
 
 	"github.com/rsteube/carapace"
@@ -26,9 +27,15 @@ var (
 
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
-	Use:              "checkout [remote] <id>",
-	Short:            "Checkout an open merge request",
-	Args:             cobra.RangeArgs(1, 2),
+	Use:   "checkout [remote] <id>",
+	Short: "Checkout an open merge request",
+	Args:  cobra.RangeArgs(1, 2),
+	Example: heredoc.Doc(`
+		lab mr checkout origin 10
+		lab mr checkout upstream -b a_branch_name
+		lab mr checkout a_remote -f
+		lab mr checkout upstream --https
+		lab mr checkout upstream -t`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrID, err := parseArgsRemoteAndID(args)
@@ -95,7 +102,6 @@ var checkoutCmd = &cobra.Command{
 		if err := git.New("fetch", targetRemote, fetchRefSpec).Run(); err != nil {
 			log.Fatal(err)
 		}
-
 		if mrCheckoutCfg.track {
 			// Create configured branch with tracking from fetchToRef
 			// git branch --flags <branchname> [<start-point>]

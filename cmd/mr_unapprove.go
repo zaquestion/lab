@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 	"os"
 
 	"github.com/rsteube/carapace"
@@ -11,9 +12,15 @@ import (
 )
 
 var mrUnapproveCmd = &cobra.Command{
-	Use:              "unapprove [remote] <id>",
-	Aliases:          []string{},
-	Short:            "Unapprove merge request",
+	Use:     "unapprove [remote] <id>",
+	Aliases: []string{},
+	Short:   "Unapprove merge request",
+	Example: heredoc.Doc(`
+		lab mr unapprove origin
+		lab mr unapprove upstream -F test_file
+		lab mr unapprove upstream -m "A helpfull comment"
+		lab mr unapprove upstream --with-comment
+		lab mr unapprove upstream -m "A helpfull\nComment" --force-linebreak`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

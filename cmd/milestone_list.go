@@ -20,7 +20,7 @@ var milestoneListCmd = &cobra.Command{
 		lab milestone list
 		lab milestone list "search term"
 		lab milestone list remote "search term"
-	`),
+		lab milestone list upstream -s 'closed'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, milestoneSearch, err := parseArgsRemoteAndProject(args)

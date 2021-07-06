@@ -13,8 +13,7 @@ var todoIssueCmd = &cobra.Command{
 	Use:   "issue",
 	Short: "Add a Issue to Todo list",
 	Example: heredoc.Doc(`
-		lab todo issue 5678       #adds Issue 1234 to user's Todo list
-	`),
+		lab todo issue 5678`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, err := getRemoteName("")

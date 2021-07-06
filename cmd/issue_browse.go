@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
 
 	"github.com/rsteube/carapace"
@@ -10,9 +11,12 @@ import (
 )
 
 var issueBrowseCmd = &cobra.Command{
-	Use:              "browse [remote] <id>",
-	Aliases:          []string{"b"},
-	Short:            "View issue in a browser",
+	Use:     "browse [remote] <id>",
+	Aliases: []string{"b"},
+	Short:   "View issue in a browser",
+	Example: heredoc.Doc(`
+		lab issue browse
+		lab issue browse upstream 22`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, num, err := parseArgsRemoteAndID(args)

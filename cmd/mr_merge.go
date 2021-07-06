@@ -20,8 +20,10 @@ var mrMergeCmd = &cobra.Command{
 		Merges an open merge request. If the pipeline in the project is
 		enabled and is still running for that specific MR, by default,
 		this command will sets the merge to only happen when the pipeline
-		succeeds.
-	`),
+		succeeds.`),
+	Example: heredoc.Doc(`
+		lab mr merge origin 10
+		lab mr merge upstream 11 -i`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

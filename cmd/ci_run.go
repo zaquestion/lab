@@ -27,12 +27,10 @@ var ciCreateCmd = &cobra.Command{
 		Project will be inferred from branch if not provided
 
 		Note: "lab ci create" differs from "lab ci trigger" which is a
-		different API
-	`),
+		different API`),
 	Example: heredoc.Doc(`
 		lab ci create feature_branch
-		lab ci create -p engineering/integration_tests master
-	`),
+		lab ci create -p engineering/integration_tests master`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)
@@ -60,13 +58,11 @@ var ciTriggerCmd = &cobra.Command{
 
 		Project will be inferred from branch if not provided
 
-		Note: "lab ci trigger" differs from "lab ci create" which is a different API
-	`),
+		Note: "lab ci trigger" differs from "lab ci create" which is a different API`),
 	Example: heredoc.Doc(`
 		lab ci trigger feature_branch
 		lab ci trigger -p engineering/integration_tests master
-		lab ci trigger -p engineering/integration_tests -v foo=bar master
-	`),
+		lab ci trigger -p engineering/integration_tests -v foo=bar master`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		pid, branch, err := getCIRunOptions(cmd, args)

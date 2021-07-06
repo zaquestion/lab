@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 	"io/ioutil"
 	"os"
 
@@ -13,8 +14,11 @@ import (
 
 // ciLintCmd represents the lint command
 var ciLintCmd = &cobra.Command{
-	Use:              "lint",
-	Short:            "Validate .gitlab-ci.yml against GitLab",
+	Use:   "lint",
+	Short: "Validate .gitlab-ci.yml against GitLab",
+	Example: heredoc.Doc(`
+		lab ci lint
+		lab ci lint upstream`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		path := ".gitlab-ci.yml"

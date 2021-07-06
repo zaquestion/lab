@@ -14,6 +14,7 @@ var issueUnsubscribeCmd = &cobra.Command{
 	Aliases:          []string{},
 	Short:            "Unubscribe from an issue",
 	Long:             ``,
+	Example:          "lab issue unsubscribe origin 10",
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)

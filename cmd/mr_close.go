@@ -12,6 +12,7 @@ import (
 var mrCloseCmd = &cobra.Command{
 	Use:              "close [remote] <id>",
 	Short:            "Close merge request",
+	Example:          "lab mr close origin 10",
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

@@ -21,10 +21,18 @@ var (
 )
 
 var mrShowCmd = &cobra.Command{
-	Use:              "show [remote] <id>",
-	Aliases:          []string{"get"},
-	ArgAliases:       []string{"s"},
-	Short:            "Describe a merge request",
+	Use:        "show [remote] <id>",
+	Aliases:    []string{"get"},
+	ArgAliases: []string{"s"},
+	Short:      "Describe a merge request",
+	Example: heredoc.Doc(`
+		lab mr show
+		lab mr show origin -c
+		lab mr show --no-color-diff
+		lab mr show -M
+		lab mr show -p
+		lab mr show --reverse
+		lab mr show --since "1970-01-01 00:00:00.000 +0000 UTC"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)

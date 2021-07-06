@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/MakeNowJust/heredoc/v2"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 	"net/url"
 	"path"
@@ -12,8 +13,11 @@ import (
 )
 
 var snippetBrowseCmd = &cobra.Command{
-	Use:              "browse [remote] <id>",
-	Short:            "View personal or project snippet in a browser",
+	Use:   "browse [remote] <id>",
+	Short: "View personal or project snippet in a browser",
+	Example: heredoc.Doc(`
+		lab snippet browse
+		lab snippet browse upstream`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)
