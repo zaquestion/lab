@@ -1,13 +1,13 @@
 package cmd
 
 import (
+	lab "github.com/zaquestion/lab/internal/gitlab"
 	"net/url"
 	"path"
 	"strconv"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/zaquestion/lab/internal/action"
 )
 
@@ -21,18 +21,7 @@ var snippetBrowseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		c := viper.AllSettings()["core"]
-		var cfg map[string]interface{}
-		switch v := c.(type) {
-		// Most run this is the type
-		case []map[string]interface{}:
-			cfg = v[0]
-		// On the first run when the cfg is created it comes in as this type
-		// for whatever reason
-		case map[string]interface{}:
-			cfg = v
-		}
-		host := cfg["host"].(string)
+		host := lab.Host()
 		hostURL, err := url.Parse(host)
 		if err != nil {
 			log.Fatal(err)
