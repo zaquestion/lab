@@ -1767,3 +1767,20 @@ func TodoMRCreate(project string, mrNum int) (int, error) {
 	}
 	return todo.ID, nil
 }
+
+// TodoIssueCreate create a Todo item for an specific Issue
+func TodoIssueCreate(project string, issueNum int) (int, error) {
+	p, err := FindProject(project)
+	if err != nil {
+		return 0, err
+	}
+
+	todo, resp, err := lab.Issues.CreateTodo(p.ID, issueNum)
+	if err != nil {
+		if resp.StatusCode == http.StatusNotModified {
+			return 0, ErrNotModified
+		}
+		return 0, err
+	}
+	return todo.ID, nil
+}
