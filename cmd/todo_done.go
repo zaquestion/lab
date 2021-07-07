@@ -25,7 +25,9 @@ var todoDoneCmd = &cobra.Command{
 			fmt.Println("All Todo entries marked as Done")
 			return
 		}
-
+		if len(args) == 0 {
+			log.Fatalf("Specify todo id to be marked as done")
+		}
 		toDoNum, err := strconv.Atoi(args[0])
 		if err != nil {
 			log.Fatal(err)
