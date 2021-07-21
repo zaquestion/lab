@@ -23,9 +23,9 @@ var projectListCmd = &cobra.Command{
 	Aliases:          []string{"ls", "search"},
 	Short:            "List your projects",
 	Example: heredoc.Doc(`
-		lab project list -a                
+		lab project list -a
 		lab project list -m
-		lab project list --member		
+		lab project list --member
 		lab project list --starred
 		lab project list -n 10`),
 	PersistentPreRun: labPersistentPreRun,

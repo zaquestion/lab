@@ -44,7 +44,7 @@ var ciViewCmd = &cobra.Command{
 		'T' to toggle trace/logs (suspending application)
 		'c' to cancel job`),
 	Example: heredoc.Doc(`
-		lab ci view 
+		lab ci view
 		lab ci view upstream --merge-request`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

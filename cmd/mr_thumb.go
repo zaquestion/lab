@@ -22,7 +22,7 @@ var mrThumbUpCmd = &cobra.Command{
 	Aliases:          []string{},
 	Short:            "Thumb up merge request",
 	Example: heredoc.Doc(`
-		lab mr thumb up origin 
+		lab mr thumb up origin
 		lab mr thumb up origin 10`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -49,7 +49,7 @@ var mrThumbDownCmd = &cobra.Command{
 	Aliases: []string{},
 	Short:   "Thumbs down merge request",
 	Example: heredoc.Doc(`
-		lab mr thumb down origin 
+		lab mr thumb down origin
 		lab mr thumb down origin 10`),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

@@ -20,7 +20,7 @@ var todoDoneCmd = &cobra.Command{
 		lab todo done
 		lab todo done -a
 		lab todo done -n 10
-		lab todo done -p 
+		lab todo done -p
 		lab todo done -t mr`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

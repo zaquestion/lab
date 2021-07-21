@@ -22,7 +22,7 @@ var issueShowCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab issue show 1
 		lab issue show origin 1 -c
-		lab issue show upstream 1 -M 
+		lab issue show upstream 1 -M
 		lab issue show upstream 1 --since "1970-01-01 00:00:00.000 +0000 UTC"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

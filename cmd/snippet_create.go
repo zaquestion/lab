@@ -32,7 +32,7 @@ var snippetCreateCmd = &cobra.Command{
 	Long: heredoc.Doc(`
 		Source snippets from stdin, file, or in editor from scratch.`),
 	Example: heredoc.Doc(`
-		lab snippet create 
+		lab snippet create
 		lab snippet create snippet_file.txt
 		lab snippet create -n "potato.go for GoLang"
 		lab snippet create -m "Snippet example" -M "Description message"

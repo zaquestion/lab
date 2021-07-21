@@ -25,10 +25,10 @@ var mrEditCmd = &cobra.Command{
 		lab mr edit 3 remote -m "new title"
 		lab mr edit 5 upstream -m "new title" -m "new desc"
 		lab mr edit 7 -l new_label --unlabel old_label
-		lab mr edit 11 upstream -a johndoe -a janedoe 
-		lab mr edit 17 upstream --unassign johndoe  
+		lab mr edit 11 upstream -a johndoe -a janedoe
+		lab mr edit 17 upstream --unassign johndoe
 		lab mr edit 13 upstream --milestone "summer"
-		lab mr edit 19 origin --target-branch other_branch
+		lab mr edit 19 origin --target-brnch other_brnch
 		lab mr edit 23 upstream -F test_file
 		lab mr edit 29 upstream -F test_file --force-linebreak
 		lab mr edit 31 upstream --draft

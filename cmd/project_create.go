@@ -22,9 +22,9 @@ var projectCreateCmd = &cobra.Command{
 		If no path or name is provided and the current directory is a git repo,
 		the name of the	current working directory will be used.`),
 	Example: heredoc.Doc(`
-		lab project create myproject               
+		lab project create myproject
 		lab project create myproject -n "new proj"
-		lab project create -g mygroup myproject		
+		lab project create -g mygroup myproject
 		lab project create mygroup/myproject -n "new proj"
 		lab project create myproject --http
 		lab project create myproject --internal

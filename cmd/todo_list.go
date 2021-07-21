@@ -28,7 +28,7 @@ var todoListCmd = &cobra.Command{
 		lab todo list
 		lab todo list -a
 		lab todo list -n 10
-		lab todo list -p 
+		lab todo list -p
 		lab todo list -t mr`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

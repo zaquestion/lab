@@ -43,8 +43,8 @@ var issueListCmd = &cobra.Command{
 		lab issue list upstream -x "An Issue with Abc"
 		lab issue list upstream -l "new_bug"
 		lab issue list upstream --milestone "week 22"
-		lab issue list remote -n "10" 
-		lab issue list remote --order "created_at" 
+		lab issue list remote -n "10"
+		lab issue list remote --order "created_at"
 		lab issue list remote --sort "asc"
 		lab issue list remote --state "closed"`),
 	PersistentPreRun: labPersistentPreRun,

@@ -26,8 +26,8 @@ var mrShowCmd = &cobra.Command{
 	ArgAliases:       []string{"s"},
 	Short:            "Describe a merge request",
 	Example: heredoc.Doc(`
-		lab mr show 
-		lab mr show origin -c 
+		lab mr show
+		lab mr show origin -c
 		lab mr show --no-color-diff
 		lab mr show -M
 		lab mr show -p

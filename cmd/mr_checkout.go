@@ -33,7 +33,7 @@ var checkoutCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab mr checkout origin 10
 		lab mr checkout upstream -b a_branch_name
-		lab mr checkout a_remote -f 
+		lab mr checkout a_remote -f
 		lab mr checkout upstream --https
 		lab mr checkout upstream -t`),
 	PersistentPreRun: labPersistentPreRun,

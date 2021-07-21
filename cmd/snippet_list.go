@@ -23,7 +23,7 @@ var snippetListCmd = &cobra.Command{
 	Aliases:          []string{"ls"},
 	Short:            "List personal or project snippets",
 	Example: heredoc.Doc(`
-		lab snippet list 
+		lab snippet list
 		lab snippet list -a
 		lab snippet list -n 10
 		lab snippet list -m "Snippet example" -M "Description message"
