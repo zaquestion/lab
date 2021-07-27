@@ -154,7 +154,7 @@ func inputCapture(a *tview.Application, root *tview.Pages, navi navigator, input
 				SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 					modalVisible = false
 					root.RemovePage("yesno")
-					if buttonLabel == "No" {
+					if buttonLabel == "" || buttonLabel == "No" {
 						a.ForceDraw()
 						return
 					}
