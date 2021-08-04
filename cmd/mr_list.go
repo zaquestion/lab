@@ -46,8 +46,20 @@ var listCmd = &cobra.Command{
 		lab mr list
 		lab mr list "search terms"
 		lab mr list --target-branch main
-		lab mr list remote --target-branch main --label my-label --all
-	`),
+		lab mr list remote --target-branch main --label my-label
+		lab mr list -l bug
+		lab mr list -l close'
+		lab mr list upstream -n 5
+		lab mr list origin -a
+		lab mr list --author johndoe
+		lab mr list --assignee janedoe
+		lab mr list --order created_at
+		lab mr list --sort asc
+		lab mr list --draft
+		lab mr list --ready
+		lab mr list --no-conflicts
+		lab mr list -x 'test MR'
+		lab mr list -r johndoe`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		mrs, err := mrList(args)

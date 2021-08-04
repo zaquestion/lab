@@ -13,6 +13,7 @@ var issueSubscribeCmd = &cobra.Command{
 	Use:              "subscribe [remote] <id>",
 	Aliases:          []string{},
 	Short:            "Subscribe to an issue",
+	Example:          "lab issue subscribe origin 10",
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)

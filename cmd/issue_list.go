@@ -36,8 +36,17 @@ var issueListCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab issue list
 		lab issue list "search terms"
-		lab issue list remote "search terms"
-	`),
+		lab issue list origin "search terms"
+		lab issue list origin --all
+		lab issue list origin --assignee johndoe
+		lab issue list upstream --author janedoe
+		lab issue list upstream -x "An Issue with Abc"
+		lab issue list upstream -l "new_bug"
+		lab issue list upstream --milestone "week 22"
+		lab issue list remote -n "10"
+		lab issue list remote --order "created_at"
+		lab issue list remote --sort "asc"
+		lab issue list remote --state "closed"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := issueList(args)

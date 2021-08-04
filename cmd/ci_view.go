@@ -42,8 +42,10 @@ var ciViewCmd = &cobra.Command{
 		'r', 'p' to run/retry/play a job
 		't' to toggle trace/logs (runs in background)
 		'T' to toggle trace/logs (suspending application)
-		'c' to cancel job
-	`),
+		'c' to cancel job`),
+	Example: heredoc.Doc(`
+		lab ci view
+		lab ci view upstream --merge-request`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()

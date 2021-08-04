@@ -12,6 +12,7 @@ import (
 var mrReopenCmd = &cobra.Command{
 	Use:              "reopen [remote] <id>",
 	Short:            "Reopen a closed merge request",
+	Example:          "lab mr reopen upstream 20",
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsWithGitBranchMR(args)

@@ -22,13 +22,11 @@ var ciArtifactsCmd = &cobra.Command{
 		The branch name, when using with the --merge-request option, can be the
 		merge request number, which matches the branch name internally.	The "job"
 		portion is the given job name, which may contain whitespace characters
-		and which, for this specific case, must be quoted.
-	`),
+		and which, for this specific case, must be quoted.`),
 	Example: heredoc.Doc(`
 		lab ci artifacts upstream feature_branch
 		lab ci artifacts upstream 125 --merge-request
-		lab ci artifacts upstream 125:'my custom stage' --merge-request
-	`),
+		lab ci artifacts upstream 125:'my custom stage' --merge-request`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (

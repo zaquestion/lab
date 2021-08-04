@@ -16,8 +16,7 @@ var labelCreateCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab label create my-label
 		lab label create --color cornflowerblue --description "Blue as a cornflower" blue
-		lab label create --color #6495ed --description "Also blue as a cornflower" blue2
-	`),
+		lab label create --color #6495ed --description "Also blue as a cornflower" blue2`),
 	PersistentPreRun: labPersistentPreRun,
 	Args:             cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

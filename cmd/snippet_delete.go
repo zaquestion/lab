@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -13,7 +14,10 @@ import (
 var snippetDeleteCmd = &cobra.Command{
 	Use:   "delete [remote] <id>",
 	Short: "Delete a project or personal snippet",
-	Args:  cobra.MinimumNArgs(1),
+	Example: heredoc.Doc(`
+		lab snippet delete origin 2147103
+		lab snippet delete -g 2147104`),
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, id, err := parseArgsRemoteAndID(args)
 		if err != nil {

@@ -17,17 +17,15 @@ var completionCmd = &cobra.Command{
 		Generates shell autocompletion scripts for different implementations.
 
 		These scripts can be directly sourced, though using pre-generated
-		versions is recommended to avoid shell startup delay.
-	`),
+		versions is recommended to avoid shell startup delay.`),
 	Example: heredoc.Doc(`
 		bash       : source <(lab completion)
 		elvish     : eval(lab completion|slurp)
 		fish       : lab completion | source
 		oil        : source <(lab completion)
 		powershell : lab completion | Out-String | Invoke-Expression
-		xonsh      : exec($(lab completion))
-		zsh        : source <(lab completion)
-	`),
+		xonsh      : exec($(lab completion xonsh))
+		zsh        : source <(lab completion zsh)`),
 	ValidArgs: []string{"bash", "elvish", "fish", "oil", "powershell", "xonsh", "zsh"},
 	Run: func(cmd *cobra.Command, args []string) {
 		shell := ""

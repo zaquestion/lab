@@ -14,9 +14,9 @@ var mrDeleteCmd = &cobra.Command{
 	Short:   "Delete a merge request on GitLab",
 	Long: heredoc.Doc(`
 		Delete a specific merge request or the one created on the default
-		of the main remote.
-	`),
+		of the main remote.`),
 	Args:             cobra.MaximumNArgs(2),
+	Example:          "lab mr delete upstream 22",
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		remote, id, err := parseArgsWithGitBranchMR(args)
