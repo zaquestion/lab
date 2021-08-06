@@ -39,7 +39,7 @@ var mrCreateCmd = &cobra.Command{
 		lab mr create my_remote --milestone "Fall"
 		lab mr create my_remote -d
 		lab mr create my_remote -r johndoe -r janedoe
-		lab mr create my_remote --source upstream:main origin main
+		lab mr create --source upstream:main origin main
 		lab mr create my_remote -s`),
 	PersistentPreRun: labPersistentPreRun,
 	Run:              runMRCreate,
