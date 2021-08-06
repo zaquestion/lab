@@ -95,7 +95,7 @@ var readPassword = func(reader bufio.Reader) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	tokenURL.Path = "profile/personal_access_tokens"
+	tokenURL.Path = "/-/profile/personal_access_tokens"
 
 	fmt.Printf("Create a token with scope 'api' here: %s\nEnter default GitLab token, or leave blank to provide a command to load the token: ", tokenURL.String())
 	byteToken, err := terminal.ReadPassword(int(syscall.Stdin))
