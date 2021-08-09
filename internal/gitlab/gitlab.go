@@ -20,7 +20,6 @@ import (
 
 	"github.com/pkg/errors"
 	gitlab "github.com/xanzy/go-gitlab"
-	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
 	"github.com/zaquestion/lab/internal/logger"
 )
@@ -1278,7 +1277,6 @@ func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 			// search for.
 			// WebURL format:
 			//   <core.host>/<bridged-project-name-with-namespace>/-/pipelines/<id>
-			host := config.MainConfig.GetString("core.host")
 			projectName := strings.Replace(bridge.DownstreamPipeline.WebURL, host+"/", "", 1)
 			pipelineText := fmt.Sprintf("/-/pipelines/%d", bridge.DownstreamPipeline.ID)
 			projectName = strings.Replace(projectName, pipelineText, "", 1)
