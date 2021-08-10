@@ -45,7 +45,8 @@ var ciViewCmd = &cobra.Command{
 		'c' to cancel job`),
 	Example: heredoc.Doc(`
 		lab ci view
-		lab ci view upstream --merge-request`),
+		lab ci view upstream --merge-request
+		lab ci view upstream --merge-request --bridge 'security-tests'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()

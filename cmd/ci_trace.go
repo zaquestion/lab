@@ -36,7 +36,8 @@ var ciTraceCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab ci trace upstream feature_branch
 		lab ci trace upstream 18 --merge-request
-		lab ci trace upstream 18:'my custom stage' --merge-request`),
+		lab ci trace upstream 18:'my custom stage' --merge-request
+		lab ci trace upstream 18:'my custom stage' --merge-request --bridge 'security-tests'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (

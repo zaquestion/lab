@@ -23,7 +23,8 @@ var ciStatusCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab ci status
 		lab ci status upstream 608 --merge-request
-		lab ci status 600 --wait`),
+		lab ci status 600 --wait
+		lab ci status upstream 125 --merge-request --bridge 'security-tests'`),
 	RunE:             nil,
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {

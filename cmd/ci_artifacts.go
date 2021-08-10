@@ -26,7 +26,8 @@ var ciArtifactsCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab ci artifacts upstream feature_branch
 		lab ci artifacts upstream 125 --merge-request
-		lab ci artifacts upstream 125:'my custom stage' --merge-request`),
+		lab ci artifacts upstream 125:'my custom stage' --merge-request
+		lab ci artifacts upstream 125:'build' --merge-request --bridge 'security-tests'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
