@@ -4,8 +4,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Hold --follow flag value that is common for all ci command
-var followBridge bool
+// Hold --follow and --bridge values that are common to all ci command
+var (
+	followBridge bool
+	bridgeName   string
+)
 
 // ciCmd represents the ci command
 var ciCmd = &cobra.Command{
@@ -14,6 +17,7 @@ var ciCmd = &cobra.Command{
 }
 
 func init() {
-	ciCmd.PersistentFlags().Bool("follow", false, "Follow downstream pipelines in a multi-projects setup")
+	ciCmd.PersistentFlags().Bool("follow", false, "Follow bridge jobs (downstream pipelines) in a multi-projects setup")
+	ciCmd.PersistentFlags().String("bridge", "", "Bridge job (downstream pipeline) name")
 	RootCmd.AddCommand(ciCmd)
 }

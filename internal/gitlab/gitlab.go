@@ -1223,7 +1223,7 @@ func GroupSearch(query string) (*gitlab.Group, error) {
 // CIJobs returns a list of jobs in the pipeline with given id.
 // This function by default doesn't follow bridge jobs.
 // The jobs are returned sorted by their CreatedAt time
-func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
+func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]JobStruct, error) {
 	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: maxItemsPerPage,
@@ -1269,6 +1269,10 @@ func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 		}
 
 		for _, bridge := range bridgeList {
+			if bridgeName != "" && bridge.Name != bridgeName {
+				continue
+			}
+
 			// Unfortunately the GitLab API doesn't exposes the project ID nor name that the
 			// bridge job points to, since it might be extarnal to the config core.host
 			// hostname, hence the WebURL is exposed.
@@ -1322,8 +1326,8 @@ func CIJobs(pid interface{}, id int, followBridge bool) ([]JobStruct, error) {
 // 1. Last Running Job
 // 2. First Pending Job
 // 3. Last Job in Pipeline
-func CITrace(pid interface{}, id int, name string, followBridge bool) (io.Reader, *gitlab.Job, error) {
-	jobs, err := CIJobs(pid, id, followBridge)
+func CITrace(pid interface{}, id int, name string, followBridge bool, bridgeName string) (io.Reader, *gitlab.Job, error) {
+	jobs, err := CIJobs(pid, id, followBridge, bridgeName)
 	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
 	}
@@ -1370,8 +1374,8 @@ func CITrace(pid interface{}, id int, name string, followBridge bool) (io.Reader
 // together with the upstream filename. If path is specified and refers to
 // a single file within the artifacts archive, that file is returned instead.
 // If no name is provided, the last job with an artifacts file is picked.
-func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool) (io.Reader, string, error) {
-	jobs, err := CIJobs(pid, id, followBridge)
+func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool, bridgeName string) (io.Reader, string, error) {
+	jobs, err := CIJobs(pid, id, followBridge, bridgeName)
 	if len(jobs) == 0 || err != nil {
 		return nil, "", err
 	}

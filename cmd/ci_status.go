@@ -37,9 +37,16 @@ var ciStatusCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		followBridge, err = cmd.Flags().GetBool("follow")
+		bridgeName, err = cmd.Flags().GetString("bridge")
 		if err != nil {
 			log.Fatal(err)
+		} else if bridgeName != "" {
+			followBridge = true
+		} else {
+			followBridge, err = cmd.Flags().GetBool("follow")
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		rn, pipelineID, err := getPipelineFromArgs(args, forMR)
@@ -65,7 +72,7 @@ var ciStatusCmd = &cobra.Command{
 		fmt.Fprintln(w, "Stage:\tName\t-\tStatus")
 		for {
 			// fetch all of the CI Jobs from the API
-			jobStructList, err = lab.CIJobs(pid, pipelineID, followBridge)
+			jobStructList, err = lab.CIJobs(pid, pipelineID, followBridge, bridgeName)
 			if err != nil {
 				log.Fatal(errors.Wrap(err, "failed to find ci jobs"))
 			}

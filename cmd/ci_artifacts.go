@@ -44,9 +44,16 @@ var ciArtifactsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		followBridge, err = cmd.Flags().GetBool("follow")
+		bridgeName, err = cmd.Flags().GetString("bridge")
 		if err != nil {
 			log.Fatal(err)
+		} else if bridgeName != "" {
+			followBridge = true
+		} else {
+			followBridge, err = cmd.Flags().GetBool("follow")
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		path, err := cmd.Flags().GetString("artifact-path")
@@ -65,7 +72,7 @@ var ciArtifactsCmd = &cobra.Command{
 		}
 		projectID := project.ID
 
-		r, outpath, err := lab.CIArtifacts(projectID, pipelineID, jobName, path, followBridge)
+		r, outpath, err := lab.CIArtifacts(projectID, pipelineID, jobName, path, followBridge, bridgeName)
 		if err != nil {
 			log.Fatal(err)
 		}
