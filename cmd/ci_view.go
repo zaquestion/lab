@@ -45,7 +45,8 @@ var ciViewCmd = &cobra.Command{
 		'c' to cancel job`),
 	Example: heredoc.Doc(`
 		lab ci view
-		lab ci view upstream --merge-request`),
+		lab ci view upstream --merge-request
+		lab ci view upstream --merge-request --bridge 'security-tests'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := tview.NewApplication()
@@ -60,9 +61,16 @@ var ciViewCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		followBridge, err = cmd.Flags().GetBool("follow")
+		bridgeName, err = cmd.Flags().GetString("bridge")
 		if err != nil {
 			log.Fatal(err)
+		} else if bridgeName != "" {
+			followBridge = true
+		} else {
+			followBridge, err = cmd.Flags().GetBool("follow")
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		rn, pipelineID, err = getPipelineFromArgs(args, forMR)
@@ -491,7 +499,7 @@ func updateJobs(app *tview.Application, jobsCh chan []*gitlab.Job) {
 			time.Sleep(time.Second * 1)
 			continue
 		}
-		jobStructList, err := lab.CIJobs(projectID, pipelineID, followBridge)
+		jobStructList, err := lab.CIJobs(projectID, pipelineID, followBridge, bridgeName)
 		if len(jobStructList) == 0 || err != nil {
 			app.Stop()
 			log.Fatal(errors.Wrap(err, "failed to find ci jobs"))

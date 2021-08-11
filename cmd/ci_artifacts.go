@@ -26,7 +26,8 @@ var ciArtifactsCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab ci artifacts upstream feature_branch
 		lab ci artifacts upstream 125 --merge-request
-		lab ci artifacts upstream 125:'my custom stage' --merge-request`),
+		lab ci artifacts upstream 125:'my custom stage' --merge-request
+		lab ci artifacts upstream 125:'build' --merge-request --bridge 'security-tests'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
@@ -44,9 +45,16 @@ var ciArtifactsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		followBridge, err = cmd.Flags().GetBool("follow")
+		bridgeName, err = cmd.Flags().GetString("bridge")
 		if err != nil {
 			log.Fatal(err)
+		} else if bridgeName != "" {
+			followBridge = true
+		} else {
+			followBridge, err = cmd.Flags().GetBool("follow")
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		path, err := cmd.Flags().GetString("artifact-path")
@@ -65,7 +73,7 @@ var ciArtifactsCmd = &cobra.Command{
 		}
 		projectID := project.ID
 
-		r, outpath, err := lab.CIArtifacts(projectID, pipelineID, jobName, path, followBridge)
+		r, outpath, err := lab.CIArtifacts(projectID, pipelineID, jobName, path, followBridge, bridgeName)
 		if err != nil {
 			log.Fatal(err)
 		}

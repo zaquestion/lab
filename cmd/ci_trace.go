@@ -36,7 +36,8 @@ var ciTraceCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab ci trace upstream feature_branch
 		lab ci trace upstream 18 --merge-request
-		lab ci trace upstream 18:'my custom stage' --merge-request`),
+		lab ci trace upstream 18:'my custom stage' --merge-request
+		lab ci trace upstream 18:'my custom stage' --merge-request --bridge 'security-tests'`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
@@ -54,9 +55,16 @@ var ciTraceCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		followBridge, err = cmd.Flags().GetBool("follow")
+		bridgeName, err = cmd.Flags().GetString("bridge")
 		if err != nil {
 			log.Fatal(err)
+		} else if bridgeName != "" {
+			followBridge = true
+		} else {
+			followBridge, err = cmd.Flags().GetBool("follow")
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		rn, pipelineID, err := getPipelineFromArgs(branchArgs, forMR)
@@ -89,7 +97,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, 
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, pipelineID, name, followBridge)
+		trace, job, err := lab.CITrace(pid, pipelineID, name, followBridge, bridgeName)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}
