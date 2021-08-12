@@ -5,14 +5,12 @@ require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
-	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/alecthomas/chroma v0.9.2 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/charmbracelet/glamour v0.3.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/fatih/color v1.12.0
-	github.com/gdamore/tcell v1.4.0 // indirect
 	github.com/gdamore/tcell/v2 v2.4.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -29,7 +27,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/tview v0.0.0-20210624165335-29d673af0ce2
 	github.com/rsteube/carapace v0.7.2
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.0 // indirect
@@ -39,8 +36,7 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/tcnksm/go-gitconfig v0.1.2
-	github.com/xanzy/go-gitlab v0.50.2
-	github.com/xanzy/ssh-agent v0.3.0 // indirect
+	github.com/xanzy/go-gitlab v0.50.3
 	github.com/yuin/goldmark v1.4.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 // indirect

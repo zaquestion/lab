@@ -1273,25 +1273,8 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 				continue
 			}
 
-			// Unfortunately the GitLab API doesn't exposes the project ID nor name that the
-			// bridge job points to, since it might be extarnal to the config core.host
-			// hostname, hence the WebURL is exposed.
-			// With that, and considering we don't want to support anything outside the
-			// core.host, we need to massage the WebURL to get the project name that we can
-			// search for.
-			// WebURL format:
-			//   <core.host>/<bridged-project-name-with-namespace>/-/pipelines/<id>
-			projectName := strings.Replace(bridge.DownstreamPipeline.WebURL, host+"/", "", 1)
-			pipelineText := fmt.Sprintf("/-/pipelines/%d", bridge.DownstreamPipeline.ID)
-			projectName = strings.Replace(projectName, pipelineText, "", 1)
-
-			p, err := FindProject(projectName)
-			if err != nil {
-				continue
-			}
-
 			// Switch to the new project name and downstream pipeline id
-			pid = p.PathWithNamespace
+			pid = bridge.DownstreamPipeline.ProjectID
 			id = bridge.DownstreamPipeline.ID
 
 			for {
