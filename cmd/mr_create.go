@@ -21,13 +21,14 @@ import (
 
 // mrCmd represents the mr command
 var mrCreateCmd = &cobra.Command{
-	Use:     "create [remote [remote_branch]]",
+	Use:     "create [target_remote [target_branch]]",
 	Aliases: []string{"new"},
 	Short:   "Creates a merge request.",
 	Args:    cobra.MaximumNArgs(2),
 	Example: heredoc.Doc(`
-		lab mr create origin
-		lab mr create origin branch --allow-collaboration
+		lab mr create target_remote
+		lab mr create target_remote target_branch --allow-collaboration
+		lab mr create upstream main --source my_fork:feature-3
 		lab mr create a_remote -a johndoe -a janedoe
 		lab mr create my_remote -c
 		lab mr create my_remote --draft
@@ -39,7 +40,6 @@ var mrCreateCmd = &cobra.Command{
 		lab mr create my_remote --milestone "Fall"
 		lab mr create my_remote -d
 		lab mr create my_remote -r johndoe -r janedoe
-		lab mr create --source upstream:main origin main
 		lab mr create my_remote -s`),
 	PersistentPreRun: labPersistentPreRun,
 	Run:              runMRCreate,
@@ -58,7 +58,7 @@ func init() {
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
 	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
-	mrCreateCmd.Flags().String("source", "", "specify a remote source target in the form of remote:remote_branch")
+	mrCreateCmd.Flags().String("source", "", "specify the source remote and branch in the form of remote:branch")
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
