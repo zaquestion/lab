@@ -49,16 +49,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		mr, err := lab.MRGet(rn, int(mrNum))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		state := map[string]string{
-			"opened": "OPEN",
-			"closed": "CLOSED",
-			"merged": "MERGED",
-		}[mr.State]
+		state := noteGetState(rn, true, int(mrNum))
 
 		body := ""
 		if filename != "" {
