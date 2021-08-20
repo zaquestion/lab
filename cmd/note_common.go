@@ -203,6 +203,34 @@ func createCommitComments(project string, mrID int, commit string, body string, 
 	}
 
 }
+
+func noteGetState(rn string, isMR bool, idNum int) (state string) {
+	if isMR {
+		mr, err := lab.MRGet(rn, idNum)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		state = map[string]string{
+			"opened": "OPEN",
+			"closed": "CLOSED",
+			"merged": "MERGED",
+		}[mr.State]
+	} else {
+		issue, err := lab.IssueGet(rn, idNum)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		state = map[string]string{
+			"opened": "OPEN",
+			"closed": "CLOSED",
+		}[issue.State]
+	}
+
+	return state
+}
+
 func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string) {
 	var err error
 
@@ -214,39 +242,13 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 		}
 		body = string(content)
 	} else {
-		if isMR {
-			mr, err := lab.MRGet(rn, idNum)
-			if err != nil {
-				log.Fatal(err)
-			}
+		state := noteGetState(rn, isMR, idNum)
 
-			state := map[string]string{
-				"opened": "OPEN",
-				"closed": "CLOSED",
-				"merged": "MERGED",
-			}[mr.State]
-
-			if commit != "" {
-				body = getCommitBody(rn, commit)
-				body += fmt.Sprintf("\n# This comment is being applied to %s Merge Request %d commit %s.\n# Do not delete patch tracking lines that begin with '|'.", state, idNum, commit[:len(commit)])
-			} else {
-				body += fmt.Sprintf("\n# This comment is being applied to %s Merge Request %d.", state, idNum)
-			}
-		} else {
-			issue, err := lab.IssueGet(rn, idNum)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			state := map[string]string{
-				"opened": "OPEN",
-				"closed": "CLOSED",
-			}[issue.State]
-
-			body = fmt.Sprintf("\n# This comment is being applied to %s Issue %d.", state, idNum)
+		if isMR && commit != "" {
+			body = getCommitBody(rn, commit)
 		}
 
-		body, err = noteMsg(msgs, isMR, body)
+		body, err = noteMsg(msgs, isMR, idNum, state, commit, body)
 		if err != nil {
 			_, f, l, _ := runtime.Caller(0)
 			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -284,12 +286,12 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 	fmt.Println(noteURL)
 }
 
-func noteMsg(msgs []string, isMR bool, body string) (string, error) {
+func noteMsg(msgs []string, isMR bool, idNum int, state string, commit string, body string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
 
-	text, err := noteText(body)
+	text, err := noteText(isMR, idNum, state, commit ,body)
 	if err != nil {
 		return "", err
 	}
@@ -300,11 +302,28 @@ func noteMsg(msgs []string, isMR bool, body string) (string, error) {
 	return git.EditFile("ISSUE_NOTE", text)
 }
 
-func noteText(body string) (string, error) {
-	tmpl := heredoc.Doc(`
+func noteGetTemplate(isMR bool, commit string) string {
+	if !isMR {
+		return heredoc.Doc(`
 		{{.InitMsg}}
-		{{.CommentChar}} Write a message for this note. Commented lines are discarded.`)
+		{{.CommentChar}} This comment is being applied to {{.State}} Issue {{.IDnum}}.
+		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
+	}
+	if isMR && commit == "" {
+		return heredoc.Doc(`
+		{{.InitMsg}}
+		{{.CommentChar}} This comment is being applied to {{.State}} Merge Request {{.IDnum}}.
+		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
+	}
+	return heredoc.Doc(`
+		{{.InitMsg}}
+		{{.CommentChar}} This comment is being applied to {{.State}} Merge Request {{.IDnum}} commit {{.Commit}}.
+		{{.CommentChar}} Do not delete patch tracking lines that begin with '|'.
+		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
+}
 
+func noteText(isMR bool, idNum int, state string, commit string, body string) (string, error) {
+	tmpl := noteGetTemplate(isMR, commit)
 	initMsg := body
 	commentChar := git.CommentChar()
 
@@ -316,9 +335,15 @@ func noteText(body string) (string, error) {
 	msg := &struct {
 		InitMsg     string
 		CommentChar string
+		State       string
+		IDnum       int
+		Commit      string
 	}{
 		InitMsg:     initMsg,
 		CommentChar: commentChar,
+		State:       state,
+		IDnum:       idNum,
+		Commit:      commit,
 	}
 
 	var b bytes.Buffer
@@ -346,6 +371,9 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	state := noteGetState(rn, isMR, idNum)
+
 	for _, discussion := range discussions {
 		for _, note := range discussion.Notes {
 
@@ -362,7 +390,7 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 
 			body := ""
 			if len(msgs) != 0 {
-				body, err = noteMsg(msgs, isMR, note.Body)
+				body, err = noteMsg(msgs, isMR, idNum, state, "", body)
 				if err != nil {
 					_, f, l, _ := runtime.Caller(0)
 					log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -382,7 +410,7 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 						noteBody = ">" + noteBody + "\n"
 					}
 				}
-				body, err = noteMsg([]string{}, isMR, noteBody)
+				body, err = noteMsg([]string{}, isMR, idNum, state, "", noteBody)
 				if err != nil {
 					_, f, l, _ := runtime.Caller(0)
 					log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
