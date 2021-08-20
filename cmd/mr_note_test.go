@@ -143,23 +143,11 @@ func Test_mrNoteMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			body, err := noteMsg(test.Msgs, true, "\n")
+			body, err := noteMsg(test.Msgs, true, 1, "OPEN", "", "\n")
 			if err != nil {
 				t.Fatal(err)
 			}
 			assert.Equal(t, test.ExpectedBody, body)
 		})
 	}
-}
-
-func Test_mrNoteText(t *testing.T) {
-	t.Parallel()
-	text, err := noteText("\n")
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, `
-
-# Write a message for this note. Commented lines are discarded.`, text)
-
 }
