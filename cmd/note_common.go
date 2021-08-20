@@ -291,7 +291,8 @@ func noteMsg(msgs []string, isMR bool, idNum int, state string, commit string, b
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
 
-	text, err := noteText(isMR, idNum, state, commit ,body)
+	tmpl := noteGetTemplate(isMR, commit)
+	text, err := noteText(idNum, state, commit, body, tmpl)
 	if err != nil {
 		return "", err
 	}
@@ -322,10 +323,15 @@ func noteGetTemplate(isMR bool, commit string) string {
 		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
 }
 
-func noteText(isMR bool, idNum int, state string, commit string, body string) (string, error) {
-	tmpl := noteGetTemplate(isMR, commit)
+func noteText(idNum int, state string, commit string, body string, tmpl string) (string, error) {
 	initMsg := body
 	commentChar := git.CommentChar()
+
+	if commit != "" {
+		if len(commit) > 11 {
+			commit = commit[:12]
+		}
+	}
 
 	t, err := template.New("tmpl").Parse(tmpl)
 	if err != nil {

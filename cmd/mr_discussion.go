@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"runtime"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
@@ -94,7 +92,8 @@ func mrDiscussionMsg(mrNum int, state string, commit string, msgs []string, body
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
 
-	text, err := mrDiscussionText(mrNum, state, commit, body)
+	tmpl := mrDiscussionGetTemplate(commit)
+	text, err := noteText(mrNum, state, commit, body, tmpl)
 	if err != nil {
 		return "", err
 	}
@@ -105,53 +104,14 @@ func mrDiscussionGetTemplate(commit string) string {
 	if commit == "" {
 		return heredoc.Doc(`
 		{{.InitMsg}}
-		{{.CommentChar}} This thread is being started on {{.State}} Merge Request {{.MRnum}}.
+		{{.CommentChar}} This thread is being started on {{.State}} Merge Request {{.IDnum}}.
 		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
 	}
 	return heredoc.Doc(`
 		{{.InitMsg}}
-		{{.CommentChar}} This thread is being started on {{.State}} Merge Request {{.MRnum}} commit {{.Commit}}.
+		{{.CommentChar}} This thread is being started on {{.State}} Merge Request {{.IDnum}} commit {{.Commit}}.
 		{{.CommentChar}} Do not delete patch tracking lines that begin with '|'.
 		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
-}
-
-func mrDiscussionText(mrNum int, state string, commit string, body string) (string, error) {
-	tmpl := mrDiscussionGetTemplate(commit)
-	initMsg := body
-	commentChar := git.CommentChar()
-
-	if commit != "" {
-		if len(commit) > 11 {
-			commit = commit[:12]
-		}
-	}
-
-	t, err := template.New("tmpl").Parse(tmpl)
-	if err != nil {
-		return "", err
-	}
-
-	msg := &struct {
-		InitMsg     string
-		CommentChar string
-		State       string
-		MRnum       int
-		Commit      string
-	}{
-		InitMsg:     initMsg,
-		CommentChar: commentChar,
-		State:       state,
-		MRnum:       mrNum,
-		Commit:      commit,
-	}
-
-	var b bytes.Buffer
-	err = t.Execute(&b, msg)
-	if err != nil {
-		return "", err
-	}
-
-	return b.String(), nil
 }
 
 func init() {
