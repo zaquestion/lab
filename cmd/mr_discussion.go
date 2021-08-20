@@ -49,6 +49,17 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		mr, err := lab.MRGet(rn, int(mrNum))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		state := map[string]string{
+			"opened": "OPEN",
+			"closed": "CLOSED",
+			"merged": "MERGED",
+		}[mr.State]
+
 		body := ""
 		if filename != "" {
 			content, err := ioutil.ReadFile(filename)
@@ -57,14 +68,14 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			}
 			body = string(content)
 		} else if commit == "" {
-			body, err = mrDiscussionMsg(msgs, "\n")
+			body, err = mrDiscussionMsg(int(mrNum), state, commit, msgs, "\n")
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 			}
 		} else {
 			body = getCommitBody(rn, commit)
-			body, err = mrDiscussionMsg(nil, body)
+			body, err = mrDiscussionMsg(int(mrNum), state, commit, nil, body)
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -87,25 +98,42 @@ var mrCreateDiscussionCmd = &cobra.Command{
 	},
 }
 
-func mrDiscussionMsg(msgs []string, body string) (string, error) {
+func mrDiscussionMsg(mrNum int, state string, commit string, msgs []string, body string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
 
-	text, err := mrDiscussionText(body)
+	text, err := mrDiscussionText(mrNum, state, commit, body)
 	if err != nil {
 		return "", err
 	}
 	return git.EditFile("MR_DISCUSSION", text)
 }
 
-func mrDiscussionText(body string) (string, error) {
-	tmpl := heredoc.Doc(`
+func mrDiscussionGetTemplate(commit string) string {
+	if commit == "" {
+		return heredoc.Doc(`
 		{{.InitMsg}}
-		{{.CommentChar}} Write a message for this discussion. Commented lines are discarded.`)
+		{{.CommentChar}} This thread is being started on {{.State}} Merge Request {{.MRnum}}.
+		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
+	}
+	return heredoc.Doc(`
+		{{.InitMsg}}
+		{{.CommentChar}} This thread is being started on {{.State}} Merge Request {{.MRnum}} commit {{.Commit}}.
+		{{.CommentChar}} Do not delete patch tracking lines that begin with '|'.
+		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
+}
 
+func mrDiscussionText(mrNum int, state string, commit string, body string) (string, error) {
+	tmpl := mrDiscussionGetTemplate(commit)
 	initMsg := body
 	commentChar := git.CommentChar()
+
+	if commit != "" {
+		if len(commit) > 11 {
+			commit = commit[:12]
+		}
+	}
 
 	t, err := template.New("tmpl").Parse(tmpl)
 	if err != nil {
@@ -115,9 +143,15 @@ func mrDiscussionText(body string) (string, error) {
 	msg := &struct {
 		InitMsg     string
 		CommentChar string
+		State       string
+		MRnum       int
+		Commit      string
 	}{
 		InitMsg:     initMsg,
 		CommentChar: commentChar,
+		State:       state,
+		MRnum:       mrNum,
+		Commit:      commit,
 	}
 
 	var b bytes.Buffer
