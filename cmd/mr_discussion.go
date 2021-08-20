@@ -57,14 +57,14 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			}
 			body = string(content)
 		} else if commit == "" {
-			body, err = mrDiscussionMsg(msgs)
+			body, err = mrDiscussionMsg(msgs, "\n")
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 			}
 		} else {
 			body = getCommitBody(rn, commit)
-			body, err = noteMsg(nil, true, body)
+			body, err = mrDiscussionMsg(nil, body)
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
@@ -87,24 +87,24 @@ var mrCreateDiscussionCmd = &cobra.Command{
 	},
 }
 
-func mrDiscussionMsg(msgs []string) (string, error) {
+func mrDiscussionMsg(msgs []string, body string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
 
-	text, err := mrDiscussionText()
+	text, err := mrDiscussionText(body)
 	if err != nil {
 		return "", err
 	}
 	return git.EditFile("MR_DISCUSSION", text)
 }
 
-func mrDiscussionText() (string, error) {
+func mrDiscussionText(body string) (string, error) {
 	tmpl := heredoc.Doc(`
 		{{.InitMsg}}
 		{{.CommentChar}} Write a message for this discussion. Commented lines are discarded.`)
 
-	initMsg := "\n"
+	initMsg := body
 	commentChar := git.CommentChar()
 
 	t, err := template.New("tmpl").Parse(tmpl)
