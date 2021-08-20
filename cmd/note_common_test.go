@@ -31,7 +31,7 @@ func Test_noteMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			body, err := noteMsg(test.Msgs, false, "\n")
+			body, err := noteMsg(test.Msgs, false, 1, "OPEN", "", "\n")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -42,12 +42,13 @@ func Test_noteMsg(t *testing.T) {
 
 func Test_noteText(t *testing.T) {
 	t.Parallel()
-	text, err := noteText("\n")
+	tmpl := noteGetTemplate(true, "")
+	text, err := noteText(1701, "OPEN", "", "\n", tmpl)
 	if err != nil {
 		t.Fatal(err)
 	}
 	require.Equal(t, `
 
-# Write a message for this note. Commented lines are discarded.`, text)
-
+# This comment is being applied to OPEN Merge Request 1701.
+# Comment lines beginning with '#' are discarded.`, text)
 }

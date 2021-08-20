@@ -67,7 +67,7 @@ func Test_mrDiscussionMsg(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			body, err := mrDiscussionMsg(test.Msgs)
+			body, err := mrDiscussionMsg(1, "OPEN", "", test.Msgs, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -78,12 +78,13 @@ func Test_mrDiscussionMsg(t *testing.T) {
 
 func Test_mrDiscussionText(t *testing.T) {
 	t.Parallel()
-	text, err := mrDiscussionText()
+	tmpl := mrDiscussionGetTemplate("")
+	text, err := noteText(1701, "OPEN", "", "\n", tmpl)
 	if err != nil {
 		t.Fatal(err)
 	}
 	require.Equal(t, `
 
-# Write a message for this discussion. Commented lines are discarded.`, text)
-
+# This thread is being started on OPEN Merge Request 1701.
+# Comment lines beginning with '#' are discarded.`, text)
 }
