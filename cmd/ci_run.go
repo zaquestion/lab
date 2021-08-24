@@ -69,7 +69,7 @@ var ciTriggerCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		token, err := cmd.Flags().GetString("project")
+		token, err := cmd.Flags().GetString("token")
 		if err != nil {
 			log.Fatal(err)
 		}
