@@ -48,6 +48,15 @@ var mrApproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		if comment || len(msgs) > 0 || filename != "" {
+			linebreak, err := cmd.Flags().GetBool("force-linebreak")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			createNote(rn, true, int(id), msgs, filename, linebreak, "")
+		}
+
 		err = lab.MRApprove(p.ID, int(id))
 		if err != nil {
 			if err == lab.ErrStatusForbidden {
@@ -57,15 +66,6 @@ var mrApproveCmd = &cobra.Command{
 				fmt.Printf("Merge Request !%d already approved\n", id)
 				os.Exit(1)
 			}
-		}
-
-		if comment || len(msgs) > 0 || filename != "" {
-			linebreak, err := cmd.Flags().GetBool("force-linebreak")
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			createNote(rn, true, int(id), msgs, filename, linebreak, "")
 		}
 
 		fmt.Printf("Merge Request !%d approved\n", id)
