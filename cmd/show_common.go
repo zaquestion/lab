@@ -173,24 +173,31 @@ func displayCommitDiscussion(project string, idNum int, note *gitlab.Note) {
 	//
 	// I am leaving this comment here in case it ever changes again.
 
+	// In some cases the CommitID field is still not populated correctly.
+	// In those cases use the HeadSHA value instead of the CommitID.
+	commitID := note.CommitID
+	if commitID == "" {
+		commitID = note.Position.HeadSHA
+	}
+
 	// Get a unified diff for the entire file
-	ds, err := lab.GetCommitDiff(project, note.CommitID)
+	ds, err := lab.GetCommitDiff(project, commitID)
 	if err != nil {
-		fmt.Printf("    Could not get diff for commit %s.\n", note.CommitID)
+		fmt.Printf("    Could not get diff for commit %s.\n", commitID)
 		return
 	}
 
 	if len(ds) == 0 {
-		log.Fatal("    No diff found for %s.", note.CommitID)
+		log.Fatal("    No diff found for %s.", commitID)
 	}
 
 	// In general, only have to display the NewPath, however there
 	// are some unusual cases where the OldPath may be displayed
 	if note.Position.NewPath == note.Position.OldPath {
-		fmt.Println("commit:" + note.CommitID)
+		fmt.Println("commit:" + commitID)
 		fmt.Println("File:" + note.Position.NewPath)
 	} else {
-		fmt.Println("commit:" + note.CommitID)
+		fmt.Println("commit:" + commitID)
 		fmt.Println("Files[old:" + note.Position.OldPath + " new:" + note.Position.NewPath + "]")
 	}
 
