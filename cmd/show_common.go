@@ -67,9 +67,12 @@ func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 			if err != nil {
 				log.Fatal(err)
 			}
-			newDiffRange, err := strconv.Atoi(dNew[1])
-			if err != nil {
-				log.Fatal(err)
+			newDiffRange := 1
+			if len(dNew) == 2 {
+				newDiffRange, err = strconv.Atoi(dNew[1])
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 			newDiffEnd := newDiffStart + newDiffRange
 			newLineNum = newDiffStart - 1
