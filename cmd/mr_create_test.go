@@ -9,7 +9,7 @@ import (
 // MR Create is tested in cmd/mr_test.go
 
 func Test_mrText(t *testing.T) {
-	text, err := mrText("origin", "mrtest", "origin", "master", false)
+	text, err := mrText("origin", "mrtest", "origin", "master", false, false)
 	if err != nil {
 		t.Log(text)
 		t.Fatal(err)
@@ -29,7 +29,7 @@ I am the default merge request template for lab
 }
 
 func Test_mrText_CoverLetter(t *testing.T) {
-	coverLetter, err := mrText("origin", "mrtest", "origin", "master", true)
+	coverLetter, err := mrText("origin", "mrtest", "origin", "master", true, false)
 	if err != nil {
 		t.Log(coverLetter)
 		t.Fatal(err)
