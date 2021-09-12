@@ -34,6 +34,7 @@ var mrCreateCmd = &cobra.Command{
 		lab mr create my_remote --draft
 		lab mr create my_remote -F a_file.txt
 		lab mr create my_remote -F a_file.txt --force-linebreak
+		lab mr create my_remote -f a_file.txt
 		lab mr create my_remote -l bug -l confirmed
 		lab mr create my_remote -m "A title message"
 		lab mr create my_remote -m "A MR title" -m "A MR description"
@@ -54,7 +55,8 @@ func init() {
 	mrCreateCmd.Flags().BoolP("squash", "s", false, "squash commits when merging")
 	mrCreateCmd.Flags().Bool("allow-collaboration", false, "allow commits from other members")
 	mrCreateCmd.Flags().String("milestone", "", "set milestone by milestone title or ID")
-	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Description")
+	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Title and Description")
+	mrCreateCmd.Flags().StringP("file-edit", "f", "", "use the given file as the Title and Description and open the editor")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
 	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
@@ -111,6 +113,22 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ofilename, err := cmd.Flags().GetString("file-edit")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if ofilename != "" && filename != "" {
+		log.Fatalf("Cannot specify both -F and -f options.")
+	}
+
+	openEditor := false
+	if ofilename != "" {
+		filename = ofilename
+		openEditor = true
+	}
+
 	coverLetterFormat, err := cmd.Flags().GetBool("cover-letter")
 	if err != nil {
 		log.Fatal(err)
@@ -230,6 +248,20 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		if openEditor {
+			msg, err := mrText(sourceRemote, sourceBranch, targetRemote, targetBranch, coverLetterFormat, false)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			msg = title + body + msg
+
+			title, body, err = git.Edit("MERGEREQ", msg)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	} else if len(msgs) > 0 {
 		if coverLetterFormat {
 			log.Fatal("option -m cannot be combined with -c/-F")
@@ -237,7 +269,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
-		msg, err := mrText(sourceRemote, sourceBranch, targetRemote, targetBranch, coverLetterFormat)
+		msg, err := mrText(sourceRemote, sourceBranch, targetRemote, targetBranch, coverLetterFormat, true)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -303,13 +335,13 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	}
 }
 
-func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, coverLetterFormat bool) (string, error) {
+func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, coverLetterFormat bool, generateCommitMsg bool) (string, error) {
 	target := fmt.Sprintf("%s/%s", targetRemote, targetBranch)
 	source := fmt.Sprintf("%s/%s", sourceRemote, sourceBranch)
 	commitMsg := ""
 
 	numCommits := git.NumberCommits(target, source)
-	if numCommits == 1 {
+	if numCommits == 1 && generateCommitMsg {
 		var err error
 		commitMsg, err = git.LastCommitMessage(source)
 		if err != nil {
