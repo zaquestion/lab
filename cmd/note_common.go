@@ -91,7 +91,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit)
+	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit, false)
 }
 
 func createCommitNote(rn string, mrID int, sha string, newFile string, oldFile string, oldline int, newline int, comment string, block bool) {
@@ -231,7 +231,7 @@ func noteGetState(rn string, isMR bool, idNum int) (state string) {
 	return state
 }
 
-func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string) {
+func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string, quickaction bool) {
 	var err error
 
 	body := ""
@@ -283,7 +283,9 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(noteURL)
+	if !quickaction {
+		fmt.Println(noteURL)
+	}
 }
 
 func noteMsg(msgs []string, isMR bool, idNum int, state string, commit string, body string) (string, error) {

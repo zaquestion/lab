@@ -65,7 +65,7 @@ var mrUnapproveCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			createNote(rn, true, int(id), msgs, filename, linebreak, "")
+			createNote(rn, true, int(id), msgs, filename, linebreak, "", false)
 		}
 
 		fmt.Printf("Merge Request !%d unapproved\n", id)
