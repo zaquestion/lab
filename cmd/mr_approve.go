@@ -63,7 +63,7 @@ var mrApproveCmd = &cobra.Command{
 			}
 		}
 
-		msgs = append(msgs, "\n  /approve")
+		msgs = append(msgs, "/approve")
 		createNote(rn, true, int(id), msgs, filename, linebreak, "", !note)
 
 		fmt.Printf("Merge Request !%d approved\n", id)
