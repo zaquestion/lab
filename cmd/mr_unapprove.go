@@ -23,11 +23,6 @@ var mrUnapproveCmd = &cobra.Command{
 		lab mr unapprove upstream -m "A helpfull\nComment" --force-linebreak`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		var (
-			linebreak = false
-			canUnapprove = false
-		)
-
 		rn, id, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			log.Fatal(err)
@@ -38,6 +33,7 @@ var mrUnapproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		canUnapprove := false
 		for _, approvers := range approvalConfig.ApprovedBy {
 			if approvers.User.Username == lab.User() {
 				canUnapprove = true
@@ -65,6 +61,7 @@ var mrUnapproveCmd = &cobra.Command{
 		}
 
 		note := comment || len(msgs) > 0 || filename != ""
+		linebreak := false
 		if note {
 			linebreak, err = cmd.Flags().GetBool("force-linebreak")
 			if err != nil {
@@ -73,7 +70,7 @@ var mrUnapproveCmd = &cobra.Command{
 		}
 
 		msgs = append(msgs, "/unapprove")
-		createNote(rn, true, int(id), msgs, filename, linebreak, "", !note)
+		createNote(rn, true, int(id), msgs, filename, linebreak, "", note)
 
 		fmt.Printf("Merge Request !%d unapproved\n", id)
 	},
