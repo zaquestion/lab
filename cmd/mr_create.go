@@ -240,6 +240,10 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	var title, body string
 
 	if filename != "" {
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			log.Fatalf("file %s cannot be found", filename)
+		}
+
 		if len(msgs) > 0 || coverLetterFormat {
 			log.Fatal("option -F cannot be combined with -m/-c")
 		}
