@@ -1889,6 +1889,7 @@ func CreateMergeRequestCommitDiscussion(project string, mrID int, sha string, ne
 	opt := &gitlab.CreateMergeRequestDiscussionOptions{
 		Body:     &comment,
 		Position: &position,
+		CommitID: &sha,
 	}
 
 	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, mrID, opt)
