@@ -61,6 +61,11 @@ var mrApproveCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
+			if comment {
+				state := noteGetState(rn, true, int(id))
+				msg, _ := noteMsg(msgs, true, int(id), state, "", "")
+				msgs = append(msgs, msg)
+			}
 		}
 
 		msgs = append(msgs, "/approve")

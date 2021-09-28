@@ -242,7 +242,7 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 			log.Fatal(err)
 		}
 		body = string(content)
-		if hasNote {
+		if hasNote && len(msgs) > 0 {
 			body += msgs[0]
 		}
 	} else {
