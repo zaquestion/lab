@@ -3,12 +3,11 @@ package cmd
 import (
 	"fmt"
 	"github.com/MakeNowJust/heredoc/v2"
-	"os"
-
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	"os"
 )
 
 var mrApproveCmd = &cobra.Command{
@@ -28,9 +27,16 @@ var mrApproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
+		approvalConfig, err := lab.GetMRApprovalsConfiguration(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		for _, approvers := range approvalConfig.ApprovedBy {
+			if approvers.User.Username == lab.User() {
+				fmt.Printf("Merge Request !%d already approved\n", id)
+				os.Exit(1)
+			}
 		}
 
 		comment, err := cmd.Flags().GetBool("with-comment")
@@ -48,25 +54,22 @@ var mrApproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		if comment || len(msgs) > 0 || filename != "" {
-			linebreak, err := cmd.Flags().GetBool("force-linebreak")
+		note := comment || len(msgs) > 0 || filename != ""
+		linebreak := false
+		if note {
+			linebreak, err = cmd.Flags().GetBool("force-linebreak")
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			createNote(rn, true, int(id), msgs, filename, linebreak, "")
-		}
-
-		err = lab.MRApprove(p.ID, int(id))
-		if err != nil {
-			if err == lab.ErrStatusForbidden {
-				log.Fatal(err)
-			}
-			if err == lab.ErrActionRepeated {
-				fmt.Printf("Merge Request !%d already approved\n", id)
-				os.Exit(1)
+			if comment {
+				state := noteGetState(rn, true, int(id))
+				msg, _ := noteMsg(msgs, true, int(id), state, "", "")
+				msgs = append(msgs, msg)
 			}
 		}
+
+		msgs = append(msgs, "/approve")
+		createNote(rn, true, int(id), msgs, filename, linebreak, "", note)
 
 		fmt.Printf("Merge Request !%d approved\n", id)
 	},

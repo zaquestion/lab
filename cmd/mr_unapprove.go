@@ -28,9 +28,21 @@ var mrUnapproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
+		approvalConfig, err := lab.GetMRApprovalsConfiguration(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		canUnapprove := false
+		for _, approvers := range approvalConfig.ApprovedBy {
+			if approvers.User.Username == lab.User() {
+				canUnapprove = true
+			}
+		}
+
+		if !canUnapprove {
+			fmt.Printf("Merge Request !%d already unapproved\n", id)
+			os.Exit(1)
 		}
 
 		comment, err := cmd.Flags().GetBool("with-comment")
@@ -48,25 +60,22 @@ var mrUnapproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.MRUnapprove(p.ID, int(id))
-		if err != nil {
-			if err == lab.ErrStatusForbidden {
-				log.Fatal(err)
-			}
-			if err == lab.ErrActionRepeated {
-				fmt.Printf("Merge Request !%d already unapproved\n", id)
-				os.Exit(1)
-			}
-		}
-
-		if comment || len(msgs) > 0 || filename != "" {
-			linebreak, err := cmd.Flags().GetBool("force-linebreak")
+		note := comment || len(msgs) > 0 || filename != ""
+		linebreak := false
+		if note {
+			linebreak, err = cmd.Flags().GetBool("force-linebreak")
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			createNote(rn, true, int(id), msgs, filename, linebreak, "")
+			if comment {
+				state := noteGetState(rn, true, int(id))
+				msg, _ := noteMsg(msgs, true, int(id), state, "", "")
+				msgs = append(msgs, msg)
+			}
 		}
+
+		msgs = append(msgs, "/unapprove")
+		createNote(rn, true, int(id), msgs, filename, linebreak, "", note)
 
 		fmt.Printf("Merge Request !%d unapproved\n", id)
 	},

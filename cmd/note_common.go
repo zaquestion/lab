@@ -91,7 +91,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit)
+	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit, true)
 }
 
 func createCommitNote(rn string, mrID int, sha string, newFile string, oldFile string, oldline int, newline int, comment string, block bool) {
@@ -231,7 +231,8 @@ func noteGetState(rn string, isMR bool, idNum int) (state string) {
 	return state
 }
 
-func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string) {
+func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string, hasNote bool) {
+	// hasNote is used by action that take advantage of Gitlab 'quick-action' notes, which do not create a noteURL
 	var err error
 
 	body := ""
@@ -241,6 +242,9 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 			log.Fatal(err)
 		}
 		body = string(content)
+		if hasNote && len(msgs) > 0 {
+			body += msgs[0]
+		}
 	} else {
 		state := noteGetState(rn, isMR, idNum)
 
@@ -283,7 +287,9 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(noteURL)
+	if hasNote {
+		fmt.Println(noteURL)
+	}
 }
 
 func noteMsg(msgs []string, isMR bool, idNum int, state string, commit string, body string) (string, error) {
