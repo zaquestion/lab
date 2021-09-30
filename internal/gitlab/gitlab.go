@@ -421,10 +421,12 @@ func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) 
 	if err != nil {
 		return nil, err
 	}
-	if resp.CurrentPage == resp.TotalPages {
+
+	var ok bool
+	if opts.Page, ok = hasNextPage(resp); !ok {
 		return list, nil
 	}
-	opts.Page = resp.NextPage
+
 	for len(list) < n || n == -1 {
 		if n != -1 {
 			opts.PerPage = n - len(list)
@@ -433,12 +435,13 @@ func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) 
 		if err != nil {
 			return nil, err
 		}
-		opts.Page = resp.NextPage
 		list = append(list, mrs...)
-		if resp.CurrentPage == resp.TotalPages {
+
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
+
 	return list, nil
 }
 
@@ -501,13 +504,12 @@ func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) 
 		// ... and add them to our collection of discussions
 		discussions = append(discussions, d...)
 
-		// if we've seen all the pages, then we can break here
-		if resp.CurrentPage >= resp.TotalPages {
+		// if we've seen all the pages, then we can break here.
+		// otherwise, update the page number to get the next page.
+		var ok bool
+		if opt.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-
-		// otherwise, update the page number to get the next page.
-		opt.Page = resp.NextPage
 	}
 
 	return discussions, nil
@@ -678,7 +680,9 @@ func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*
 	if err != nil {
 		return nil, err
 	}
-	if resp.CurrentPage == resp.TotalPages {
+
+	var ok bool
+	if opts.Page, ok = hasNextPage(resp); !ok {
 		return list, nil
 	}
 
@@ -691,9 +695,9 @@ func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*
 		if err != nil {
 			return nil, err
 		}
-		opts.Page = resp.NextPage
 		list = append(list, issues...)
-		if resp.CurrentPage == resp.TotalPages {
+
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
@@ -778,13 +782,12 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 		// ... and add them to our collection of discussions
 		discussions = append(discussions, d...)
 
-		// if we've seen all the pages, then we can break here
-		if resp.CurrentPage >= resp.TotalPages {
+		// if we've seen all the pages, then we can break here.
+		// otherwise, update the page number to get the next page.
+		var ok bool
+		if opt.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-
-		// otherwise, update the page number to get the next page.
-		opt.Page = resp.NextPage
 	}
 
 	return discussions, nil
@@ -846,12 +849,11 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 		labels = append(labels, l...)
 
 		// if we've seen all the pages, then we can break here
-		if resp.CurrentPage >= resp.TotalPages {
+		// otherwise, update the page number to get the next page.
+		var ok bool
+		if opt.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-
-		// otherwise, update the page number to get the next page.
-		opt.Page = resp.NextPage
 	}
 
 	return labels, nil
@@ -897,10 +899,10 @@ func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bra
 		}
 		branches = append(branches, bList...)
 
-		if resp.CurrentPage >= resp.TotalPages {
+		var ok bool
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-		opts.Page = resp.NextPage
 	}
 
 	return branches, nil
@@ -939,13 +941,12 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 
 		milestones = append(milestones, m...)
 
-		// if we've seen all the pages, then we can break here
-		if resp.CurrentPage >= resp.TotalPages {
+		// if we've seen all the pages, then we can break here.
+		// otherwise, update the page number to get the next page.
+		var ok bool
+		if opt.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-
-		// otherwise, update the page number to get the next page.
-		opt.Page = resp.NextPage
 	}
 
 	if p.Namespace.Kind != "group" {
@@ -985,12 +986,11 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 		}
 
 		// if we've seen all the pages, then we can break here
-		if resp.CurrentPage >= resp.TotalPages {
+		// otherwise, update the page number to get the next page.
+		var ok bool
+		if gopt.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-
-		// otherwise, update the page number to get the next page.
-		gopt.Page = resp.NextPage
 	}
 
 	return milestones, nil
@@ -1043,10 +1043,12 @@ func ProjectSnippetList(pid interface{}, opts gitlab.ListProjectSnippetsOptions,
 	if err != nil {
 		return nil, err
 	}
-	if resp.CurrentPage == resp.TotalPages {
+
+	var ok bool
+	if opts.Page, ok = hasNextPage(resp); !ok {
 		return list, nil
 	}
-	opts.Page = resp.NextPage
+
 	for len(list) < n || n == -1 {
 		if n != -1 {
 			opts.PerPage = n - len(list)
@@ -1055,12 +1057,13 @@ func ProjectSnippetList(pid interface{}, opts gitlab.ListProjectSnippetsOptions,
 		if err != nil {
 			return nil, err
 		}
-		opts.Page = resp.NextPage
 		list = append(list, snips...)
-		if resp.CurrentPage == resp.TotalPages {
+
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
+
 	return list, nil
 }
 
@@ -1089,10 +1092,12 @@ func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, err
 	if err != nil {
 		return nil, err
 	}
-	if resp.CurrentPage == resp.TotalPages {
+
+	var ok bool
+	if opts.Page, ok = hasNextPage(resp); !ok {
 		return list, nil
 	}
-	opts.Page = resp.NextPage
+
 	for len(list) < n || n == -1 {
 		if n != -1 {
 			opts.PerPage = n - len(list)
@@ -1101,12 +1106,13 @@ func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, err
 		if err != nil {
 			return nil, err
 		}
-		opts.Page = resp.NextPage
 		list = append(list, snips...)
-		if resp.CurrentPage == resp.TotalPages {
+
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
+
 	return list, nil
 }
 
@@ -1146,10 +1152,12 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 	if err != nil {
 		return nil, err
 	}
-	if resp.CurrentPage == resp.TotalPages {
+
+	var ok bool
+	if opts.Page, ok = hasNextPage(resp); !ok {
 		return list, nil
 	}
-	opts.Page = resp.NextPage
+
 	for len(list) < n || n == -1 {
 		if n != -1 {
 			opts.PerPage = n - len(list)
@@ -1158,12 +1166,13 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 		if err != nil {
 			return nil, err
 		}
-		opts.Page = resp.NextPage
 		list = append(list, projects...)
-		if resp.CurrentPage == resp.TotalPages {
+
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
+
 	return list, nil
 }
 
@@ -1232,6 +1241,8 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 
 	// First we get the jobs with direct relation to the actual project
 	list := make([]JobStruct, 0)
+	var ok bool
+
 	for {
 		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, id, opts)
 		if err != nil {
@@ -1242,8 +1253,7 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 			list = append(list, JobStruct{job, pid})
 		}
 
-		opts.Page = resp.NextPage
-		if resp.CurrentPage == resp.TotalPages {
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
@@ -1260,10 +1270,9 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 			if err != nil {
 				return nil, err
 			}
-
-			opts.Page = resp.NextPage
 			bridgeList = append(bridgeList, bridges...)
-			if resp.CurrentPage == resp.TotalPages {
+
+			if opts.Page, ok = hasNextPage(resp); !ok {
 				break
 			}
 		}
@@ -1288,8 +1297,7 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 					list = append(list, JobStruct{job, pid})
 				}
 
-				opts.Page = resp.NextPage
-				if resp.CurrentPage == resp.TotalPages {
+				if opts.Page, ok = hasNextPage(resp); !ok {
 					break
 				}
 			}
@@ -1693,11 +1701,11 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 		return nil, err
 	}
 
-	if resp.CurrentPage == resp.TotalPages {
+	var ok bool
+	if opts.Page, ok = hasNextPage(resp); !ok {
 		return list, nil
 	}
 
-	opts.Page = resp.NextPage
 	for len(list) < n || n == -1 {
 		if n != -1 {
 			opts.PerPage = n - len(list)
@@ -1707,10 +1715,9 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		opts.Page = resp.NextPage
 		list = append(list, todos...)
-		if resp.CurrentPage == resp.TotalPages {
+
+		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
 	}
@@ -1793,12 +1800,11 @@ func GetCommitDiff(project string, sha string) ([]*gitlab.Diff, error) {
 		diffs = append(diffs, ds...)
 
 		// if we've seen all the pages, then we can break here
-		if resp.CurrentPage >= resp.TotalPages {
+		// otherwise, update the page number to get the next page.
+		var ok bool
+		if opt.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
-
-		// otherwise, update the page number to get the next page.
-		opt.Page = resp.NextPage
 	}
 
 	return diffs, nil
@@ -1899,4 +1905,16 @@ func CreateMergeRequestCommitDiscussion(project string, mrID int, sha string, ne
 
 	note := discussion.Notes[0]
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
+// hasNextPage get the next page number in case the API response has more
+// than one. It also uses only the "X-Page" and "X-Next-Page" HTTP headers,
+// since in some cases the API response may come without the HTTP
+// X-Total(-Page) header. Reference:
+// https://docs.gitlab.com/ee/user/gitlab_com/index.html#pagination-response-headers
+func hasNextPage(resp *gitlab.Response) (int, bool) {
+	if resp.CurrentPage >= resp.NextPage {
+		return 0, false
+	}
+	return resp.NextPage, true
 }
