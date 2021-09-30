@@ -1,21 +1,21 @@
-## lab todo mr
+## lab todo issue
 
-Add a Merge Request to Todo list
+Add a Issue to Todo list
 
 ```
-lab todo mr [flags]
+lab todo issue [flags]
 ```
 
 ### Examples
 
 ```
-lab todo mr 1234    #adds MR 1234 to user's Todo list
+lab todo issue 5678
 ```
 
 ### Options
 
 ```
-  -h, --help   help for mr
+  -h, --help   help for issue
 ```
 
 ### Options inherited from parent commands
