@@ -155,19 +155,15 @@ func LoadGitLabTmpl(tmplName string) string {
 	}
 
 	tmplFile := filepath.Join(wd, ".gitlab", tmplName)
-	f, err := os.Open(tmplFile)
-	if os.IsNotExist(err) {
-		return ""
-	} else if err != nil {
-		log.Fatal(err)
-	}
-
-	tmpl, err := ioutil.ReadAll(f)
+	content, err := ioutil.ReadFile(tmplFile)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return ""
+		}
 		log.Fatal(err)
 	}
 
-	return strings.TrimSpace(string(tmpl))
+	return strings.TrimSpace(string(content))
 }
 
 var localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
