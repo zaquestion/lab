@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"strings"
 
 	"github.com/zaquestion/lab/internal/git"
@@ -69,23 +68,16 @@ func editGetTitleDescription(title string, body string, msgs []string, nFlag int
 // remaining is the description.
 func editGetTitleDescFromFile(filename string) (string, string, error) {
 	var title, body string
+	var lines []string
 
-	file, err := os.Open(filename)
+	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return "", "", nil
 	}
-	defer file.Close()
+	lines = strings.Split(string(content), "\n")
 
-	fileScan := bufio.NewScanner(file)
-	fileScan.Split(bufio.ScanLines)
-
-	// The first line in the file is the title.
-	fileScan.Scan()
-	title = fileScan.Text()
-
-	for fileScan.Scan() {
-		body = body + fileScan.Text() + "\n"
-	}
+	title = lines[0]
+	body = strings.Join(lines[1:], "\n")
 
 	return title, body, nil
 }
