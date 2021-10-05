@@ -37,7 +37,7 @@ func EditFile(filePrefix, message string) (string, error) {
 		dir = "/tmp"
 	}
 	filePath := filepath.Join(dir, fmt.Sprintf("%s_EDITMSG", filePrefix))
-	editorPath, err := editorPath()
+	editor, err := editor()
 	if err != nil {
 		return "", err
 	}
@@ -51,7 +51,7 @@ func EditFile(filePrefix, message string) (string, error) {
 		}
 	}
 
-	cmd := editorCMD(editorPath, filePath)
+	cmd := editorCMD(editor, filePath)
 	err = cmd.Run()
 	if err != nil {
 		fmt.Printf("ERROR(cmd): Saved file contents written to %s\n", filePath)
@@ -68,7 +68,7 @@ func EditFile(filePrefix, message string) (string, error) {
 	return removeComments(string(contents))
 }
 
-func editorPath() (string, error) {
+func editor() (string, error) {
 	cmd := New("var", "GIT_EDITOR")
 	cmd.Stdout = nil
 	a, err := cmd.Output()
@@ -88,21 +88,29 @@ func editorPath() (string, error) {
 	return editor, nil
 }
 
-func editorCMD(editorPath, filePath string) *exec.Cmd {
-	parts := strings.Split(editorPath, " ")
+func editorCMD(editor, filePath string) *exec.Cmd {
+	// make 'vi' the default editor to avoid empty editor configs
+	if editor == "" {
+		editor = "vi"
+	}
+
 	r := regexp.MustCompile("[nmg]?vi[m]?$")
 	args := make([]string, 0, 3)
-	if r.MatchString(editorPath) {
+	if r.MatchString(editor) {
 		args = append(args, "--cmd", "set ft=gitcommit tw=0 wrap lbr")
 	}
-	argparts := strings.Join(parts[1:], " ")
-	if len(argparts) == 0 {
-		args = append(args, filePath)
-	} else {
-		argparts = strings.Replace(argparts, "'", "\"", -1)
-		args = append(args, argparts, filePath)
+
+	parts := strings.Split(editor, " ")
+	name := parts[0]
+	if len(parts) > 0 {
+		for _, arg := range parts[1:] {
+			arg = strings.Replace(arg, "'", "\"", -1)
+			args = append(args, arg)
+		}
 	}
-	cmd := exec.Command(parts[0], args...)
+	args = append(args, filePath)
+
+	cmd := exec.Command(name, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
