@@ -81,14 +81,14 @@ func TestEditor(t *testing.T) {
 	}
 
 	var path string
-	t.Run("editorPath()", func(t *testing.T) {
+	t.Run("editor()", func(t *testing.T) {
 		var err error
-		path, err = editorPath()
+		path, err = editor()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		require.NotEmpty(t, editorPath)
+		require.NotEmpty(t, editor)
 	})
 	t.Run("Open Editor", func(t *testing.T) {
 		cmd := editorCMD(path, filePath)
