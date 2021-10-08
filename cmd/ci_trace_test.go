@@ -68,6 +68,16 @@ func Test_ciTrace(t *testing.T) {
 				assert.Contains(t, out, "Job succeeded")
 			},
 		},
+		{
+			desc: "explicit branch",
+			args: []string{"origin", "ci_test_pipeline"},
+			assertContains: func(t *testing.T, out string) {
+				assert.Contains(t, out, "Showing logs for deploy10")
+				assert.Contains(t, out, "Checking out 09b519cb as ci_test_pipeline...")
+				assert.Contains(t, out, "For example you might do some cleanup here")
+				assert.Contains(t, out, "Job succeeded")
+			},
+		},
 	}
 
 	for _, test := range tests {
