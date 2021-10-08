@@ -11,7 +11,7 @@ test:
 	bash -c "trap 'trap - SIGINT SIGTERM ERR; mv testdata/.git testdata/test.git; rm coverage-* 2>&1 > /dev/null; exit 1' SIGINT SIGTERM ERR; $(MAKE) internal-test"
 
 internal-test:
-	rm coverage-* 2>&1 > /dev/null || true
+	rm -f coverage-*
 	GO111MODULE=on go test -coverprofile=coverage-main.out -covermode=count -coverpkg ./... -run=$(run) $(GOURL)/cmd $(GOURL)/internal/...
 	go get -u github.com/wadey/gocovmerge
 	gocovmerge coverage-*.out > coverage.txt && rm coverage-*.out
