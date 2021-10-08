@@ -49,7 +49,7 @@ func Test_ciTrace(t *testing.T) {
 		},
 		{
 			desc: "arg job name",
-			args: []string{"origin", "deploy1"},
+			args: []string{"origin", ":deploy1"},
 			assertContains: func(t *testing.T, out string) {
 				assert.Contains(t, out, "Showing logs for deploy1")
 				assert.Contains(t, out, "Checking out 09b519cb as ci_test_pipeline...")
