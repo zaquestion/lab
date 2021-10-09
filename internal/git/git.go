@@ -153,6 +153,17 @@ func CurrentBranch() (string, error) {
 	return strings.TrimSpace(string(branch)), nil
 }
 
+// RevParse returns the output of "git rev-parse".
+func RevParse(args ...string) (string, error) {
+	cmd := New(append([]string{"rev-parse"}, args...)...)
+	cmd.Stdout = nil
+	d, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(d)), nil
+}
+
 // UpstreamBranch returns the upstream of the specified branch
 func UpstreamBranch(branch string) (string, error) {
 	upstreamBranch, err := gitconfig.Local("branch." + branch + ".merge")

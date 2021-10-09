@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"runtime"
@@ -29,7 +30,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 		lab mr discussion my-topic-branch
 		lab mr discussion origin 123
 		lab mr discussion origin my-topic-branch
-		`),
+		lab mr discussion --commit abcdef123456 --position=main.c:+100,100`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
@@ -52,6 +53,47 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		position, err := cmd.Flags().GetString("position")
+		if err != nil {
+			log.Fatal(err)
+		}
+		var posFile string
+		var posLineType byte
+		var posLineNumberNew, posLineNumberOld uint64
+		if position != "" {
+			colonOffset := strings.LastIndex(position, ":")
+			positionUserError := "argument to --position must match <file>:[+- ]<old_line>,<new_line>"
+			if colonOffset == -1 {
+				log.Fatal(positionUserError + `: missing ":"`)
+			}
+			posFile = position[:colonOffset]
+			lineTypeOffset := colonOffset + 1
+			if lineTypeOffset == len(position) {
+				log.Fatal(positionUserError + `: expected one of "+- ", found end of string`)
+			}
+			posLineType = position[lineTypeOffset]
+			if bytes.IndexByte([]byte("+- "), posLineType) == -1 {
+				log.Fatal(positionUserError + fmt.Sprintf(`: expected one of "+- ", found %q`, posLineType))
+			}
+			oldLineOffset := colonOffset + 2
+			if oldLineOffset == len(position) {
+				log.Fatal(positionUserError + ": missing line numbers")
+			}
+			commaOffset := strings.LastIndex(position, ",")
+			if commaOffset == -1 || commaOffset < colonOffset {
+				log.Fatal(positionUserError + `: missing "," to separate line numbers`)
+			}
+			posLineNumberOld, err = strconv.ParseUint(position[oldLineOffset:commaOffset], 10, 32)
+			if err != nil {
+				log.Fatal(positionUserError + ":error parsing <old_line>: " + err.Error())
+			}
+			newNumberOffset := commaOffset + 1
+			posLineNumberNew, err = strconv.ParseUint(position[newNumberOffset:], 10, 32)
+			if err != nil {
+				log.Fatal(positionUserError + ":error parsing <new_line>: " + err.Error())
+			}
+		}
+
 		state := noteGetState(rn, true, int(mrNum))
 
 		body := ""
@@ -61,7 +103,8 @@ var mrCreateDiscussionCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 			body = string(content)
-		} else if commit == "" {
+		} else if position != "" || commit == "" {
+			// TODO If we are commenting on a specific position in the diff, we should include some context in the template.
 			body, err = mrDiscussionMsg(int(mrNum), state, commit, msgs, "\n")
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
@@ -78,12 +121,54 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			return
 		}
 
+		var notePos *gitlab.NotePosition
+		if position != "" {
+			if commit == "" {
+				// We currently only support "--position" when commenting on individual commits within an MR.
+				// GitLab also allows to comment on the sum of all changes of an MR.
+				// To do so, we'd need to fill the NotePosition below with the target branch as "base SHA" and the source branch as "head SHA".
+				// However, commenting on individual commits within an MR is superior since it gives more information to the MR author.
+				// Additionally, commenting on the sum of all changes is only useful when the changes come with a messy history.
+				// We shouldn't encourage that  - GitLab already does ;).
+				log.Fatal("--position currently requires --commit")
+			}
+			parentSHA, err := git.RevParse(commit + "~")
+			if err != nil {
+				log.Fatal(err)
+			}
+			// WORKAROUND For added (-) and deleted (+) lines we only need one line number parameter, but for context lines we need both. https://gitlab.com/gitlab-org/gitlab/-/issues/325161
+			newLine := posLineNumberNew
+			if posLineType == '-' {
+				newLine = 0
+			}
+			oldLine := posLineNumberOld
+			if posLineType == '+' {
+				oldLine = 0
+			}
+			notePos = &gitlab.NotePosition{
+				BaseSHA:      parentSHA,
+				StartSHA:     parentSHA,
+				HeadSHA:      commit,
+				PositionType: "text",
+				NewPath:      posFile,
+				NewLine:      int(newLine),
+				OldPath:      posFile,
+				OldLine:      int(oldLine),
+			}
+		}
+
 		if body == "" {
 			log.Fatal("aborting discussion due to empty discussion msg")
 		}
+		var commitID *string
+		if commit != "" {
+			commitID = &commit
+		}
 
 		discussionURL, err := lab.MRCreateDiscussion(rn, int(mrNum), &gitlab.CreateMergeRequestDiscussionOptions{
-			Body: &body,
+			Body:     &body,
+			CommitID: commitID,
+			Position: notePos,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -123,6 +208,33 @@ func init() {
 	mrCreateDiscussionCmd.Flags().StringSliceP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateDiscussionCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 	mrCreateDiscussionCmd.Flags().StringP("commit", "c", "", "start a thread on a commit")
+
+	mrCreateDiscussionCmd.Flags().StringP("position", "", "", heredoc.Doc(`
+		start a thread on a specific line of the diff
+		argument must be of the form <file>":"["+" | "-" | " "]<old_line>","<new_line>
+		that is, the file name, followed by the line type - one of "+" (added line),
+		"-" (deleted line) or a space character (context line) - followed by
+		the line number in the old version of the file, a ",", and finally
+		the line number in the new version of the file. If the line type is "+", then
+		<old_line> is ignored. If the line type is "-", then <new_line> is ignored.
+
+		Here's an example diff that explains how to determine the old/new line numbers:
+	    
+			--- a/README.md		old	new
+			+++ b/README.md
+			@@ -100,3 +100,4 @@
+			 pre-context line	100	100
+			-deleted line		101	101
+			+added line 1		101	102
+			+added line 2		101	103
+			 post-context line	102	104
+
+		# Comment on "deleted line":
+		lab mr discussion --commit=commit-id --position=README.md:-101,101
+		# Comment on "added line 2":
+		lab mr discussion --commit=commit-id --position=README.md:+101,103
+		# Comment on the "post-context line":
+		lab mr discussion --commit=commit-id --position=README.md:\ 102,104`))
 
 	mrCmd.AddCommand(mrCreateDiscussionCmd)
 	carapace.Gen(mrCreateDiscussionCmd).PositionalCompletion(
