@@ -21,7 +21,7 @@ var (
 )
 
 var mrShowCmd = &cobra.Command{
-	Use:        "show [remote] <id>",
+	Use:        "show [remote] [<MR id or branch>]",
 	Aliases:    []string{"get"},
 	ArgAliases: []string{"s"},
 	Short:      "Describe a merge request",

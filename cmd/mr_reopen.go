@@ -10,7 +10,7 @@ import (
 )
 
 var mrReopenCmd = &cobra.Command{
-	Use:              "reopen [remote] <id>",
+	Use:              "reopen [remote] [<MR id or branch>]",
 	Short:            "Reopen a closed merge request",
 	Example:          "lab mr reopen upstream 20",
 	PersistentPreRun: labPersistentPreRun,

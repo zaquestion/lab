@@ -11,7 +11,7 @@ import (
 )
 
 var mrUnsubscribeCmd = &cobra.Command{
-	Use:     "unsubscribe [remote] <id>",
+	Use:     "unsubscribe [remote] [<MR id or branch>]",
 	Aliases: []string{},
 	Short:   "Unubscribe from merge request",
 	Example: heredoc.Doc(`

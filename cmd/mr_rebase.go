@@ -8,7 +8,7 @@ import (
 )
 
 var mrRebaseCmd = &cobra.Command{
-	Use:              "rebase [remote] <id>",
+	Use:              "rebase [remote] [<MR id or branch>]",
 	Short:            "Rebase an open merge request",
 	Example:          "lab mr rebase upstream 20",
 	PersistentPreRun: labPersistentPreRun,

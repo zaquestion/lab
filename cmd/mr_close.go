@@ -10,7 +10,7 @@ import (
 )
 
 var mrCloseCmd = &cobra.Command{
-	Use:              "close [remote] <id>",
+	Use:              "close [remote] [<MR id or branch>]",
 	Short:            "Close merge request",
 	Example:          "lab mr close origin 10",
 	PersistentPreRun: labPersistentPreRun,

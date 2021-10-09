@@ -11,7 +11,7 @@ import (
 )
 
 var mrSubscribeCmd = &cobra.Command{
-	Use:     "subscribe [remote] <id>",
+	Use:     "subscribe [remote] [<MR id or branch>]",
 	Aliases: []string{},
 	Short:   "Subscribe to merge request",
 	Example: heredoc.Doc(`

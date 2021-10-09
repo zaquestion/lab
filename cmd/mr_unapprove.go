@@ -12,7 +12,7 @@ import (
 )
 
 var mrUnapproveCmd = &cobra.Command{
-	Use:     "unapprove [remote] <id>",
+	Use:     "unapprove [remote] [<MR id or branch>]",
 	Aliases: []string{},
 	Short:   "Unapprove merge request",
 	Example: heredoc.Doc(`

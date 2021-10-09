@@ -17,7 +17,7 @@ import (
 )
 
 var mrCreateDiscussionCmd = &cobra.Command{
-	Use:     "discussion [remote] <id>",
+	Use:     "discussion [remote] [<MR ID or branch>]",
 	Short:   "Start a discussion on an MR on GitLab",
 	Aliases: []string{"block", "thread"},
 	Example: heredoc.Doc(`

@@ -9,7 +9,7 @@ import (
 )
 
 var mrDeleteCmd = &cobra.Command{
-	Use:     "delete [remote] <id>",
+	Use:     "delete [remote] [<MR id or branch>]",
 	Aliases: []string{"del"},
 	Short:   "Delete a merge request on GitLab",
 	Long: heredoc.Doc(`

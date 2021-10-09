@@ -11,7 +11,7 @@ import (
 )
 
 var mrApproveCmd = &cobra.Command{
-	Use:     "approve [remote] <id>",
+	Use:     "approve [remote] [<MR id or branch>]",
 	Aliases: []string{},
 	Short:   "Approve merge request",
 	Example: heredoc.Doc(`

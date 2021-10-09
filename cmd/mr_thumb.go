@@ -18,7 +18,7 @@ var mrThumbCmd = &cobra.Command{
 }
 
 var mrThumbUpCmd = &cobra.Command{
-	Use:     "up [remote] <id>",
+	Use:     "up [remote] [<MR id or branch>]",
 	Aliases: []string{},
 	Short:   "Thumb up merge request",
 	Example: heredoc.Doc(`
@@ -45,7 +45,7 @@ var mrThumbUpCmd = &cobra.Command{
 }
 
 var mrThumbDownCmd = &cobra.Command{
-	Use:     "down [remote] <id>",
+	Use:     "down [remote] [<MR id or branch>]",
 	Aliases: []string{},
 	Short:   "Thumbs down merge request",
 	Example: heredoc.Doc(`
