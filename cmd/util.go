@@ -16,7 +16,7 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/config"
-	git "github.com/zaquestion/lab/internal/git"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 	"golang.org/x/crypto/ssh/terminal"
 )
