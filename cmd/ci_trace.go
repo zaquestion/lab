@@ -21,7 +21,7 @@ import (
 
 // ciLintCmd represents the lint command
 var ciTraceCmd = &cobra.Command{
-	Use:     "trace [remote] [branch[:job]]",
+	Use:     "trace [remote] [branch][:job]",
 	Aliases: []string{"logs"},
 	Short:   "Trace the output of a ci job",
 	Long: heredoc.Doc(`
@@ -35,6 +35,7 @@ var ciTraceCmd = &cobra.Command{
 		and which, for this specific case, must be quoted.`),
 	Example: heredoc.Doc(`
 		lab ci trace upstream feature_branch
+		lab ci trace upstream :'my custom stage'
 		lab ci trace upstream 18 --merge-request
 		lab ci trace upstream 18:'my custom stage' --merge-request
 		lab ci trace upstream 18:'my custom stage' --merge-request --bridge 'security-tests'`),
