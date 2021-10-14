@@ -13,7 +13,7 @@ import (
 )
 
 var ciArtifactsCmd = &cobra.Command{
-	Use:   "artifacts [remote] [branch[:job]]",
+	Use:   "artifacts [remote] [branch][:job]",
 	Short: "Download artifacts of a ci job",
 	Long: heredoc.Doc(`
 		Download the CI pipeline job artifacts for the given or current branch if
@@ -25,6 +25,7 @@ var ciArtifactsCmd = &cobra.Command{
 		and which, for this specific case, must be quoted.`),
 	Example: heredoc.Doc(`
 		lab ci artifacts upstream feature_branch
+		lab ci artifacts upstream :'my custom stage'
 		lab ci artifacts upstream 125 --merge-request
 		lab ci artifacts upstream 125:'my custom stage' --merge-request
 		lab ci artifacts upstream 125:'build' --merge-request --bridge 'security-tests'`),

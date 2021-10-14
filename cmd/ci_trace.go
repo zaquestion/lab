@@ -21,7 +21,7 @@ import (
 
 // ciLintCmd represents the lint command
 var ciTraceCmd = &cobra.Command{
-	Use:     "trace [remote] [branch[:job]]",
+	Use:     "trace [remote] [branch][:job]",
 	Aliases: []string{"logs"},
 	Short:   "Trace the output of a ci job",
 	Long: heredoc.Doc(`
@@ -35,6 +35,7 @@ var ciTraceCmd = &cobra.Command{
 		and which, for this specific case, must be quoted.`),
 	Example: heredoc.Doc(`
 		lab ci trace upstream feature_branch
+		lab ci trace upstream :'my custom stage'
 		lab ci trace upstream 18 --merge-request
 		lab ci trace upstream 18:'my custom stage' --merge-request
 		lab ci trace upstream 18:'my custom stage' --merge-request --bridge 'security-tests'`),
@@ -136,11 +137,21 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, 
 	return nil
 }
 
+// filterJobArg might be a small function, but contain a lot of
+// possibilities to be handled. It gets the remote, branch and jobname from
+// the CLI args. These can be present in the following formats:
+// 1. <remote> <branch>:<jobname>
+// 2. <remote> :<jobname>
+// 3. <remote> <branch>
+// 4. <branch>:<jobname>
+// 5. <remote>
+// 6. :<jobname>
 func filterJobArg(args []string) (string, []string, error) {
 	branchArgs := []string{}
 	jobName := ""
 
 	if len(args) == 1 {
+		// <remote> alone or :<jobname>?
 		ok, err := git.IsRemote(args[0])
 		if err != nil {
 			return "", branchArgs, err
@@ -151,14 +162,22 @@ func filterJobArg(args []string) (string, []string, error) {
 			jobName = args[0]
 		}
 	} else if len(args) > 1 {
+		// the first arg is always the remote, we just need to check
+		// later the jobName.
 		branchArgs = append(branchArgs, args[0])
 		jobName = args[1]
 	}
 
+	// <branch>:<jobname>, <branch> or :<jobname>?
 	if strings.Contains(jobName, ":") {
+		// check for <branch>:<jobname> and :<jobname>
 		ps := strings.SplitN(jobName, ":", 2)
 		branchArgs = append(branchArgs, ps[0])
 		jobName = ps[1]
+	} else {
+		// the jobName refers to a branch name
+		branchArgs = append(branchArgs, jobName)
+		jobName = ""
 	}
 
 	return jobName, branchArgs, nil
