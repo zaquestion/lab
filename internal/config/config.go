@@ -277,7 +277,7 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	}
 
 	MainConfig = viper.New()
-	MainConfig.SetConfigName("lab")
+	MainConfig.SetConfigName("lab.toml")
 	MainConfig.SetConfigType("toml")
 	// The local path (aka 'dot slash') does not allow for any
 	// overrides from the work tree lab.toml
