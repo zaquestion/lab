@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/MakeNowJust/heredoc/v2"
+	"os"
 	"strconv"
 	"strings"
 
@@ -18,6 +19,7 @@ var (
 	targetType string
 	todoPretty bool
 	todoAll    bool
+	todoClean  bool
 )
 
 var todoListCmd = &cobra.Command{
@@ -27,6 +29,7 @@ var todoListCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab todo list
 		lab todo list -a
+		lab todo list -c
 		lab todo list -n 10
 		lab todo list -p
 		lab todo list -t mr`),
@@ -43,6 +46,23 @@ var todoListCmd = &cobra.Command{
 		red := color.New(color.FgRed).SprintFunc()
 		green := color.New(color.FgGreen).SprintFunc()
 		cyan := color.New(color.FgCyan).SprintFunc()
+
+		if todoClean {
+			fmt.Println("clean Todos")
+			for _, todo := range todos {
+				if todo.TargetType == "MergeRequest" {
+					if todo.Target.State == "merged" || todo.Target.State == "closed" {
+						lab.TodoMarkDone(todo.ID)
+						if err != nil {
+							log.Fatal(err)
+						}
+						fmt.Println(todo.ID, "cleaned (marked as Done)")
+					}
+
+				}
+			}
+			os.Exit(0)
+		}
 
 		for _, todo := range todos {
 			if !todoPretty || todo.TargetType == "DesignManagement::Design" || todo.TargetType == "AlertManagement::Alert" {
@@ -139,6 +159,7 @@ func init() {
 		&todoNumRet, "number", "n", "10",
 		"number of todos to return")
 	todoListCmd.Flags().BoolVarP(&todoAll, "all", "a", false, "list all Todos")
+	todoListCmd.Flags().BoolVarP(&todoClean, "clean", "c", false, "remove all merged and closed Todos")
 
 	todoCmd.AddCommand(todoListCmd)
 }
