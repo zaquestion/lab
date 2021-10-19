@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/google/shlex"
 )
 
 // Edit opens a file in the users editor and returns the title and body.
@@ -51,7 +53,12 @@ func EditFile(filePrefix, message string) (string, error) {
 		}
 	}
 
-	cmd := editorCMD(editor, filePath)
+	cmd, err := editorCMD(editor, filePath)
+	if err != nil {
+		fmt.Printf("ERROR(editorCMD): failed to get editor command \"%s\"\n", editor)
+		return "", err
+	}
+
 	err = cmd.Run()
 	if err != nil {
 		fmt.Printf("ERROR(cmd): Saved file contents written to %s\n", filePath)
@@ -88,7 +95,7 @@ func editor() (string, error) {
 	return editor, nil
 }
 
-func editorCMD(editor, filePath string) *exec.Cmd {
+func editorCMD(editor, filePath string) (*exec.Cmd, error) {
 	// make 'vi' the default editor to avoid empty editor configs
 	if editor == "" {
 		editor = "vi"
@@ -100,7 +107,12 @@ func editorCMD(editor, filePath string) *exec.Cmd {
 		args = append(args, "--cmd", "set ft=gitcommit tw=0 wrap lbr")
 	}
 
-	parts := strings.Split(editor, " ")
+	// Split editor command using shell rules for quoting and commenting
+	parts, err := shlex.Split(editor)
+	if err != nil {
+		return nil, err
+	}
+
 	name := parts[0]
 	if len(parts) > 0 {
 		for _, arg := range parts[1:] {
@@ -114,7 +126,7 @@ func editorCMD(editor, filePath string) *exec.Cmd {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd
+	return cmd, nil
 }
 
 func removeComments(message string) (string, error) {
