@@ -63,7 +63,12 @@ var ciArtifactsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		rn, pipelineID, err := getPipelineFromArgs(branchArgs, forMR)
+		onlyPassed, err := cmd.Flags().GetBool("passed")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err = getPipelineFromArgs(branchArgs, forMR, onlyPassed)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -96,6 +101,7 @@ var ciArtifactsCmd = &cobra.Command{
 func init() {
 	ciArtifactsCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
 	ciArtifactsCmd.Flags().StringP("artifact-path", "p", "", "only download specified file from archive")
+	ciArtifactsCmd.Flags().Bool("passed", false, "consider only pipeline that succeeded")
 	ciCmd.AddCommand(ciArtifactsCmd)
 	carapace.Gen(ciArtifactsCmd).PositionalCompletion(
 		action.Remotes(),

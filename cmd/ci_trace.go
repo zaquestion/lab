@@ -68,7 +68,12 @@ var ciTraceCmd = &cobra.Command{
 			}
 		}
 
-		rn, pipelineID, err := getPipelineFromArgs(branchArgs, forMR)
+		onlyPassed, err := cmd.Flags().GetBool("passed")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err = getPipelineFromArgs(branchArgs, forMR, onlyPassed)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -185,6 +190,7 @@ func filterJobArg(args []string) (string, []string, error) {
 
 func init() {
 	ciTraceCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
+	ciTraceCmd.Flags().Bool("passed", false, "consider only pipeline that succeeded")
 	ciCmd.AddCommand(ciTraceCmd)
 	carapace.Gen(ciTraceCmd).PositionalCompletion(
 		action.Remotes(),

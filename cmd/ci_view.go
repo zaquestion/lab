@@ -73,7 +73,12 @@ var ciViewCmd = &cobra.Command{
 			}
 		}
 
-		rn, pipelineID, err = getPipelineFromArgs(args, forMR)
+		onlyPassed, err := cmd.Flags().GetBool("passed")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err = getPipelineFromArgs(args, forMR, onlyPassed)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -653,6 +658,7 @@ func latestJobs(jobs []*gitlab.Job) []*gitlab.Job {
 
 func init() {
 	ciViewCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
+	ciViewCmd.Flags().Bool("passed", false, "consider only pipeline that succeeded")
 	ciCmd.AddCommand(ciViewCmd)
 	carapace.Gen(ciViewCmd).PositionalCompletion(
 		action.Remotes(),

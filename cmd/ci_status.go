@@ -50,7 +50,12 @@ var ciStatusCmd = &cobra.Command{
 			}
 		}
 
-		rn, pipelineID, err := getPipelineFromArgs(args, forMR)
+		onlyPassed, err := cmd.Flags().GetBool("passed")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, pipelineID, err = getPipelineFromArgs(args, forMR, onlyPassed)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -119,6 +124,7 @@ var ciStatusCmd = &cobra.Command{
 func init() {
 	ciStatusCmd.Flags().Bool("wait", false, "continuously print the status and wait to exit until the pipeline finishes. Exit code indicates pipeline status")
 	ciStatusCmd.Flags().Bool("merge-request", false, "use merge request pipeline if enabled")
+	ciStatusCmd.Flags().Bool("passed", false, "consider only pipeline that succeeded")
 	ciCmd.AddCommand(ciStatusCmd)
 
 	carapace.Gen(ciStatusCmd).PositionalCompletion(

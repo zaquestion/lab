@@ -197,7 +197,7 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	return remote, branch, nil
 }
 
-func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
+func getPipelineFromArgs(args []string, forMR bool, onlyPassed bool) (string, int, error) {
 	if forMR {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
@@ -209,17 +209,44 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 			return "", 0, err
 		}
 
-		// In this part, we only really care about the latest pipeline that
-		// ran, regardless its result.
-		if mr.HeadPipeline == nil {
+		// mr.Pipeline points to the latest successful pipeline run, while
+		// mr.HeadPipeline points to the latest pipeline overall, regardless
+		// its result. When no pipeline passed, mr.Pipeline is null.
+		// Unfortunately, this information isn't documented in GitLab's API
+		// docs, but was observed for several days.
+		var pipelineNotFound bool
+		if onlyPassed {
+			if mr.Pipeline == nil {
+				pipelineNotFound = true
+			}
+		} else {
+			if mr.HeadPipeline == nil {
+				pipelineNotFound = true
+			}
+		}
+		if pipelineNotFound {
 			return "", 0, errors.Errorf("No pipeline found for merge request %d", mrNum)
 		}
 
 		// MR pipelines may run on the source, target or another project
 		// (multi-project pipelines), and we don't have a proper way to
 		// know which it is. Here we handle the first two cases.
+		var webURLMatch bool
+
+		pipelineID := mr.HeadPipeline.ID
 		if strings.Contains(mr.HeadPipeline.WebURL, rn) {
-			return rn, mr.HeadPipeline.ID, nil
+			webURLMatch = true
+		}
+
+		if onlyPassed {
+			pipelineID = mr.Pipeline.ID
+			if strings.Contains(mr.Pipeline.WebURL, rn) {
+				webURLMatch = true
+			}
+		}
+
+		if webURLMatch {
+			return rn, pipelineID, nil
 		}
 
 		p, err := lab.GetProject(mr.SourceProjectID)
@@ -227,8 +254,9 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 			return "", 0, err
 		}
 
-		return p.PathWithNamespace, mr.HeadPipeline.ID, nil
+		return p.PathWithNamespace, pipelineID, nil
 	}
+
 	rn, refName, err := parseArgsRemoteAndBranch(args)
 	if err != nil {
 		return "", 0, err

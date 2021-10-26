@@ -103,3 +103,30 @@ deploy: deploy10                       - success`)
 
 	assert.Contains(t, out, "Pipeline Status: success")
 }
+
+// Test_ciStatusMRPassed tests a behavior that is not documented in GitLab's
+// API docs. So this is basically to make sure we don't get hit by a
+// future/unnotified API change.
+func Test_ciStatusMRPassed(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "ci", "status", "--merge-request", "968")
+	cmd.Dir = repo
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+	out := string(b)
+	assert.Contains(t, out, "Pipeline Status: canceled")
+
+	cmd = exec.Command(labBinaryPath, "ci", "status", "--passed", "--merge-request", "968")
+	cmd.Dir = repo
+	b, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+	out = string(b)
+	assert.Contains(t, out, "Pipeline Status: success")
+}
