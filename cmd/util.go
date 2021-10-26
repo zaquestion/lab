@@ -199,6 +199,7 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 
 func getPipelineFromArgs(args []string, forMR bool, onlyPassed bool) (string, int, error) {
 	if forMR {
+		log.Debug("fetching merge request pipeline...")
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			return "", 0, err
@@ -208,6 +209,7 @@ func getPipelineFromArgs(args []string, forMR bool, onlyPassed bool) (string, in
 		if err != nil {
 			return "", 0, err
 		}
+		log.Debugf("mr id = %d", mr.IID)
 
 		// mr.Pipeline points to the latest successful pipeline run, while
 		// mr.HeadPipeline points to the latest pipeline overall, regardless
@@ -246,6 +248,7 @@ func getPipelineFromArgs(args []string, forMR bool, onlyPassed bool) (string, in
 		}
 
 		if webURLMatch {
+			log.Debugf("pipeline id = %d", pipelineID)
 			return rn, pipelineID, nil
 		}
 
@@ -253,6 +256,7 @@ func getPipelineFromArgs(args []string, forMR bool, onlyPassed bool) (string, in
 		if err != nil {
 			return "", 0, err
 		}
+		log.Debugf("project name = %s", p.PathWithNamespace)
 
 		return p.PathWithNamespace, pipelineID, nil
 	}
@@ -270,6 +274,7 @@ func getPipelineFromArgs(args []string, forMR bool, onlyPassed bool) (string, in
 	if commit.LastPipeline == nil {
 		return "", 0, errors.Errorf("No pipeline found for %s", refName)
 	}
+	log.Debugf("pipeline id = %d", commit.LastPipeline.ID)
 
 	return rn, commit.LastPipeline.ID, nil
 }
