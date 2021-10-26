@@ -209,15 +209,17 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 			return "", 0, err
 		}
 
-		if mr.Pipeline == nil {
+		// In this part, we only really care about the latest pipeline that
+		// ran, regardless its result.
+		if mr.HeadPipeline == nil {
 			return "", 0, errors.Errorf("No pipeline found for merge request %d", mrNum)
 		}
 
 		// MR pipelines may run on the source, target or another project
 		// (multi-project pipelines), and we don't have a proper way to
 		// know which it is. Here we handle the first two cases.
-		if strings.Contains(mr.Pipeline.WebURL, rn) {
-			return rn, mr.Pipeline.ID, nil
+		if strings.Contains(mr.HeadPipeline.WebURL, rn) {
+			return rn, mr.HeadPipeline.ID, nil
 		}
 
 		p, err := lab.GetProject(mr.SourceProjectID)
@@ -225,7 +227,7 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 			return "", 0, err
 		}
 
-		return p.PathWithNamespace, mr.Pipeline.ID, nil
+		return p.PathWithNamespace, mr.HeadPipeline.ID, nil
 	}
 	rn, refName, err := parseArgsRemoteAndBranch(args)
 	if err != nil {
