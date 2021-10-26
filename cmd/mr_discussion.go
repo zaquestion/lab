@@ -24,7 +24,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 		lab mr discussion
 		lab mr discussion origin
 		lab mr discussion my_remote -m "discussion comment"
-		lab mr discussion upstream -F test_file.txt
+		lab mr discussion upstream -F my_comment.txt
 		lab mr discussion --commit abcdef123456
 		lab mr discussion my-topic-branch
 		lab mr discussion origin 123
