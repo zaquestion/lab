@@ -116,21 +116,21 @@ func init() {
 
 	// We need to set the logger level before any other piece of code is
 	// called, thus we make sure we don't lose any debug message, but for
-	// that we need to parse the args from command input.
-	err := RootCmd.ParseFlags(os.Args[1:])
-	// Handle the err != nil case later
-	if err == nil {
-		debugLogger, _ := RootCmd.Flags().GetBool("debug")
-		quietLogger, _ := RootCmd.Flags().GetBool("quiet")
-		if debugLogger && quietLogger {
-			log.Fatal("option --debug cannot be combined with --quiet")
-		}
-		if debugLogger {
-			log.SetLogLevel(logger.LogLevelDebug)
-		} else if quietLogger {
-			log.SetLogLevel(logger.LogLevelNone)
-		}
+	// that we need to parse the args from command input. Also, the return
+	// value is being ignored here because errors like "unknown flag" are
+	// going to be handled later in subcommand level.
+	_ = RootCmd.ParseFlags(os.Args[1:])
+	debugLogger, _ := RootCmd.Flags().GetBool("debug")
+	quietLogger, _ := RootCmd.Flags().GetBool("quiet")
+	if debugLogger && quietLogger {
+		log.Fatal("option --debug cannot be combined with --quiet")
 	}
+	if debugLogger {
+		log.SetLogLevel(logger.LogLevelDebug)
+	} else if quietLogger {
+		log.SetLogLevel(logger.LogLevelNone)
+	}
+
 	carapace.Gen(RootCmd)
 }
 
