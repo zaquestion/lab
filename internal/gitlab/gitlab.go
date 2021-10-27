@@ -313,12 +313,7 @@ func Fork(projID string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait boo
 
 // MRCreate opens a merge request on GitLab
 func MRCreate(projID string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	mr, _, err := lab.MergeRequests.CreateMergeRequest(p.ID, opts)
+	mr, _, err := lab.MergeRequests.CreateMergeRequest(projID, opts)
 	if err != nil {
 		return "", err
 	}
@@ -327,12 +322,7 @@ func MRCreate(projID string, opts *gitlab.CreateMergeRequestOptions) (string, er
 
 // MRCreateDiscussion creates a discussion on a merge request on GitLab
 func MRCreateDiscussion(projID string, id int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, id, opts)
+	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
@@ -340,53 +330,49 @@ func MRCreateDiscussion(projID string, id int, opts *gitlab.CreateMergeRequestDi
 	// Unlike MR, Note has no WebURL property, so we have to create it
 	// ourselves from the project, noteable id and note id
 	note := discussion.Notes[0]
+
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRUpdate edits an merge request on a GitLab project
 func MRUpdate(projID string, id int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
-	p, err := FindProject(projID)
+	mr, _, err := lab.MergeRequests.UpdateMergeRequest(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
 
-	issue, _, err := lab.MergeRequests.UpdateMergeRequest(p.ID, id, opts)
-	if err != nil {
-		return "", err
-	}
-	return issue.WebURL, nil
+	return mr.WebURL, nil
 }
 
 // MRDelete deletes an merge request on a GitLab project
 func MRDelete(projID string, id int) error {
-	p, err := FindProject(projID)
-	if err != nil {
-		return err
-	}
-	resp, err := lab.MergeRequests.DeleteMergeRequest(p.ID, id)
+	resp, err := lab.MergeRequests.DeleteMergeRequest(projID, id)
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
 	}
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // MRCreateNote adds a note to a merge request on GitLab
 func MRCreateNote(projID string, id int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
-	p, err := FindProject(projID)
+	note, _, err := lab.Notes.CreateMergeRequestNote(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
 
-	note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, id, opts)
+	// Unlike MR, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
-	// Unlike MR, Note has no WebURL property, so we have to create it
-	// ourselves from the project, noteable id and note id
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
@@ -405,12 +391,8 @@ func MRList(projID string, opts gitlab.ListProjectMergeRequestsOptions, n int) (
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
 
-	list, resp, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, &opts)
+	list, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +406,7 @@ func MRList(projID string, opts gitlab.ListProjectMergeRequestsOptions, n int) (
 		if n != -1 {
 			opts.PerPage = n - len(list)
 		}
-		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, &opts)
+		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
@@ -476,11 +458,6 @@ func MRReopen(projID interface{}, id int) error {
 
 // MRListDiscussions retrieves the discussions (aka notes & comments) for a merge request
 func MRListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListMergeRequestDiscussionsOptions{
 		// 100 is the maximum allowed by the API
@@ -489,7 +466,7 @@ func MRListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
 
 	for {
 		// get a page of discussions from the API ...
-		d, resp, err := lab.Discussions.ListMergeRequestDiscussions(p.ID, id, opt)
+		d, resp, err := lab.Discussions.ListMergeRequestDiscussions(projID, id, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -606,12 +583,7 @@ func MRThumbDown(projID interface{}, id int) error {
 
 // IssueCreate opens a new issue on a GitLab project
 func IssueCreate(projID string, opts *gitlab.CreateIssueOptions) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	mr, _, err := lab.Issues.CreateIssue(p.ID, opts)
+	mr, _, err := lab.Issues.CreateIssue(projID, opts)
 	if err != nil {
 		return "", err
 	}
@@ -620,12 +592,7 @@ func IssueCreate(projID string, opts *gitlab.CreateIssueOptions) (string, error)
 
 // IssueUpdate edits an issue on a GitLab project
 func IssueUpdate(projID string, id int, opts *gitlab.UpdateIssueOptions) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	issue, _, err := lab.Issues.UpdateIssue(p.ID, id, opts)
+	issue, _, err := lab.Issues.UpdateIssue(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
@@ -634,18 +601,17 @@ func IssueUpdate(projID string, id int, opts *gitlab.UpdateIssueOptions) (string
 
 // IssueCreateNote creates a new note on an issue and returns the note URL
 func IssueCreateNote(projID string, id int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	note, _, err := lab.Notes.CreateIssueNote(p.ID, id, opts)
+	note, _, err := lab.Notes.CreateIssueNote(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
 
 	// Unlike Issue, Note has no WebURL property, so we have to create it
 	// ourselves from the project, noteable id and note id
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
@@ -664,12 +630,8 @@ func IssueList(projID string, opts gitlab.ListProjectIssuesOptions, n int) ([]*g
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
 
-	list, resp, err := lab.Issues.ListProjectIssues(p.ID, &opts)
+	list, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +646,7 @@ func IssueList(projID string, opts gitlab.ListProjectIssuesOptions, n int) ([]*g
 		if n != -1 {
 			opts.PerPage = n - len(list)
 		}
-		issues, resp, err := lab.Issues.ListProjectIssues(p.ID, &opts)
+		issues, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
@@ -754,11 +716,6 @@ func IssueReopen(projID interface{}, id int) error {
 
 // IssueListDiscussions retrieves the discussions (aka notes & comments) for an issue
 func IssueListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListIssueDiscussionsOptions{
 		// 100 is the maximum allowed by the API
@@ -767,7 +724,7 @@ func IssueListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
 
 	for {
 		// get a page of discussions from the API ...
-		d, resp, err := lab.Discussions.ListIssueDiscussions(p.ID, id, opt)
+		d, resp, err := lab.Discussions.ListIssueDiscussions(projID, id, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -821,11 +778,6 @@ func GetCommit(projID interface{}, ref string) (*gitlab.Commit, error) {
 
 // LabelList gets a list of labels on a GitLab Project
 func LabelList(projID string) ([]*gitlab.Label, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
 	labels := []*gitlab.Label{}
 	opt := &gitlab.ListLabelsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -834,7 +786,7 @@ func LabelList(projID string) ([]*gitlab.Label, error) {
 	}
 
 	for {
-		l, resp, err := lab.Labels.ListLabels(p.ID, opt)
+		l, resp, err := lab.Labels.ListLabels(projID, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -854,23 +806,13 @@ func LabelList(projID string) ([]*gitlab.Label, error) {
 
 // LabelCreate creates a new project label
 func LabelCreate(projID string, opts *gitlab.CreateLabelOptions) error {
-	p, err := FindProject(projID)
-	if err != nil {
-		return err
-	}
-
-	_, _, err = lab.Labels.CreateLabel(p.ID, opts)
+	_, _, err := lab.Labels.CreateLabel(projID, opts)
 	return err
 }
 
 // LabelDelete removes a project label
 func LabelDelete(projID, name string) error {
-	p, err := FindProject(projID)
-	if err != nil {
-		return err
-	}
-
-	_, err = lab.Labels.DeleteLabel(p.ID, &gitlab.DeleteLabelOptions{
+	_, err := lab.Labels.DeleteLabel(projID, &gitlab.DeleteLabelOptions{
 		Name: &name,
 	})
 	return err
@@ -879,14 +821,9 @@ func LabelDelete(projID, name string) error {
 // BranchList get all branches from the project that somehow matches the
 // requested options
 func BranchList(projID string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
 	branches := []*gitlab.Branch{}
 	for {
-		bList, resp, err := lab.Branches.ListBranches(p.ID, opts)
+		bList, resp, err := lab.Branches.ListBranches(projID, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -920,14 +857,9 @@ func MilestoneGet(projID string, name string) (*gitlab.Milestone, error) {
 
 // MilestoneList gets a list of milestones on a GitLab Project
 func MilestoneList(projID string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.Milestone, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
 	milestones := []*gitlab.Milestone{}
 	for {
-		m, resp, err := lab.Milestones.ListMilestones(p.ID, opt)
+		m, resp, err := lab.Milestones.ListMilestones(projID, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -942,6 +874,10 @@ func MilestoneList(projID string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.
 		}
 	}
 
+	p, err := FindProject(projID)
+	if err != nil {
+		return nil, err
+	}
 	if p.Namespace.Kind != "group" {
 		return milestones, nil
 	}
@@ -991,12 +927,7 @@ func MilestoneList(projID string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.
 
 // MilestoneCreate creates a new project milestone
 func MilestoneCreate(projID string, opts *gitlab.CreateMilestoneOptions) error {
-	p, err := FindProject(projID)
-	if err != nil {
-		return err
-	}
-
-	_, _, err = lab.Milestones.CreateMilestone(p.ID, opts)
+	_, _, err := lab.Milestones.CreateMilestone(projID, opts)
 	return err
 }
 
@@ -1488,16 +1419,16 @@ func UserIDFromEmail(email string) (int, error) {
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
 func AddMRDiscussionNote(projID string, mrID int, discussionID string, body string) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
 	opts := &gitlab.AddMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.AddMergeRequestDiscussionNote(p.ID, mrID, discussionID, opts)
+	note, _, err := lab.Discussions.AddMergeRequestDiscussionNote(projID, mrID, discussionID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1506,16 +1437,16 @@ func AddMRDiscussionNote(projID string, mrID int, discussionID string, body stri
 
 // AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
 func AddIssueDiscussionNote(projID string, issueID int, discussionID string, body string) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
 	opts := &gitlab.AddIssueDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.AddIssueDiscussionNote(p.ID, issueID, discussionID, opts)
+	note, _, err := lab.Discussions.AddIssueDiscussionNote(projID, issueID, discussionID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1525,15 +1456,16 @@ func AddIssueDiscussionNote(projID string, issueID int, discussionID string, bod
 // UpdateIssueDiscussionNote updates a specific discussion or note in the
 // specified issue number
 func UpdateIssueDiscussionNote(projID string, issueID int, discussionID string, noteID int, body string) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
 	opts := &gitlab.UpdateIssueDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.UpdateIssueDiscussionNote(p.ID, issueID, discussionID, noteID, opts)
+	note, _, err := lab.Discussions.UpdateIssueDiscussionNote(projID, issueID, discussionID, noteID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1543,15 +1475,16 @@ func UpdateIssueDiscussionNote(projID string, issueID int, discussionID string, 
 // UpdateMRDiscussionNote updates a specific discussion or note in the
 // specified MR ID.
 func UpdateMRDiscussionNote(projID string, mrID int, discussionID string, noteID int, body string) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
 	opts := &gitlab.UpdateMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, mrID, discussionID, noteID, opts)
+	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(projID, mrID, discussionID, noteID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1561,15 +1494,9 @@ func UpdateMRDiscussionNote(projID string, mrID int, discussionID string, noteID
 // ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
 // being closed
 func ListMRsClosingIssue(projID string, id int) ([]int, error) {
-
 	var retArray []int
 
-	p, err := FindProject(projID)
-	if err != nil {
-		return retArray, err
-	}
-
-	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(p.ID, id, nil, nil)
+	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(projID, id, nil, nil)
 	if err != nil {
 		return retArray, err
 	}
@@ -1584,15 +1511,9 @@ func ListMRsClosingIssue(projID string, id int) ([]int, error) {
 // ListMRsRelatedToIssue return a list of MR IDs that has any relations to a
 // certain issue
 func ListMRsRelatedToIssue(projID string, id int) ([]int, error) {
-
 	var retArray []int
 
-	p, err := FindProject(projID)
-	if err != nil {
-		return retArray, err
-	}
-
-	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(p.ID, id, nil, nil)
+	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(projID, id, nil, nil)
 	if err != nil {
 		return retArray, err
 	}
@@ -1609,12 +1530,7 @@ func ListMRsRelatedToIssue(projID string, id int) ([]int, error) {
 func ListIssuesClosedOnMerge(projID string, id int) ([]int, error) {
 	var retArray []int
 
-	p, err := FindProject(projID)
-	if err != nil {
-		return retArray, err
-	}
-
-	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(p.ID, id, nil, nil)
+	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(projID, id, nil, nil)
 	if err != nil {
 		return retArray, err
 	}
@@ -1628,13 +1544,8 @@ func ListIssuesClosedOnMerge(projID string, id int) ([]int, error) {
 }
 
 // MoveIssue moves one issue from one project to another
-func MoveIssue(projID string, id int, dest string) (string, error) {
-	srcProject, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	destProject, err := FindProject(dest)
+func MoveIssue(projID string, id int, destProjID string) (string, error) {
+	destProject, err := FindProject(destProjID)
 	if err != nil {
 		return "", err
 	}
@@ -1643,21 +1554,17 @@ func MoveIssue(projID string, id int, dest string) (string, error) {
 		ToProjectID: &destProject.ID,
 	}
 
-	issue, _, err := lab.Issues.MoveIssue(srcProject.ID, id, opts)
+	issue, _, err := lab.Issues.MoveIssue(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
 }
 
 // GetMRApprovalsConfiguration returns the current MR approval rule
 func GetMRApprovalsConfiguration(projID string, id int) (*gitlab.MergeRequestApprovals, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
-	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(p.ID, id)
+	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(projID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -1667,18 +1574,18 @@ func GetMRApprovalsConfiguration(projID string, id int) (*gitlab.MergeRequestApp
 
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
 func ResolveMRDiscussion(projID string, mrID int, discussionID string, noteID int) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
 		Resolved: gitlab.Bool(true),
 	}
 
-	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(p.ID, mrID, discussionID, opts)
+	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(projID, mrID, discussionID, opts)
 	if err != nil {
 		return discussion.ID, err
+	}
+
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
 	}
 	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrID, noteID), nil
 }
@@ -1738,12 +1645,7 @@ func TodoMarkAllDone() error {
 
 // TodoMRCreate create a Todo item for an specific MR
 func TodoMRCreate(projID string, id int) (int, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return 0, err
-	}
-
-	todo, resp, err := lab.MergeRequests.CreateTodo(p.ID, id)
+	todo, resp, err := lab.MergeRequests.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
 			return 0, ErrNotModified
@@ -1755,12 +1657,7 @@ func TodoMRCreate(projID string, id int) (int, error) {
 
 // TodoIssueCreate create a Todo item for an specific Issue
 func TodoIssueCreate(projID string, id int) (int, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return 0, err
-	}
-
-	todo, resp, err := lab.Issues.CreateTodo(p.ID, id)
+	todo, resp, err := lab.Issues.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
 			return 0, ErrNotModified
@@ -1771,18 +1668,13 @@ func TodoIssueCreate(projID string, id int) (int, error) {
 }
 
 func GetCommitDiff(projID string, sha string) ([]*gitlab.Diff, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return nil, err
-	}
-
 	var diffs []*gitlab.Diff
 	opt := &gitlab.GetCommitDiffOptions{
 		PerPage: maxItemsPerPage,
 	}
 
 	for {
-		ds, resp, err := lab.Commits.GetCommitDiff(p.ID, sha, opt)
+		ds, resp, err := lab.Commits.GetCommitDiff(projID, sha, opt)
 		if err != nil {
 			if resp.StatusCode == 404 {
 				log.Fatalf("Cannot find diff for commit %s.  Verify the commit ID or add more characters to the commit ID.", sha)
@@ -1804,17 +1696,11 @@ func GetCommitDiff(projID string, sha string) ([]*gitlab.Diff, error) {
 }
 
 func CreateCommitComment(projID string, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
 	// Ideally want to use lab.Commits.PostCommitComment, however,
 	// that API only support comments on linetype=new.
 	//
 	// https://gitlab.com/gitlab-org/gitlab/-/issues/335337
-
-	commitInfo, err := GetCommit(p.ID, sha)
+	commitInfo, err := GetCommit(projID, sha)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
 		return "", err
@@ -1845,7 +1731,7 @@ func CreateCommitComment(projID string, sha string, newFile string, oldFile stri
 		Position: &position,
 	}
 
-	commitDiscussion, _, err := lab.Discussions.CreateCommitDiscussion(p.ID, sha, opt)
+	commitDiscussion, _, err := lab.Discussions.CreateCommitDiscussion(projID, sha, opt)
 	if err != nil {
 		return "", err
 	}
@@ -1854,12 +1740,7 @@ func CreateCommitComment(projID string, sha string, newFile string, oldFile stri
 }
 
 func CreateMergeRequestCommitDiscussion(projID string, id int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
-	p, err := FindProject(projID)
-	if err != nil {
-		return "", err
-	}
-
-	commitInfo, err := GetCommit(p.ID, sha)
+	commitInfo, err := GetCommit(projID, sha)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
 		return "", err
@@ -1891,12 +1772,16 @@ func CreateMergeRequestCommitDiscussion(projID string, id int, sha string, newFi
 		CommitID: &sha,
 	}
 
-	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, id, opt)
+	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(projID, id, opt)
 	if err != nil {
 		return "", err
 	}
 
 	note := discussion.Notes[0]
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
