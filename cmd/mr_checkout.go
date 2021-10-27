@@ -27,7 +27,7 @@ var (
 
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout [remote] <id>",
+	Use:   "checkout [remote] [<MR id or branch>]",
 	Short: "Checkout an open merge request",
 	Args:  cobra.RangeArgs(1, 2),
 	Example: heredoc.Doc(`

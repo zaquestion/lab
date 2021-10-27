@@ -12,7 +12,7 @@ import (
 )
 
 var mrBrowseCmd = &cobra.Command{
-	Use:              "browse [remote] <id>",
+	Use:              "browse [remote] [<MR id or branch>]",
 	Aliases:          []string{"b"},
 	Short:            "View merge request in a browser",
 	Example:          "lab mr browse origin",

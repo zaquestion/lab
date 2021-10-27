@@ -14,7 +14,7 @@ import (
 var mergeImmediate bool
 
 var mrMergeCmd = &cobra.Command{
-	Use:   "merge [remote] <id>",
+	Use:   "merge [remote] [<MR id or branch>]",
 	Short: "Merge an open merge request",
 	Long: heredoc.Doc(`
 		Merges an open merge request. If the pipeline in the project is
