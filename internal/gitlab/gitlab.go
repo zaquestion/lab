@@ -169,8 +169,8 @@ func LoadGitLabTmpl(tmplName string) string {
 var localProjects map[string]*gitlab.Project = make(map[string]*gitlab.Project)
 
 // GetProject looks up a Gitlab project by ID.
-func GetProject(projectID interface{}) (*gitlab.Project, error) {
-	target, resp, err := lab.Projects.GetProject(projectID, nil)
+func GetProject(projID interface{}) (*gitlab.Project, error) {
+	target, resp, err := lab.Projects.GetProject(projID, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjectNotFound
 	}
@@ -182,15 +182,15 @@ func GetProject(projectID interface{}) (*gitlab.Project, error) {
 
 // FindProject looks up the Gitlab project. If the namespace is not provided in
 // the project string it will search for projects in the users namespace
-func FindProject(project string) (*gitlab.Project, error) {
-	if target, ok := localProjects[project]; ok {
+func FindProject(projID string) (*gitlab.Project, error) {
+	if target, ok := localProjects[projID]; ok {
 		return target, nil
 	}
 
-	search := project
+	search := projID
 	// Assuming that a "/" in the project means its owned by an org
-	if !strings.Contains(project, "/") {
-		search = user + "/" + project
+	if !strings.Contains(projID, "/") {
+		search = user + "/" + projID
 	}
 
 	target, err := GetProject(search)
@@ -198,17 +198,17 @@ func FindProject(project string) (*gitlab.Project, error) {
 		return nil, err
 	}
 	// fwiw, I feel bad about this
-	localProjects[project] = target
+	localProjects[projID] = target
 
 	return target, nil
 }
 
 // Fork creates a user fork of a GitLab project using the specified protocol
-func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bool) (string, error) {
-	if !strings.Contains(project, "/") {
+func Fork(projID string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bool) (string, error) {
+	if !strings.Contains(projID, "/") {
 		return "", errors.New("remote must include namespace")
 	}
-	parts := strings.Split(project, "/")
+	parts := strings.Split(projID, "/")
 
 	// See if a fork already exists in the destination
 	name := parts[len(parts)-1]
@@ -237,7 +237,7 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 	target, err := FindProject(namespace + name)
 	if err == nil {
 		// Check if it isn't the same project being requested
-		if target.PathWithNamespace == project {
+		if target.PathWithNamespace == projID {
 			errMsg := "not possible to fork a project from the same namespace and name"
 			return "", errors.New(errMsg)
 		}
@@ -251,7 +251,7 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 
 		// Check if it isn't already a fork for another project
 		if target.ForkedFromProject != nil &&
-			target.ForkedFromProject.PathWithNamespace != project {
+			target.ForkedFromProject.PathWithNamespace != projID {
 			errMsg := fmt.Sprintf("\"%s\" fork already taken for a different project",
 				target.PathWithNamespace)
 			return "", errors.New(errMsg)
@@ -267,14 +267,14 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 		return "", err
 	}
 
-	target, err = FindProject(project)
+	target, err = FindProject(projID)
 	if err != nil {
 		return "", err
 	}
 
 	// Now that we have the "wait" opt, don't let the user in the hope that
 	// something is running.
-	fmt.Printf("Forking %s project...\n", project)
+	fmt.Printf("Forking %s project...\n", projID)
 	fork, _, err := lab.Projects.ForkProject(target.ID, opts)
 	if err != nil {
 		return "", err
@@ -312,13 +312,8 @@ func Fork(project string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bo
 }
 
 // MRCreate opens a merge request on GitLab
-func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	mr, _, err := lab.MergeRequests.CreateMergeRequest(p.ID, opts)
+func MRCreate(projID string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
+	mr, _, err := lab.MergeRequests.CreateMergeRequest(projID, opts)
 	if err != nil {
 		return "", err
 	}
@@ -326,13 +321,8 @@ func MRCreate(project string, opts *gitlab.CreateMergeRequestOptions) (string, e
 }
 
 // MRCreateDiscussion creates a discussion on a merge request on GitLab
-func MRCreateDiscussion(project string, mrNum int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, mrNum, opts)
+func MRCreateDiscussion(projID string, id int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
+	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
@@ -340,59 +330,55 @@ func MRCreateDiscussion(project string, mrNum int, opts *gitlab.CreateMergeReque
 	// Unlike MR, Note has no WebURL property, so we have to create it
 	// ourselves from the project, noteable id and note id
 	note := discussion.Notes[0]
+
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRUpdate edits an merge request on a GitLab project
-func MRUpdate(project string, mrNum int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
-	p, err := FindProject(project)
+func MRUpdate(projID string, id int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
+	mr, _, err := lab.MergeRequests.UpdateMergeRequest(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
 
-	issue, _, err := lab.MergeRequests.UpdateMergeRequest(p.ID, mrNum, opts)
-	if err != nil {
-		return "", err
-	}
-	return issue.WebURL, nil
+	return mr.WebURL, nil
 }
 
 // MRDelete deletes an merge request on a GitLab project
-func MRDelete(project string, mrNum int) error {
-	p, err := FindProject(project)
-	if err != nil {
-		return err
-	}
-	resp, err := lab.MergeRequests.DeleteMergeRequest(p.ID, mrNum)
+func MRDelete(projID string, id int) error {
+	resp, err := lab.MergeRequests.DeleteMergeRequest(projID, id)
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
 	}
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // MRCreateNote adds a note to a merge request on GitLab
-func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
-	p, err := FindProject(project)
+func MRCreateNote(projID string, id int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
+	note, _, err := lab.Notes.CreateMergeRequestNote(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
 
-	note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
+	// Unlike MR, Note has no WebURL property, so we have to create it
+	// ourselves from the project, noteable id and note id
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
-	// Unlike MR, Note has no WebURL property, so we have to create it
-	// ourselves from the project, noteable id and note id
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRGet retrieves the merge request from GitLab project
-func MRGet(project interface{}, mrNum int) (*gitlab.MergeRequest, error) {
-	mr, _, err := lab.MergeRequests.GetMergeRequest(project, mrNum, nil)
+func MRGet(projID interface{}, id int) (*gitlab.MergeRequest, error) {
+	mr, _, err := lab.MergeRequests.GetMergeRequest(projID, id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -401,16 +387,12 @@ func MRGet(project interface{}, mrNum int) (*gitlab.MergeRequest, error) {
 }
 
 // MRList lists the MRs on a GitLab project
-func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
+func MRList(projID string, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
 
-	list, resp, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, &opts)
+	list, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +406,7 @@ func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) 
 		if n != -1 {
 			opts.PerPage = n - len(list)
 		}
-		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(p.ID, &opts)
+		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
@@ -439,15 +421,15 @@ func MRList(project string, opts gitlab.ListProjectMergeRequestsOptions, n int) 
 }
 
 // MRClose closes an mr on a GitLab project
-func MRClose(pid interface{}, id int) error {
-	mr, _, err := lab.MergeRequests.GetMergeRequest(pid, id, nil)
+func MRClose(projID interface{}, id int) error {
+	mr, _, err := lab.MergeRequests.GetMergeRequest(projID, id, nil)
 	if err != nil {
 		return err
 	}
 	if mr.State == "closed" {
 		return fmt.Errorf("mr already closed")
 	}
-	_, _, err = lab.MergeRequests.UpdateMergeRequest(pid, int(id), &gitlab.UpdateMergeRequestOptions{
+	_, _, err = lab.MergeRequests.UpdateMergeRequest(projID, int(id), &gitlab.UpdateMergeRequestOptions{
 		StateEvent: gitlab.String("close"),
 	})
 	if err != nil {
@@ -457,15 +439,15 @@ func MRClose(pid interface{}, id int) error {
 }
 
 // MRReopen reopen an already close mr on a GitLab project
-func MRReopen(pid interface{}, id int) error {
-	mr, _, err := lab.MergeRequests.GetMergeRequest(pid, id, nil)
+func MRReopen(projID interface{}, id int) error {
+	mr, _, err := lab.MergeRequests.GetMergeRequest(projID, id, nil)
 	if err != nil {
 		return err
 	}
 	if mr.State == "opened" {
 		return fmt.Errorf("mr not closed")
 	}
-	_, _, err = lab.MergeRequests.UpdateMergeRequest(pid, int(id), &gitlab.UpdateMergeRequestOptions{
+	_, _, err = lab.MergeRequests.UpdateMergeRequest(projID, int(id), &gitlab.UpdateMergeRequestOptions{
 		StateEvent: gitlab.String("reopen"),
 	})
 	if err != nil {
@@ -475,12 +457,7 @@ func MRReopen(pid interface{}, id int) error {
 }
 
 // MRListDiscussions retrieves the discussions (aka notes & comments) for a merge request
-func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
+func MRListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListMergeRequestDiscussionsOptions{
 		// 100 is the maximum allowed by the API
@@ -489,7 +466,7 @@ func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) 
 
 	for {
 		// get a page of discussions from the API ...
-		d, resp, err := lab.Discussions.ListMergeRequestDiscussions(p.ID, mrNum, opt)
+		d, resp, err := lab.Discussions.ListMergeRequestDiscussions(projID, id, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -509,8 +486,8 @@ func MRListDiscussions(project string, mrNum int) ([]*gitlab.Discussion, error) 
 }
 
 // MRRebase merges an mr on a GitLab project
-func MRRebase(pid interface{}, id int) error {
-	_, err := lab.MergeRequests.RebaseMergeRequest(pid, int(id))
+func MRRebase(projID interface{}, id int) error {
+	_, err := lab.MergeRequests.RebaseMergeRequest(projID, int(id))
 	if err != nil {
 		return err
 	}
@@ -518,8 +495,8 @@ func MRRebase(pid interface{}, id int) error {
 }
 
 // MRMerge merges an mr on a GitLab project
-func MRMerge(pid interface{}, id int, opts *gitlab.AcceptMergeRequestOptions) error {
-	_, _, err := lab.MergeRequests.AcceptMergeRequest(pid, int(id), opts)
+func MRMerge(projID interface{}, id int, opts *gitlab.AcceptMergeRequestOptions) error {
+	_, _, err := lab.MergeRequests.AcceptMergeRequest(projID, int(id), opts)
 	if err != nil {
 		return err
 	}
@@ -527,8 +504,8 @@ func MRMerge(pid interface{}, id int, opts *gitlab.AcceptMergeRequestOptions) er
 }
 
 // MRApprove approves an mr on a GitLab project
-func MRApprove(pid interface{}, id int) error {
-	_, resp, err := lab.MergeRequestApprovals.ApproveMergeRequest(pid, id, &gitlab.ApproveMergeRequestOptions{})
+func MRApprove(projID interface{}, id int) error {
+	_, resp, err := lab.MergeRequestApprovals.ApproveMergeRequest(projID, id, &gitlab.ApproveMergeRequestOptions{})
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
 	}
@@ -543,8 +520,8 @@ func MRApprove(pid interface{}, id int) error {
 }
 
 // MRUnapprove Unapproves a previously approved mr on a GitLab project
-func MRUnapprove(pid interface{}, id int) error {
-	resp, err := lab.MergeRequestApprovals.UnapproveMergeRequest(pid, id, nil)
+func MRUnapprove(projID interface{}, id int) error {
+	resp, err := lab.MergeRequestApprovals.UnapproveMergeRequest(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
 	}
@@ -559,8 +536,8 @@ func MRUnapprove(pid interface{}, id int) error {
 }
 
 // MRSubscribe subscribes to an mr on a GitLab project
-func MRSubscribe(pid interface{}, id int) error {
-	_, resp, err := lab.MergeRequests.SubscribeToMergeRequest(pid, id, nil)
+func MRSubscribe(projID interface{}, id int) error {
+	_, resp, err := lab.MergeRequests.SubscribeToMergeRequest(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Already subscribed")
 	}
@@ -571,8 +548,8 @@ func MRSubscribe(pid interface{}, id int) error {
 }
 
 // MRUnsubscribe unsubscribes from a previously mr on a GitLab project
-func MRUnsubscribe(pid interface{}, id int) error {
-	_, resp, err := lab.MergeRequests.UnsubscribeFromMergeRequest(pid, id, nil)
+func MRUnsubscribe(projID interface{}, id int) error {
+	_, resp, err := lab.MergeRequests.UnsubscribeFromMergeRequest(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Not subscribed")
 	}
@@ -583,8 +560,8 @@ func MRUnsubscribe(pid interface{}, id int) error {
 }
 
 // MRThumbUp places a thumb up/down on a merge request
-func MRThumbUp(pid interface{}, id int) error {
-	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(pid, id, &gitlab.CreateAwardEmojiOptions{
+func MRThumbUp(projID interface{}, id int) error {
+	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(projID, id, &gitlab.CreateAwardEmojiOptions{
 		Name: "thumbsup",
 	})
 	if err != nil {
@@ -594,8 +571,8 @@ func MRThumbUp(pid interface{}, id int) error {
 }
 
 // MRThumbDown places a thumb up/down on a merge request
-func MRThumbDown(pid interface{}, id int) error {
-	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(pid, id, &gitlab.CreateAwardEmojiOptions{
+func MRThumbDown(projID interface{}, id int) error {
+	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(projID, id, &gitlab.CreateAwardEmojiOptions{
 		Name: "thumbsdown",
 	})
 	if err != nil {
@@ -605,13 +582,8 @@ func MRThumbDown(pid interface{}, id int) error {
 }
 
 // IssueCreate opens a new issue on a GitLab project
-func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	mr, _, err := lab.Issues.CreateIssue(p.ID, opts)
+func IssueCreate(projID string, opts *gitlab.CreateIssueOptions) (string, error) {
+	mr, _, err := lab.Issues.CreateIssue(projID, opts)
 	if err != nil {
 		return "", err
 	}
@@ -619,13 +591,8 @@ func IssueCreate(project string, opts *gitlab.CreateIssueOptions) (string, error
 }
 
 // IssueUpdate edits an issue on a GitLab project
-func IssueUpdate(project string, issueNum int, opts *gitlab.UpdateIssueOptions) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	issue, _, err := lab.Issues.UpdateIssue(p.ID, issueNum, opts)
+func IssueUpdate(projID string, id int, opts *gitlab.UpdateIssueOptions) (string, error) {
+	issue, _, err := lab.Issues.UpdateIssue(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
@@ -633,25 +600,24 @@ func IssueUpdate(project string, issueNum int, opts *gitlab.UpdateIssueOptions) 
 }
 
 // IssueCreateNote creates a new note on an issue and returns the note URL
-func IssueCreateNote(project string, issueNum int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	note, _, err := lab.Notes.CreateIssueNote(p.ID, issueNum, opts)
+func IssueCreateNote(projID string, id int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
+	note, _, err := lab.Notes.CreateIssueNote(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
 
 	// Unlike Issue, Note has no WebURL property, so we have to create it
 	// ourselves from the project, noteable id and note id
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // IssueGet retrieves the issue information from a GitLab project
-func IssueGet(project interface{}, issueNum int) (*gitlab.Issue, error) {
-	issue, _, err := lab.Issues.GetIssue(project, issueNum)
+func IssueGet(projID interface{}, id int) (*gitlab.Issue, error) {
+	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -660,16 +626,12 @@ func IssueGet(project interface{}, issueNum int) (*gitlab.Issue, error) {
 }
 
 // IssueList gets a list of issues on a GitLab Project
-func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
+func IssueList(projID string, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
 
-	list, resp, err := lab.Issues.ListProjectIssues(p.ID, &opts)
+	list, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +646,7 @@ func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*
 		if n != -1 {
 			opts.PerPage = n - len(list)
 		}
-		issues, resp, err := lab.Issues.ListProjectIssues(p.ID, &opts)
+		issues, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
@@ -698,15 +660,15 @@ func IssueList(project string, opts gitlab.ListProjectIssuesOptions, n int) ([]*
 }
 
 // IssueClose closes an issue on a GitLab project
-func IssueClose(pid interface{}, id int) error {
-	issue, _, err := lab.Issues.GetIssue(pid, id)
+func IssueClose(projID interface{}, id int) error {
+	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if err != nil {
 		return err
 	}
 	if issue.State == "closed" {
 		return fmt.Errorf("issue already closed")
 	}
-	_, _, err = lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
+	_, _, err = lab.Issues.UpdateIssue(projID, id, &gitlab.UpdateIssueOptions{
 		StateEvent: gitlab.String("close"),
 	})
 	if err != nil {
@@ -716,34 +678,34 @@ func IssueClose(pid interface{}, id int) error {
 }
 
 // IssueDuplicate closes an issue as duplicate of another
-func IssueDuplicate(pid interface{}, id int, dupID string) error {
+func IssueDuplicate(projID interface{}, id int, duprojID string) error {
 	// Not exposed in API, go through quick action
-	body := "/duplicate " + dupID
+	body := "/duplicate " + duprojID
 
-	_, _, err := lab.Notes.CreateIssueNote(pid, id, &gitlab.CreateIssueNoteOptions{
+	_, _, err := lab.Notes.CreateIssueNote(projID, id, &gitlab.CreateIssueNoteOptions{
 		Body: &body,
 	})
 	if err != nil {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupID)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, duprojID)
 	}
 
-	issue, _, err := lab.Issues.GetIssue(pid, id)
+	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if issue == nil || issue.State != "closed" {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dupID)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, duprojID)
 	}
 	return nil
 }
 
 // IssueReopen reopens a closed issue
-func IssueReopen(pid interface{}, id int) error {
-	issue, _, err := lab.Issues.GetIssue(pid, id)
+func IssueReopen(projID interface{}, id int) error {
+	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if err != nil {
 		return err
 	}
 	if issue.State == "opened" {
 		return fmt.Errorf("issue not closed")
 	}
-	_, _, err = lab.Issues.UpdateIssue(pid, id, &gitlab.UpdateIssueOptions{
+	_, _, err = lab.Issues.UpdateIssue(projID, id, &gitlab.UpdateIssueOptions{
 		StateEvent: gitlab.String("reopen"),
 	})
 	if err != nil {
@@ -753,12 +715,7 @@ func IssueReopen(pid interface{}, id int) error {
 }
 
 // IssueListDiscussions retrieves the discussions (aka notes & comments) for an issue
-func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
+func IssueListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListIssueDiscussionsOptions{
 		// 100 is the maximum allowed by the API
@@ -767,7 +724,7 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 
 	for {
 		// get a page of discussions from the API ...
-		d, resp, err := lab.Discussions.ListIssueDiscussions(p.ID, issueNum, opt)
+		d, resp, err := lab.Discussions.ListIssueDiscussions(projID, id, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -787,8 +744,8 @@ func IssueListDiscussions(project string, issueNum int) ([]*gitlab.Discussion, e
 }
 
 // IssueSubscribe subscribes to an issue on a GitLab project
-func IssueSubscribe(pid interface{}, id int) error {
-	_, resp, err := lab.Issues.SubscribeToIssue(pid, id, nil)
+func IssueSubscribe(projID interface{}, id int) error {
+	_, resp, err := lab.Issues.SubscribeToIssue(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Already subscribed")
 	}
@@ -799,8 +756,8 @@ func IssueSubscribe(pid interface{}, id int) error {
 }
 
 // IssueUnsubscribe unsubscribes from an issue on a GitLab project
-func IssueUnsubscribe(pid interface{}, id int) error {
-	_, resp, err := lab.Issues.UnsubscribeFromIssue(pid, id, nil)
+func IssueUnsubscribe(projID interface{}, id int) error {
+	_, resp, err := lab.Issues.UnsubscribeFromIssue(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Not subscribed")
 	}
@@ -811,8 +768,8 @@ func IssueUnsubscribe(pid interface{}, id int) error {
 }
 
 // GetCommit returns top Commit by ref (hash, branch or tag).
-func GetCommit(pid interface{}, ref string) (*gitlab.Commit, error) {
-	c, _, err := lab.Commits.GetCommit(pid, ref)
+func GetCommit(projID interface{}, ref string) (*gitlab.Commit, error) {
+	c, _, err := lab.Commits.GetCommit(projID, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -820,12 +777,7 @@ func GetCommit(pid interface{}, ref string) (*gitlab.Commit, error) {
 }
 
 // LabelList gets a list of labels on a GitLab Project
-func LabelList(project string) ([]*gitlab.Label, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
+func LabelList(projID string) ([]*gitlab.Label, error) {
 	labels := []*gitlab.Label{}
 	opt := &gitlab.ListLabelsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -834,7 +786,7 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 	}
 
 	for {
-		l, resp, err := lab.Labels.ListLabels(p.ID, opt)
+		l, resp, err := lab.Labels.ListLabels(projID, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -853,24 +805,14 @@ func LabelList(project string) ([]*gitlab.Label, error) {
 }
 
 // LabelCreate creates a new project label
-func LabelCreate(project string, opts *gitlab.CreateLabelOptions) error {
-	p, err := FindProject(project)
-	if err != nil {
-		return err
-	}
-
-	_, _, err = lab.Labels.CreateLabel(p.ID, opts)
+func LabelCreate(projID string, opts *gitlab.CreateLabelOptions) error {
+	_, _, err := lab.Labels.CreateLabel(projID, opts)
 	return err
 }
 
 // LabelDelete removes a project label
-func LabelDelete(project, name string) error {
-	p, err := FindProject(project)
-	if err != nil {
-		return err
-	}
-
-	_, err = lab.Labels.DeleteLabel(p.ID, &gitlab.DeleteLabelOptions{
+func LabelDelete(projID, name string) error {
+	_, err := lab.Labels.DeleteLabel(projID, &gitlab.DeleteLabelOptions{
 		Name: &name,
 	})
 	return err
@@ -878,15 +820,10 @@ func LabelDelete(project, name string) error {
 
 // BranchList get all branches from the project that somehow matches the
 // requested options
-func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
+func BranchList(projID string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
 	branches := []*gitlab.Branch{}
 	for {
-		bList, resp, err := lab.Branches.ListBranches(p.ID, opts)
+		bList, resp, err := lab.Branches.ListBranches(projID, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -902,11 +839,11 @@ func BranchList(project string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bra
 }
 
 // MilestoneGet get a specific milestone from the list of available ones
-func MilestoneGet(project string, name string) (*gitlab.Milestone, error) {
+func MilestoneGet(projID string, name string) (*gitlab.Milestone, error) {
 	opts := &gitlab.ListMilestonesOptions{
 		Search: &name,
 	}
-	milestones, _ := MilestoneList(project, opts)
+	milestones, _ := MilestoneList(projID, opts)
 
 	switch len(milestones) {
 	case 1:
@@ -919,15 +856,10 @@ func MilestoneGet(project string, name string) (*gitlab.Milestone, error) {
 }
 
 // MilestoneList gets a list of milestones on a GitLab Project
-func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.Milestone, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
+func MilestoneList(projID string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.Milestone, error) {
 	milestones := []*gitlab.Milestone{}
 	for {
-		m, resp, err := lab.Milestones.ListMilestones(p.ID, opt)
+		m, resp, err := lab.Milestones.ListMilestones(projID, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -942,6 +874,10 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 		}
 	}
 
+	p, err := FindProject(projID)
+	if err != nil {
+		return nil, err
+	}
 	if p.Namespace.Kind != "group" {
 		return milestones, nil
 	}
@@ -990,19 +926,14 @@ func MilestoneList(project string, opt *gitlab.ListMilestonesOptions) ([]*gitlab
 }
 
 // MilestoneCreate creates a new project milestone
-func MilestoneCreate(project string, opts *gitlab.CreateMilestoneOptions) error {
-	p, err := FindProject(project)
-	if err != nil {
-		return err
-	}
-
-	_, _, err = lab.Milestones.CreateMilestone(p.ID, opts)
+func MilestoneCreate(projID string, opts *gitlab.CreateMilestoneOptions) error {
+	_, _, err := lab.Milestones.CreateMilestone(projID, opts)
 	return err
 }
 
 // MilestoneDelete deletes a project milestone
-func MilestoneDelete(project, name string) error {
-	milestone, err := MilestoneGet(project, name)
+func MilestoneDelete(projID, name string) error {
+	milestone, err := MilestoneGet(projID, name)
 	if err != nil {
 		return err
 	}
@@ -1012,8 +943,8 @@ func MilestoneDelete(project, name string) error {
 }
 
 // ProjectSnippetCreate creates a snippet in a project
-func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
-	snip, _, err := lab.ProjectSnippets.CreateSnippet(pid, opts)
+func ProjectSnippetCreate(projID interface{}, opts *gitlab.CreateProjectSnippetOptions) (*gitlab.Snippet, error) {
+	snip, _, err := lab.ProjectSnippets.CreateSnippet(projID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1022,17 +953,17 @@ func ProjectSnippetCreate(pid interface{}, opts *gitlab.CreateProjectSnippetOpti
 }
 
 // ProjectSnippetDelete deletes a project snippet
-func ProjectSnippetDelete(pid interface{}, id int) error {
-	_, err := lab.ProjectSnippets.DeleteSnippet(pid, id)
+func ProjectSnippetDelete(projID interface{}, id int) error {
+	_, err := lab.ProjectSnippets.DeleteSnippet(projID, id)
 	return err
 }
 
 // ProjectSnippetList lists snippets on a project
-func ProjectSnippetList(pid interface{}, opts gitlab.ListProjectSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
+func ProjectSnippetList(projID interface{}, opts gitlab.ListProjectSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
-	list, resp, err := lab.ProjectSnippets.ListSnippets(pid, &opts)
+	list, resp, err := lab.ProjectSnippets.ListSnippets(projID, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1046,7 +977,7 @@ func ProjectSnippetList(pid interface{}, opts gitlab.ListProjectSnippetsOptions,
 		if n != -1 {
 			opts.PerPage = n - len(list)
 		}
-		snips, resp, err := lab.ProjectSnippets.ListSnippets(pid, &opts)
+		snips, resp, err := lab.ProjectSnippets.ListSnippets(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
@@ -1131,8 +1062,8 @@ func ProjectCreate(opts *gitlab.CreateProjectOptions) (*gitlab.Project, error) {
 }
 
 // ProjectDelete creates a new project on GitLab
-func ProjectDelete(pid interface{}) error {
-	_, err := lab.Projects.DeleteProject(pid)
+func ProjectDelete(projID interface{}) error {
+	_, err := lab.Projects.DeleteProject(projID)
 	if err != nil {
 		return err
 	}
@@ -1225,7 +1156,7 @@ func GroupSearch(query string) (*gitlab.Group, error) {
 // CIJobs returns a list of jobs in the pipeline with given id.
 // This function by default doesn't follow bridge jobs.
 // The jobs are returned sorted by their CreatedAt time
-func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]JobStruct, error) {
+func CIJobs(projID interface{}, id int, followBridge bool, bridgeName string) ([]JobStruct, error) {
 	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: maxItemsPerPage,
@@ -1237,13 +1168,13 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 	var ok bool
 
 	for {
-		jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, id, opts)
+		jobs, resp, err := lab.Jobs.ListPipelineJobs(projID, id, opts)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, job := range jobs {
-			list = append(list, JobStruct{job, pid})
+			list = append(list, JobStruct{job, projID})
 		}
 
 		if opts.Page, ok = hasNextPage(resp); !ok {
@@ -1259,7 +1190,7 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 		// A project can have multiple bridge jobs
 		bridgeList := make([]*gitlab.Bridge, 0)
 		for {
-			bridges, resp, err := lab.Jobs.ListPipelineBridges(pid, id, opts)
+			bridges, resp, err := lab.Jobs.ListPipelineBridges(projID, id, opts)
 			if err != nil {
 				return nil, err
 			}
@@ -1276,18 +1207,18 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 			}
 
 			// Switch to the new project name and downstream pipeline id
-			pid = bridge.DownstreamPipeline.ProjectID
+			projID = bridge.DownstreamPipeline.ProjectID
 			id = bridge.DownstreamPipeline.ID
 
 			for {
 				// Get the list of bridged jobs and append to the original list
-				jobs, resp, err := lab.Jobs.ListPipelineJobs(pid, id, opts)
+				jobs, resp, err := lab.Jobs.ListPipelineJobs(projID, id, opts)
 				if err != nil {
 					return nil, err
 				}
 
 				for _, job := range jobs {
-					list = append(list, JobStruct{job, pid})
+					list = append(list, JobStruct{job, projID})
 				}
 
 				if opts.Page, ok = hasNextPage(resp); !ok {
@@ -1310,8 +1241,8 @@ func CIJobs(pid interface{}, id int, followBridge bool, bridgeName string) ([]Jo
 // 1. Last Running Job
 // 2. First Pending Job
 // 3. Last Job in Pipeline
-func CITrace(pid interface{}, id int, name string, followBridge bool, bridgeName string) (io.Reader, *gitlab.Job, error) {
-	jobs, err := CIJobs(pid, id, followBridge, bridgeName)
+func CITrace(projID interface{}, id int, name string, followBridge bool, bridgeName string) (io.Reader, *gitlab.Job, error) {
+	jobs, err := CIJobs(projID, id, followBridge, bridgeName)
 	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
 	}
@@ -1323,7 +1254,7 @@ func CITrace(pid interface{}, id int, name string, followBridge bool, bridgeName
 
 	for _, jobStruct := range jobs {
 		// Switch to the project ID that owns the job (for a bridge case)
-		pid = jobStruct.ProjectID
+		projID = jobStruct.ProjectID
 		j := jobStruct.Job
 		if j.Status == "running" {
 			lastRunning = j
@@ -1346,7 +1277,7 @@ func CITrace(pid interface{}, id int, name string, followBridge bool, bridgeName
 		job = jobs[len(jobs)-1].Job
 	}
 
-	r, _, err := lab.Jobs.GetTraceFile(pid, job.ID)
+	r, _, err := lab.Jobs.GetTraceFile(projID, job.ID)
 	if err != nil {
 		return nil, job, err
 	}
@@ -1358,8 +1289,8 @@ func CITrace(pid interface{}, id int, name string, followBridge bool, bridgeName
 // together with the upstream filename. If path is specified and refers to
 // a single file within the artifacts archive, that file is returned instead.
 // If no name is provided, the last job with an artifacts file is picked.
-func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool, bridgeName string) (io.Reader, string, error) {
-	jobs, err := CIJobs(pid, id, followBridge, bridgeName)
+func CIArtifacts(projID interface{}, id int, name, path string, followBridge bool, bridgeName string) (io.Reader, string, error) {
+	jobs, err := CIJobs(projID, id, followBridge, bridgeName)
 	if len(jobs) == 0 || err != nil {
 		return nil, "", err
 	}
@@ -1370,7 +1301,7 @@ func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool, 
 
 	for _, jobStruct := range jobs {
 		// Switch to the project ID that owns the job (for a bridge case)
-		pid = jobStruct.ProjectID
+		projID = jobStruct.ProjectID
 		j := jobStruct.Job
 		if j.ArtifactsFile.Filename != "" {
 			lastWithArtifacts = j
@@ -1398,10 +1329,10 @@ func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool, 
 
 	fmt.Println("Downloading artifacts...")
 	if path != "" {
-		r, _, err = lab.Jobs.DownloadSingleArtifactsFile(pid, job.ID, path, nil)
+		r, _, err = lab.Jobs.DownloadSingleArtifactsFile(projID, job.ID, path, nil)
 		outpath = filepath.Base(path)
 	} else {
-		r, _, err = lab.Jobs.GetJobArtifacts(pid, job.ID, nil)
+		r, _, err = lab.Jobs.GetJobArtifacts(projID, job.ID, nil)
 		outpath = job.ArtifactsFile.Filename
 	}
 
@@ -1414,19 +1345,19 @@ func CIArtifacts(pid interface{}, id int, name, path string, followBridge bool, 
 
 // CIPlayOrRetry runs a job either by playing it for the first time or by
 // retrying it based on the currently known job state
-func CIPlayOrRetry(pid interface{}, jobID int, status string) (*gitlab.Job, error) {
+func CIPlayOrRetry(projID interface{}, jobID int, status string) (*gitlab.Job, error) {
 	switch status {
 	case "pending", "running":
 		return nil, nil
 	case "manual":
-		j, _, err := lab.Jobs.PlayJob(pid, jobID)
+		j, _, err := lab.Jobs.PlayJob(projID, jobID)
 		if err != nil {
 			return nil, err
 		}
 		return j, nil
 	default:
 
-		j, _, err := lab.Jobs.RetryJob(pid, jobID)
+		j, _, err := lab.Jobs.RetryJob(projID, jobID)
 		if err != nil {
 			return nil, err
 		}
@@ -1436,8 +1367,8 @@ func CIPlayOrRetry(pid interface{}, jobID int, status string) (*gitlab.Job, erro
 }
 
 // CICancel cancels a job for a given project by its ID.
-func CICancel(pid interface{}, jobID int) (*gitlab.Job, error) {
-	j, _, err := lab.Jobs.CancelJob(pid, jobID)
+func CICancel(projID interface{}, jobID int) (*gitlab.Job, error) {
+	j, _, err := lab.Jobs.CancelJob(projID, jobID)
 	if err != nil {
 		return nil, err
 	}
@@ -1445,8 +1376,8 @@ func CICancel(pid interface{}, jobID int) (*gitlab.Job, error) {
 }
 
 // CICreate creates a pipeline for given ref
-func CICreate(pid interface{}, opts *gitlab.CreatePipelineOptions) (*gitlab.Pipeline, error) {
-	p, _, err := lab.Pipelines.CreatePipeline(pid, opts)
+func CICreate(projID interface{}, opts *gitlab.CreatePipelineOptions) (*gitlab.Pipeline, error) {
+	p, _, err := lab.Pipelines.CreatePipeline(projID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1454,8 +1385,8 @@ func CICreate(pid interface{}, opts *gitlab.CreatePipelineOptions) (*gitlab.Pipe
 }
 
 // CITrigger triggers a pipeline for given ref
-func CITrigger(pid interface{}, opts gitlab.RunPipelineTriggerOptions) (*gitlab.Pipeline, error) {
-	p, _, err := lab.PipelineTriggers.RunPipelineTrigger(pid, &opts)
+func CITrigger(projID interface{}, opts gitlab.RunPipelineTriggerOptions) (*gitlab.Pipeline, error) {
+	p, _, err := lab.PipelineTriggers.RunPipelineTrigger(projID, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1487,17 +1418,17 @@ func UserIDFromEmail(email string) (int, error) {
 }
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
-func AddMRDiscussionNote(project string, mrNum int, discussionID string, body string) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
+func AddMRDiscussionNote(projID string, mrID int, discussionID string, body string) (string, error) {
 	opts := &gitlab.AddMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.AddMergeRequestDiscussionNote(p.ID, mrNum, discussionID, opts)
+	note, _, err := lab.Discussions.AddMergeRequestDiscussionNote(projID, mrID, discussionID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1505,17 +1436,17 @@ func AddMRDiscussionNote(project string, mrNum int, discussionID string, body st
 }
 
 // AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
-func AddIssueDiscussionNote(project string, issueNum int, discussionID string, body string) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
+func AddIssueDiscussionNote(projID string, issueID int, discussionID string, body string) (string, error) {
 	opts := &gitlab.AddIssueDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.AddIssueDiscussionNote(p.ID, issueNum, discussionID, opts)
+	note, _, err := lab.Discussions.AddIssueDiscussionNote(projID, issueID, discussionID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1524,16 +1455,17 @@ func AddIssueDiscussionNote(project string, issueNum int, discussionID string, b
 
 // UpdateIssueDiscussionNote updates a specific discussion or note in the
 // specified issue number
-func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string, noteID int, body string) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
+func UpdateIssueDiscussionNote(projID string, issueID int, discussionID string, noteID int, body string) (string, error) {
 	opts := &gitlab.UpdateIssueDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.UpdateIssueDiscussionNote(p.ID, issueNum, discussionID, noteID, opts)
+	note, _, err := lab.Discussions.UpdateIssueDiscussionNote(projID, issueID, discussionID, noteID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1542,16 +1474,17 @@ func UpdateIssueDiscussionNote(project string, issueNum int, discussionID string
 
 // UpdateMRDiscussionNote updates a specific discussion or note in the
 // specified MR ID.
-func UpdateMRDiscussionNote(project string, mrNum int, discussionID string, noteID int, body string) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
+func UpdateMRDiscussionNote(projID string, mrID int, discussionID string, noteID int, body string) (string, error) {
 	opts := &gitlab.UpdateMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
 
-	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(p.ID, mrNum, discussionID, noteID, opts)
+	note, _, err := lab.Discussions.UpdateMergeRequestDiscussionNote(projID, mrID, discussionID, noteID, opts)
+	if err != nil {
+		return "", err
+	}
+
+	p, err := FindProject(projID)
 	if err != nil {
 		return "", err
 	}
@@ -1560,16 +1493,10 @@ func UpdateMRDiscussionNote(project string, mrNum int, discussionID string, note
 
 // ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
 // being closed
-func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
-
+func ListMRsClosingIssue(projID string, id int) ([]int, error) {
 	var retArray []int
 
-	p, err := FindProject(project)
-	if err != nil {
-		return retArray, err
-	}
-
-	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(p.ID, issueNum, nil, nil)
+	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(projID, id, nil, nil)
 	if err != nil {
 		return retArray, err
 	}
@@ -1583,16 +1510,10 @@ func ListMRsClosingIssue(project string, issueNum int) ([]int, error) {
 
 // ListMRsRelatedToIssue return a list of MR IDs that has any relations to a
 // certain issue
-func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
-
+func ListMRsRelatedToIssue(projID string, id int) ([]int, error) {
 	var retArray []int
 
-	p, err := FindProject(project)
-	if err != nil {
-		return retArray, err
-	}
-
-	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(p.ID, issueNum, nil, nil)
+	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(projID, id, nil, nil)
 	if err != nil {
 		return retArray, err
 	}
@@ -1606,15 +1527,10 @@ func ListMRsRelatedToIssue(project string, issueNum int) ([]int, error) {
 
 // ListIssuesClosedOnMerge retuns a list of issue numbers that were closed by
 // an MR being merged
-func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
+func ListIssuesClosedOnMerge(projID string, id int) ([]int, error) {
 	var retArray []int
 
-	p, err := FindProject(project)
-	if err != nil {
-		return retArray, err
-	}
-
-	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(p.ID, mrNum, nil, nil)
+	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(projID, id, nil, nil)
 	if err != nil {
 		return retArray, err
 	}
@@ -1628,13 +1544,8 @@ func ListIssuesClosedOnMerge(project string, mrNum int) ([]int, error) {
 }
 
 // MoveIssue moves one issue from one project to another
-func MoveIssue(project string, issueNum int, dest string) (string, error) {
-	srcProject, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	destProject, err := FindProject(dest)
+func MoveIssue(projID string, id int, destProjID string) (string, error) {
+	destProject, err := FindProject(destProjID)
 	if err != nil {
 		return "", err
 	}
@@ -1643,21 +1554,17 @@ func MoveIssue(project string, issueNum int, dest string) (string, error) {
 		ToProjectID: &destProject.ID,
 	}
 
-	issue, _, err := lab.Issues.MoveIssue(srcProject.ID, issueNum, opts)
+	issue, _, err := lab.Issues.MoveIssue(projID, id, opts)
 	if err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
 }
 
 // GetMRApprovalsConfiguration returns the current MR approval rule
-func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeRequestApprovals, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
-	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(p.ID, mrNum)
+func GetMRApprovalsConfiguration(projID string, id int) (*gitlab.MergeRequestApprovals, error) {
+	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(projID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -1666,21 +1573,21 @@ func GetMRApprovalsConfiguration(project string, mrNum int) (*gitlab.MergeReques
 }
 
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
-func ResolveMRDiscussion(project string, mrNum int, discussionID string, noteID int) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
+func ResolveMRDiscussion(projID string, mrID int, discussionID string, noteID int) (string, error) {
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
 		Resolved: gitlab.Bool(true),
 	}
 
-	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(p.ID, mrNum, discussionID, opts)
+	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(projID, mrID, discussionID, opts)
 	if err != nil {
 		return discussion.ID, err
 	}
-	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrNum, noteID), nil
+
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrID, noteID), nil
 }
 
 // TodoList retuns a list of *gitlab.Todo refering to user's Todo list
@@ -1719,8 +1626,8 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 }
 
 // TodoMarkDone marks a specific Todo as done
-func TodoMarkDone(todoNum int) error {
-	_, err := lab.Todos.MarkTodoAsDone(todoNum)
+func TodoMarkDone(id int) error {
+	_, err := lab.Todos.MarkTodoAsDone(id)
 	if err != nil {
 		return err
 	}
@@ -1737,13 +1644,8 @@ func TodoMarkAllDone() error {
 }
 
 // TodoMRCreate create a Todo item for an specific MR
-func TodoMRCreate(project string, mrNum int) (int, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return 0, err
-	}
-
-	todo, resp, err := lab.MergeRequests.CreateTodo(p.ID, mrNum)
+func TodoMRCreate(projID string, id int) (int, error) {
+	todo, resp, err := lab.MergeRequests.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
 			return 0, ErrNotModified
@@ -1754,13 +1656,8 @@ func TodoMRCreate(project string, mrNum int) (int, error) {
 }
 
 // TodoIssueCreate create a Todo item for an specific Issue
-func TodoIssueCreate(project string, issueNum int) (int, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return 0, err
-	}
-
-	todo, resp, err := lab.Issues.CreateTodo(p.ID, issueNum)
+func TodoIssueCreate(projID string, id int) (int, error) {
+	todo, resp, err := lab.Issues.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
 			return 0, ErrNotModified
@@ -1770,19 +1667,14 @@ func TodoIssueCreate(project string, issueNum int) (int, error) {
 	return todo.ID, nil
 }
 
-func GetCommitDiff(project string, sha string) ([]*gitlab.Diff, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return nil, err
-	}
-
+func GetCommitDiff(projID string, sha string) ([]*gitlab.Diff, error) {
 	var diffs []*gitlab.Diff
 	opt := &gitlab.GetCommitDiffOptions{
 		PerPage: maxItemsPerPage,
 	}
 
 	for {
-		ds, resp, err := lab.Commits.GetCommitDiff(p.ID, sha, opt)
+		ds, resp, err := lab.Commits.GetCommitDiff(projID, sha, opt)
 		if err != nil {
 			if resp.StatusCode == 404 {
 				log.Fatalf("Cannot find diff for commit %s.  Verify the commit ID or add more characters to the commit ID.", sha)
@@ -1803,18 +1695,12 @@ func GetCommitDiff(project string, sha string) ([]*gitlab.Diff, error) {
 	return diffs, nil
 }
 
-func CreateCommitComment(project string, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
+func CreateCommitComment(projID string, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
 	// Ideally want to use lab.Commits.PostCommitComment, however,
 	// that API only support comments on linetype=new.
 	//
 	// https://gitlab.com/gitlab-org/gitlab/-/issues/335337
-
-	commitInfo, err := GetCommit(p.ID, sha)
+	commitInfo, err := GetCommit(projID, sha)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
 		return "", err
@@ -1845,7 +1731,7 @@ func CreateCommitComment(project string, sha string, newFile string, oldFile str
 		Position: &position,
 	}
 
-	commitDiscussion, _, err := lab.Discussions.CreateCommitDiscussion(p.ID, sha, opt)
+	commitDiscussion, _, err := lab.Discussions.CreateCommitDiscussion(projID, sha, opt)
 	if err != nil {
 		return "", err
 	}
@@ -1853,13 +1739,8 @@ func CreateCommitComment(project string, sha string, newFile string, oldFile str
 	return fmt.Sprintf("%s#note_%d", commitInfo.WebURL, commitDiscussion.Notes[0].ID), nil
 }
 
-func CreateMergeRequestCommitDiscussion(project string, mrID int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
-	p, err := FindProject(project)
-	if err != nil {
-		return "", err
-	}
-
-	commitInfo, err := GetCommit(p.ID, sha)
+func CreateMergeRequestCommitDiscussion(projID string, id int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+	commitInfo, err := GetCommit(projID, sha)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
 		return "", err
@@ -1891,12 +1772,16 @@ func CreateMergeRequestCommitDiscussion(project string, mrID int, sha string, ne
 		CommitID: &sha,
 	}
 
-	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(p.ID, mrID, opt)
+	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(projID, id, opt)
 	if err != nil {
 		return "", err
 	}
 
 	note := discussion.Notes[0]
+	p, err := FindProject(projID)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
