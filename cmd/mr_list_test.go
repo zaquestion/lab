@@ -124,7 +124,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 }
 
 var (
-	latestCreatedTestMR = "!740 MR to test close/reopen"
+	latestCreatedTestMR = "!968 README: dummy commit for CI tests"
 	latestUpdatedTestMR = "!329 MR for assign and review commands"
 )
 
