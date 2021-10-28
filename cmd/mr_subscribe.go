@@ -24,12 +24,7 @@ var mrSubscribeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.MRSubscribe(p.ID, int(id))
+		err = lab.MRSubscribe(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}

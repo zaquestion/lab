@@ -18,12 +18,7 @@ var mrRebaseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.MRRebase(p.ID, int(id))
+		err = lab.MRRebase(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -20,12 +20,7 @@ var mrReopenCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.MRReopen(p.ID, int(id))
+		err = lab.MRReopen(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}

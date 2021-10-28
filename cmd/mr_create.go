@@ -88,8 +88,8 @@ func init() {
 	)
 }
 
-func verifyRemoteBranch(projectID int, branch string) error {
-	if _, err := lab.GetCommit(projectID, branch); err != nil {
+func verifyRemoteBranch(projID string, branch string) error {
+	if _, err := lab.GetCommit(projID, branch); err != nil {
 		return fmt.Errorf("%s is not a valid reference", branch)
 	}
 	return nil
@@ -174,13 +174,8 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	sourceProject, err := lab.FindProject(sourceProjectName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// verify the source branch in remote project
-	err = verifyRemoteBranch(sourceProject.ID, sourceBranch)
+	err = verifyRemoteBranch(sourceProjectName, sourceBranch)
 	if err != nil {
 		log.Fatalf("%s:%s\n", sourceRemote, err)
 	}
@@ -206,7 +201,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if len(args) > 1 && targetBranch != args[1] {
 		targetBranch = args[1]
 		// verify the target branch in remote project
-		err = verifyRemoteBranch(targetProject.ID, targetBranch)
+		err = verifyRemoteBranch(targetProjectName, targetBranch)
 		if err != nil {
 			log.Fatalf("%s:%s\n", targetRemote, err)
 		}

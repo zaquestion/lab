@@ -23,12 +23,7 @@ var issueReopenCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.IssueReopen(p.ID, int(id))
+		err = lab.IssueReopen(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}

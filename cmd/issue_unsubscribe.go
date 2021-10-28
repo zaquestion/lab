@@ -22,12 +22,7 @@ var issueUnsubscribeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.IssueUnsubscribe(p.ID, int(id))
+		err = lab.IssueUnsubscribe(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}
