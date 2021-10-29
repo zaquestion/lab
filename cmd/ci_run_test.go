@@ -19,7 +19,7 @@ func Test_ciRun(t *testing.T) {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
-	require.Regexp(t, `^https://gitlab.com/lab-testing/test/pipelines/\d+`, string(b))
+	require.Regexp(t, `^https://gitlab.com/lab-testing/test/-/pipelines/\d+`, string(b))
 }
 
 func Test_parseCIVariables(t *testing.T) {
@@ -77,7 +77,7 @@ func Test_getCIRunOptions(t *testing.T) {
 		desc            string
 		cmdFunc         func()
 		args            []string
-		expectedProject interface{}
+		expectedProject string
 		expectedBranch  string
 		expectedErr     string
 	}{
@@ -111,7 +111,7 @@ func Test_getCIRunOptions(t *testing.T) {
 				ciTriggerCmd.Flags().Set("project", "zaquestion/test")
 			},
 			[]string{},
-			4181224, // https://gitlab.com/zaquestion/test project ID
+			"zaquestion/test", // https://gitlab.com/zaquestion/test project name
 			"master",
 			"",
 		},
@@ -121,7 +121,7 @@ func Test_getCIRunOptions(t *testing.T) {
 				ciTriggerCmd.Flags().Set("project", "barfasdfasdf")
 			},
 			[]string{},
-			nil, // https://gitlab.com/zaquestion/test project ID
+			"", // https://gitlab.com/zaquestion/test project name
 			"",
 			"GitLab project not found, verify you have access to the requested resource",
 		},

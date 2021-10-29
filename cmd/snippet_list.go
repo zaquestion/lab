@@ -65,12 +65,8 @@ func snippetList(args []string) ([]*gitlab.Snippet, error) {
 		return lab.SnippetList(opts, num)
 	}
 
-	project, err := lab.FindProject(rn)
-	if err != nil {
-		return nil, err
-	}
 	opts := gitlab.ListProjectSnippetsOptions(listOpts)
-	return lab.ProjectSnippetList(project.ID, opts, num)
+	return lab.ProjectSnippetList(rn, opts, num)
 }
 
 func init() {

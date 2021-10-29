@@ -31,16 +31,11 @@ var mrMergeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		opts := gitlab.AcceptMergeRequestOptions{
 			MergeWhenPipelineSucceeds: gitlab.Bool(!mergeImmediate),
 		}
 
-		err = lab.MRMerge(p.ID, int(id), &opts)
+		err = lab.MRMerge(rn, int(id), &opts)
 		if err != nil {
 			log.Fatal(err)
 		}

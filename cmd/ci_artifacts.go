@@ -68,13 +68,7 @@ var ciArtifactsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		project, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		projectID := project.ID
-
-		r, outpath, err := lab.CIArtifacts(projectID, pipelineID, jobName, path, followBridge, bridgeName)
+		r, outpath, err := lab.CIArtifacts(rn, pipelineID, jobName, path, followBridge, bridgeName)
 		if err != nil {
 			log.Fatal(err)
 		}

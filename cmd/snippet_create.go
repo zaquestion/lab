@@ -97,10 +97,6 @@ var snippetCreateCmd = &cobra.Command{
 			return
 		}
 
-		project, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
 		opts := gitlab.CreateProjectSnippetOptions{
 			Title:       gitlab.String(title),
 			Description: gitlab.String(body),
@@ -108,7 +104,7 @@ var snippetCreateCmd = &cobra.Command{
 			FileName:    gitlab.String(name),
 			Visibility:  &visibility,
 		}
-		snip, err := lab.ProjectSnippetCreate(project.ID, &opts)
+		snip, err := lab.ProjectSnippetCreate(rn, &opts)
 		if err != nil || snip == nil {
 			log.Fatal(errors.Wrap(err, "failed to create snippet"))
 		}

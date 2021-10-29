@@ -20,12 +20,7 @@ var mrCloseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.MRClose(p.ID, int(id))
+		err = lab.MRClose(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}

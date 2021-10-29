@@ -32,11 +32,7 @@ var snippetDeleteCmd = &cobra.Command{
 			return
 		}
 
-		project, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = lab.ProjectSnippetDelete(project.ID, int(id))
+		err = lab.ProjectSnippetDelete(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}

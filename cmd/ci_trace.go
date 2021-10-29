@@ -73,23 +73,17 @@ var ciTraceCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		project, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		projectID = project.ID
-
 		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
-		err = doTrace(context.Background(), os.Stdout, projectID, pipelineID, jobName)
+		err = doTrace(context.Background(), os.Stdout, rn, pipelineID, jobName)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
-func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, name string) error {
+func doTrace(ctx context.Context, w io.Writer, projID string, pipelineID int, name string) error {
 	var (
 		once   sync.Once
 		offset int64
@@ -98,7 +92,7 @@ func doTrace(ctx context.Context, w io.Writer, pid interface{}, pipelineID int, 
 		if ctx.Err() == context.Canceled {
 			break
 		}
-		trace, job, err := lab.CITrace(pid, pipelineID, name, followBridge, bridgeName)
+		trace, job, err := lab.CITrace(projID, pipelineID, name, followBridge, bridgeName)
 		if err != nil || job == nil || trace == nil {
 			return errors.Wrap(err, "failed to find job")
 		}

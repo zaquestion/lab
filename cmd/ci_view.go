@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	projectID  int
+	projectID  string
 	pipelineID int
 )
 
@@ -78,11 +78,7 @@ var ciViewCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		project, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		projectID = project.ID
+		projectID = rn
 		root := tview.NewPages()
 		root.SetBorderPadding(1, 1, 2, 2)
 

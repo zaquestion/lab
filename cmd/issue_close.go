@@ -27,23 +27,18 @@ var issueCloseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		dupID, _ := cmd.Flags().GetString("duplicate")
 		if dupID != "" {
 			if !strings.Contains(dupID, "#") {
 				dupID = "#" + dupID
 			}
-			err = lab.IssueDuplicate(p.ID, int(id), dupID)
+			err = lab.IssueDuplicate(rn, int(id), dupID)
 			if err != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("Issue #%d closed as duplicate of %s\n", id, dupID)
 		} else {
-			err = lab.IssueClose(p.ID, int(id))
+			err = lab.IssueClose(rn, int(id))
 			if err != nil {
 				log.Fatal(err)
 			}

@@ -41,11 +41,7 @@ var ciCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		project, err := lab.GetProject(pid)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%s/pipelines/%d\n", project.WebURL, pipeline.ID)
+		fmt.Println(pipeline.WebURL)
 	},
 }
 
@@ -89,41 +85,38 @@ var ciTriggerCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		project, err := lab.GetProject(pid)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%s/pipelines/%d\n", project.WebURL, pipeline.ID)
+		fmt.Println(pipeline.WebURL)
 	},
 }
 
-func getCIRunOptions(cmd *cobra.Command, args []string) (interface{}, string, error) {
+func getCIRunOptions(cmd *cobra.Command, args []string) (string, string, error) {
 	branch, err := git.CurrentBranch()
 	if err != nil {
-		return nil, "", err
+		return "", "", err
 	}
-	var pid interface{}
 	if len(args) > 0 {
 		branch = args[0]
 	}
 
+	var pid string
+
 	remote := determineSourceRemote(branch)
 	rn, err := git.PathWithNamespace(remote)
 	if err != nil {
-		return nil, "", err
+		return "", "", err
 	}
 	pid = rn
 
 	project, err := cmd.Flags().GetString("project")
 	if err != nil {
-		return nil, "", err
+		return "", "", err
 	}
 	if project != "" {
-		p, err := lab.FindProject(project)
+		_, err := lab.FindProject(project)
 		if err != nil {
-			return nil, "", err
+			return "", "", err
 		}
-		pid = p.ID
+		pid = project
 	}
 	return pid, branch, nil
 }

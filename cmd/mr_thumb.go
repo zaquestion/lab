@@ -31,12 +31,7 @@ var mrThumbUpCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.MRThumbUp(p.ID, int(id))
+		err = lab.MRThumbUp(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,12 +52,7 @@ var mrThumbDownCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		p, err := lab.FindProject(rn)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = lab.MRThumbDown(p.ID, int(id))
+		err = lab.MRThumbDown(rn, int(id))
 		if err != nil {
 			log.Fatal(err)
 		}
