@@ -9,7 +9,7 @@ lab project browse [remote] [flags]
 ### Examples
 
 ```
-lab mr browse origin
+lab project browse origin
 ```
 
 ### Options
