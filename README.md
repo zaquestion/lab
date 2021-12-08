@@ -81,11 +81,13 @@ See the [contribution guide](CONTRIBUTING.md).
 `lab` needs your GitLab information in order to interact with to your GitLab
 instance. There are several ways to provide this information to `lab`:
 
-1. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
-    - If these variables are set, the config files will not be updated.
-2. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`;
+1. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`, `GITLAB_USER_LOGIN`;
     - Note: these are meant for when `lab` is running within a GitLab CI pipeline
+    - If all of these variables are set, the config files will not be updated.
+    - If all of these variables are set, these take precedence over all other values.
+2. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
     - If these variables are set, the config files will not be updated.
+    - For example to use gitlab.com do: `export LAB_CORE_HOST="https://gitlab.com"`
 3. local configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
     - No other config files will be used as overrides if a local configuration file is specified
 4. user-specific configuration file in TOML: `~/.config/lab/lab.toml`.
