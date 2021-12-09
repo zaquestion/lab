@@ -123,11 +123,14 @@ func CI() (string, string, string) {
 	if ciToken == "" {
 		return "", "", ""
 	}
+	log.Debugln("Loaded CI_JOB_TOKEN environment variable")
 	ciHost := strings.TrimSuffix(os.Getenv("CI_PROJECT_URL"), os.Getenv("CI_PROJECT_PATH"))
 	if ciHost == "" {
 		return "", "", ""
 	}
+	log.Debugln("Parsed CI_PROJECT_URL environment variable:", ciHost)
 	ciUser := os.Getenv("GITLAB_USER_LOGIN")
+	log.Debugln("Loaded GITLAB_USER_LOGIN environment variable:", ciUser)
 
 	return ciHost, ciUser, ciToken
 }
