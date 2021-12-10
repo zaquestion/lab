@@ -1718,12 +1718,18 @@ func CreateCommitComment(projID string, sha string, newFile string, oldFile stri
 		PositionType: "text",
 	}
 
-	if linetype == "old" {
-		position.OldPath = oldFile
-		position.OldLine = line
-	} else {
+	switch linetype {
+	case "new":
 		position.NewPath = newFile
 		position.NewLine = line
+	case "old":
+		position.OldPath = oldFile
+		position.OldLine = line
+	case "context":
+		position.NewPath = newFile
+		position.NewLine = line
+		position.OldPath = oldFile
+		position.OldLine = line
 	}
 
 	opt := &gitlab.CreateCommitDiscussionOptions{
@@ -1760,9 +1766,13 @@ func CreateMergeRequestCommitDiscussion(projID string, id int, sha string, newFi
 		PositionType: "text",
 	}
 
-	if linetype == "new" {
+	switch linetype {
+	case "new":
 		position.NewLine = line
-	} else {
+	case "old":
+		position.OldLine = line
+	case "context":
+		position.NewLine = line
 		position.OldLine = line
 	}
 

@@ -94,11 +94,9 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit, true)
 }
 
-func createCommitNote(rn string, mrID int, sha string, newFile string, oldFile string, oldline int, newline int, comment string, block bool) {
-	linetype := "old"
+func createCommitNote(rn string, mrID int, sha string, newFile string, oldFile string, linetype string, oldline int, newline int, comment string, block bool) {
 	line := oldline
 	if oldline == -1 {
-		linetype = "new"
 		line = newline
 	}
 
@@ -145,63 +143,106 @@ func createCommitComments(project string, mrID int, commit string, body string, 
 	// tracking information (new line & old line number pairs,
 	// and file information)
 	scanner := bufio.NewScanner(strings.NewReader(body))
+	lastDiffLine := ""
+	comments := ""
 	newfile := ""
 	oldfile := ""
-	oldLineNum := -1
-	newLineNum := -1
-	comments := ""
+	diffCut := 1
+
 	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), "| newfile:") {
-			if comments != "" {
-				createCommitNote(project, mrID, commit, newfile, oldfile, oldLineNum, newLineNum, comments, block)
-				comments = ""
+		line := scanner.Text()
+
+		if !strings.HasPrefix(line, "| ") {
+			comments += "\n" + line
+			continue
+		}
+
+		if comments != "" && lastDiffLine == "" {
+			log.Fatal("Cannot comment on first line of commit (context unknown).")
+		}
+
+		if comments != "" {
+			linetype := ""
+			oldLineNum := -1
+			newLineNum := -1
+
+			// parse lastDiffLine
+			f := strings.Fields(strings.TrimSpace(lastDiffLine))
+
+			// The output can be, for example:
+			// | # # [no +/-] < context comment
+			// | # #    +     < newline comment
+			// | # #    -     < oldline comment
+			// | #      -     < oldline comment
+			// |   #    +     < newline comment
+
+			// f[0] is always a "|"
+			// f[1] will always be a number
+			val1, _ := strconv.Atoi(f[1])
+			val2, err := strconv.Atoi(f[2])
+
+			if err == nil { // f[2] is a number
+				if len(f) <= 3 { // f[3] does not exist
+					oldLineNum = val1
+					newLineNum = val2
+					linetype = "context"
+				} else {
+					newLineNum = val2
+					switch {
+					case strings.HasPrefix(f[3], "+"):
+						linetype = "new"
+					case strings.HasPrefix(f[3], "-"):
+						linetype = "old"
+					default:
+						linetype = "context"
+					}
+				}
+			} else { // f[2] is not a number
+				switch {
+				case strings.HasPrefix(f[2], "+"):
+					newLineNum = val1
+					linetype = "new"
+				case strings.HasPrefix(f[2], "-"):
+					oldLineNum = val1
+					linetype = "old"
+				default:
+					panic("unknown string in diff")
+				}
 			}
+
+			createCommitNote(project, mrID, commit, newfile, oldfile, linetype, oldLineNum, newLineNum, comments, block)
+			comments = ""
+		}
+
+		f := strings.Fields(strings.TrimSpace(line))
+		if f[1] == "@@" {
+			// In GitLab diff output, the leading "@" symbol indicates where
+			// the metadata ends.  This is true even if passing over a digit
+			// boundary (ie going from line 99 to 100).  This location can
+			// be used to truncate the lines to only include the metadata.
+			diffCut = strings.Index(line, "@") + 1
+			lastDiffLine = ""
+			continue
+		}
+
+		if f[1] == "newfile:" {
 			// read filename
-			f := strings.Split(scanner.Text(), " ")
+			f := strings.Split(line, " ")
 			newfile = f[2]
 			if len(f) < 5 {
 				oldfile = ""
 			} else {
 				oldfile = f[4]
 			}
-		} else if strings.HasPrefix(scanner.Text(), "|") {
-			if comments != "" {
-				createCommitNote(project, mrID, commit, newfile, oldfile, oldLineNum, newLineNum, comments, block)
-				comments = ""
-			}
-			// read line numbers
-			fs := strings.Split(scanner.Text(), " ")
+			continue
+		}
 
-			oldLineNum = -1
-			newLineNum = -1
-			for _, f := range fs {
-				if f == "" || f == "|" || f == "@@" {
-					continue
-				}
-				val, err := strconv.Atoi(f)
-				if err != nil {
-					// NaN
-					if strings.HasPrefix(f, "+") {
-						newLineNum = oldLineNum
-						oldLineNum = -1
-					}
-					break
-				} else {
-					// Number
-					if oldLineNum == -1 {
-						oldLineNum = val
-					} else {
-						newLineNum = val
-						break
-					}
-				}
-			}
+		if len(line) > diffCut {
+			lastDiffLine = line[0:diffCut]
 		} else {
-			// this is a comment (combine for a filename)
-			comments = comments + "\n" + scanner.Text()
+			lastDiffLine = line
 		}
 	}
-
 }
 
 func noteGetState(rn string, isMR bool, idNum int) (state string) {
