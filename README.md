@@ -140,16 +140,6 @@ exec($(lab completion xonsh))
 source <(lab completion zsh)
 ```
 
-# Aliasing
-
-`lab` feels best when aliased as `git`, however it's perfectly reasonable to use as a standalone tool. In your `.bashrc` or `.bash_profile`:
-
-```
-alias git=lab
-```
-
-NOTE: before aliasing, if you use git in your shell prompt command, be sure lab works by it's own first:
-
 ## What about [GLab](https://github.com/profclems/glab)?
 
 Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying the developer workflow. In many ways `lab` is to [hub], what [glab] is to [gh].
