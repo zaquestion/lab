@@ -339,10 +339,19 @@ func LoadMainConfig() (string, string, string, string, bool) {
 }
 
 // default path of worktree lab.toml file
-var (
-	WorkTreePath string = ".git/lab"
-	WorkTreeName string = "lab"
-)
+var WorktreeConfigName string = "lab"
+
+// worktreeConfigPath gets the current git config path using the
+// `git rev-parse` command, which considers the worktree's gitdir path placed
+// into the .git file.
+func worktreeConfigPath() string {
+	gitDir, err := git.Dir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return gitDir + "/lab"
+}
 
 // LoadConfig loads a config file specified by configpath and configname.
 // The configname must not have a '.toml' extension.  If configpath and/or
@@ -352,10 +361,10 @@ func LoadConfig(configpath string, configname string) *viper.Viper {
 	targetConfig.SetConfigType("toml")
 
 	if configpath == "" {
-		configpath = WorkTreePath
+		configpath = worktreeConfigPath()
 	}
 	if configname == "" {
-		configname = WorkTreeName
+		configname = WorktreeConfigName
 	}
 	targetConfig.AddConfigPath(configpath)
 	targetConfig.SetConfigName(configname)
