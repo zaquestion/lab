@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -88,6 +89,42 @@ func Test_mrCheckoutCmd_track(t *testing.T) {
 	}
 	remotes := string(gitOut)
 	require.Contains(t, remotes, "zaquestion	git@gitlab.com:zaquestion/test.git")
+
+	// confirm that new branch tracks zaquestion/mrtest
+	cmd = exec.Command("git", "rev-parse", "--symbolic-full-name", "--abbrev-ref", "mrtest_track@{upstream}")
+	cmd.Dir = repo
+	gitOut, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, "zaquestion/mrtest", strings.TrimSpace(string(gitOut)))
+}
+
+func Test_mrCheckoutCmd_trackDefaultRemote(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	// make sure the branch does not exist
+	cmd := exec.Command("git", "branch", "-D", "mrtest")
+	cmd.Dir = repo
+	cmd.CombinedOutput()
+
+	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "--track-default-remote")
+	cmd.Dir = repo
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(b))
+		t.Fatal(err)
+	}
+	t.Log(string(b))
+
+	// confirm that new branch tracks origin/mrtest
+	cmd = exec.Command("git", "rev-parse", "--symbolic-full-name", "--abbrev-ref", "mrtest@{upstream}")
+	cmd.Dir = repo
+	gitOut, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, "origin/mrtest", strings.TrimSpace(string(gitOut)))
 }
 
 func Test_mrCheckoutCmdRunWithDifferentName(t *testing.T) {

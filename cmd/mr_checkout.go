@@ -16,9 +16,10 @@ import (
 
 // mrCheckoutConfig holds configuration values for calls to lab mr checkout
 type mrCheckoutConfig struct {
-	branch string
-	force  bool
-	track  bool
+	branch             string
+	force              bool
+	track              bool
+	trackDefaultRemote bool
 }
 
 var (
@@ -67,22 +68,35 @@ var checkoutCmd = &cobra.Command{
 		// By default, fetch to configured branch
 		fetchToRef := mrCheckoutCfg.branch
 
-		// If track, make sure we have a remote for the mr author and then set
-		// the fetchToRef to the mr author/sourceBranch
-		if mrCheckoutCfg.track {
+		// If track or trackDefaultRemote, make sure we have a suitable remote
+		// for the mr and then set the fetchToRef to the remote/sourceBranch
+		if mrCheckoutCfg.track || mrCheckoutCfg.trackDefaultRemote {
+			// --track means use a remote named after MR author
+			// --track-default-remote means use remote.pushDefault, or
+			// targetRemote (ie defaultRemote) if that's not defined
+			trackingRemote := mr.Author.Username
+			if mrCheckoutCfg.trackDefaultRemote {
+				r, err := gitconfig.Local("remote.pushDefault")
+				if err == nil {
+					trackingRemote = r
+				} else {
+					trackingRemote = targetRemote
+				}
+			}
+
 			// Check if remote already exists
-			if _, err := gitconfig.Local("remote." + mr.Author.Username + ".url"); err != nil {
+			if _, err := gitconfig.Local("remote." + trackingRemote + ".url"); err != nil {
 				// Find and create remote
 				mrProject, err := lab.GetProject(mr.SourceProjectID)
 				if err != nil {
 					log.Fatal(err)
 				}
 				urlToRepo := labURLToRepo(mrProject)
-				if err := git.RemoteAdd(mr.Author.Username, urlToRepo, "."); err != nil {
+				if err := git.RemoteAdd(trackingRemote, urlToRepo, "."); err != nil {
 					log.Fatal(err)
 				}
 			}
-			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", mr.Author.Username, mr.SourceBranch)
+			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", trackingRemote, mr.SourceBranch)
 		}
 
 		if err := git.New("show-ref", "--verify", "--quiet", "refs/heads/"+fetchToRef).Run(); err == nil {
@@ -102,7 +116,7 @@ var checkoutCmd = &cobra.Command{
 		if err := git.New("fetch", targetRemote, fetchRefSpec).Run(); err != nil {
 			log.Fatal(err)
 		}
-		if mrCheckoutCfg.track {
+		if mrCheckoutCfg.track || mrCheckoutCfg.trackDefaultRemote {
 			// Create configured branch with tracking from fetchToRef
 			// git branch --flags <branchname> [<start-point>]
 			if err := git.New("branch", "--track", mrCheckoutCfg.branch, fetchToRef).Run(); err != nil {
@@ -120,6 +134,7 @@ var checkoutCmd = &cobra.Command{
 func init() {
 	checkoutCmd.Flags().StringVarP(&mrCheckoutCfg.branch, "branch", "b", "", "checkout merge request with <branch> name")
 	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set checked out branch to track mr author remote branch, adds remote if needed")
+	checkoutCmd.Flags().BoolVar(&mrCheckoutCfg.trackDefaultRemote, "track-default-remote", false, "set checked out branch to track default remote instead of author's remote (implies --track)")
 	// useHTTP is defined in "project_create.go"
 	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
 	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch checkout and override existing branch")
