@@ -59,7 +59,7 @@ func editDescription(title string, body string, msgs []string, filename string) 
 
 		content, err := ioutil.ReadFile(filename)
 		if err != nil {
-			return "", "", nil
+			return "", "", err
 		}
 		lines = strings.Split(string(content), "\n")
 
