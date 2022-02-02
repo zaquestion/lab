@@ -41,7 +41,7 @@ func getUpdateUsers(currentUsers []string, users []string, remove []string) ([]i
 // editGetTitleDescription returns a title and description based on the
 // current issue title and description and various flags from the command
 // line
-func editGetTitleDescription(title string, body string, msgs []string, nFlag int) (string, string, error) {
+func editGetTitleDescription(title string, body string, msgs []string) (string, string, error) {
 	if len(msgs) > 0 {
 		title = msgs[0]
 
@@ -50,12 +50,6 @@ func editGetTitleDescription(title string, body string, msgs []string, nFlag int
 		}
 
 		// we have everything we need
-		return title, body, nil
-	}
-
-	// if other flags were given (eg label), then skip the editor and return
-	// what we already have
-	if nFlag != 0 {
 		return title, body, nil
 	}
 

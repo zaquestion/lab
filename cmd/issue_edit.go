@@ -130,22 +130,30 @@ var issueEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		title, body, err := editGetTitleDescription(issue.Title, issue.Description, msgs, cmd.Flags().NFlag())
-		if err != nil {
-			_, f, l, _ := runtime.Caller(0)
-			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
-		}
-		if title == "" {
-			log.Fatal("aborting: empty issue title")
+
+		title := issue.Title
+		body := issue.Description
+
+		// We only consider editing an issue with -m or when no other flag is
+		// passed, but --linebreak.
+		if len(msgs) > 0 || cmd.Flags().NFlag() == 0 || (cmd.Flags().NFlag() == 1 && linebreak) {
+			title, body, err = editGetTitleDescription(issue.Title, issue.Description, msgs)
+			if err != nil {
+				_, f, l, _ := runtime.Caller(0)
+				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			}
+			if title == "" {
+				log.Fatal("aborting: empty issue title")
+			}
+
+			if linebreak {
+				body = textToMarkdown(body)
+			}
 		}
 
 		abortUpdate := title == issue.Title && body == issue.Description && !labelsChanged && !assigneesChanged && !updateMilestone
 		if abortUpdate {
 			log.Fatal("aborting: no changes")
-		}
-
-		if linebreak {
-			body = textToMarkdown(body)
 		}
 
 		opts := &gitlab.UpdateIssueOptions{

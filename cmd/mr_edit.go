@@ -189,7 +189,8 @@ var mrEditCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		var title, body string
+		title := mr.Title
+		body := mr.Description
 
 		if filename != "" {
 			if len(msgs) > 0 {
@@ -201,16 +202,19 @@ var mrEditCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 		} else {
-			title, body, err = editGetTitleDescription(
-				mr.Title, mr.Description, msgs, cmd.Flags().NFlag())
-			if err != nil {
-				_, f, l, _ := runtime.Caller(0)
-				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			// We only consider editing an mr with -m, -F or when no other flag
+			// is passed, but --linebreak.
+			if len(msgs) > 0 || cmd.Flags().NFlag() == 0 || (cmd.Flags().NFlag() == 1 && linebreak) {
+				title, body, err = editGetTitleDescription(mr.Title, mr.Description, msgs)
+				if err != nil {
+					_, f, l, _ := runtime.Caller(0)
+					log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+				}
 			}
-		}
 
-		if title == "" {
-			log.Fatal("aborting: empty mr title")
+			if title == "" {
+				log.Fatal("aborting: empty mr title")
+			}
 		}
 
 		isWIP := hasPrefix(title, "wip:") ||
