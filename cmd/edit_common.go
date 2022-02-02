@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -38,10 +40,10 @@ func getUpdateUsers(currentUsers []string, users []string, remove []string) ([]i
 	return userIDs, usersChanged, nil
 }
 
-// editGetTitleDescription returns a title and description based on the
+// editDescription returns a title and description based on the
 // current issue title and description and various flags from the command
 // line
-func editGetTitleDescription(title string, body string, msgs []string) (string, string, error) {
+func editDescription(title string, body string, msgs []string, filename string) (string, string, error) {
 	if len(msgs) > 0 {
 		title = msgs[0]
 
@@ -49,7 +51,21 @@ func editGetTitleDescription(title string, body string, msgs []string) (string, 
 			body = strings.Join(msgs[1:], "\n\n")
 		}
 
-		// we have everything we need
+		return title, body, nil
+	}
+
+	if filename != "" {
+		var lines []string
+
+		content, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return "", "", nil
+		}
+		lines = strings.Split(string(content), "\n")
+
+		title = lines[0]
+		body = strings.Join(lines[1:], "\n")
+
 		return title, body, nil
 	}
 
@@ -57,24 +73,12 @@ func editGetTitleDescription(title string, body string, msgs []string) (string, 
 	if err != nil {
 		return "", "", err
 	}
-	return git.Edit("EDIT", text)
-}
 
-// editGetTitleDescFromFile returns the new title and description based on
-// the content of a file. The first line is considered the title, the
-// remaining is the description.
-func editGetTitleDescFromFile(filename string) (string, string, error) {
-	var title, body string
-	var lines []string
-
-	content, err := ioutil.ReadFile(filename)
+	title, body, err = git.Edit("EDIT", text)
 	if err != nil {
-		return "", "", nil
+		_, f, l, _ := runtime.Caller(0)
+		log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 	}
-	lines = strings.Split(string(content), "\n")
-
-	title = lines[0]
-	body = strings.Join(lines[1:], "\n")
 
 	return title, body, nil
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -137,10 +136,9 @@ var issueEditCmd = &cobra.Command{
 		// We only consider editing an issue with -m or when no other flag is
 		// passed, but --linebreak.
 		if len(msgs) > 0 || cmd.Flags().NFlag() == 0 || (cmd.Flags().NFlag() == 1 && linebreak) {
-			title, body, err = editGetTitleDescription(issue.Title, issue.Description, msgs)
+			title, body, err = editDescription(issue.Title, issue.Description, msgs, "")
 			if err != nil {
-				_, f, l, _ := runtime.Caller(0)
-				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+				log.Fatal(err)
 			}
 			if title == "" {
 				log.Fatal("aborting: empty issue title")

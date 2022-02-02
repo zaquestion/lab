@@ -1,57 +1,93 @@
 package cmd
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func Test_editGetTitleAndDescription(t *testing.T) {
+func Test_editDescription(t *testing.T) {
+	repo := copyTestRepo(t)
+
+	type fakeGLObj struct {
+		Title       string
+		Description string
+	}
+
+	type funcArgs struct {
+		Msgs     []string
+		Filename string
+	}
+
 	tests := []struct {
 		Name                string
-		Issue               *gitlab.Issue
-		Args                []string
+		GLObj               fakeGLObj
+		Args                funcArgs
 		ExpectedTitle       string
 		ExpectedDescription string
 	}{
 		{
 			Name: "Using messages",
-			Issue: &gitlab.Issue{
+			GLObj: fakeGLObj{
 				Title:       "old title",
 				Description: "old body",
 			},
-			Args:                []string{"new title", "new body 1", "new body 2"},
+			Args: funcArgs{
+				Msgs:     []string{"new title", "new body 1", "new body 2"},
+				Filename: "",
+			},
 			ExpectedTitle:       "new title",
 			ExpectedDescription: "new body 1\n\nnew body 2",
 		},
 		{
 			Name: "Using a single message",
-			Issue: &gitlab.Issue{
+			GLObj: fakeGLObj{
 				Title:       "old title",
 				Description: "old body",
 			},
-			Args:                []string{"new title"},
+			Args: funcArgs{
+				Msgs:     []string{"new title"},
+				Filename: "",
+			},
 			ExpectedTitle:       "new title",
 			ExpectedDescription: "old body",
 		},
 		{
 			Name: "From Editor",
-			Issue: &gitlab.Issue{
+			GLObj: fakeGLObj{
 				Title:       "old title",
 				Description: "old body",
 			},
-			Args:                nil,
+			Args: funcArgs{
+				Msgs:     nil,
+				Filename: "",
+			},
 			ExpectedTitle:       "old title",
 			ExpectedDescription: "old body",
 		},
+		{
+			Name: "From file",
+			GLObj: fakeGLObj{
+				Title:       "old title",
+				Description: "old body",
+			},
+			Args: funcArgs{
+				Msgs:     nil,
+				Filename: filepath.Join(repo, "testedit"),
+			},
+			ExpectedTitle:       "new title",
+			ExpectedDescription: "\nnew body\n",
+		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			title, body, err := editGetTitleDescription(test.Issue.Title, test.Issue.Description, test.Args, len(test.Args))
+			title, body, err := editDescription(test.GLObj.Title,
+				test.GLObj.Description, test.Args.Msgs, test.Args.Filename)
 			if err != nil {
 				t.Fatal(err)
 			}

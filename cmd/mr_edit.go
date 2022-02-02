@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
@@ -192,28 +190,24 @@ var mrEditCmd = &cobra.Command{
 		title := mr.Title
 		body := mr.Description
 
-		if filename != "" {
-			if len(msgs) > 0 {
-				log.Fatal("option -F cannot be combined with -m")
-			}
+		if len(msgs) > 0 && filename != "" {
+			log.Fatal("option -F cannot be combined with -m")
+		}
 
-			title, body, err = editGetTitleDescFromFile(filename)
+		// We only consider editing title and body on -m, -F or when no other
+		// flag is passed, but --linebreak.
+		if len(msgs) > 0 || filename != "" ||
+			cmd.Flags().NFlag() == 0 || (cmd.Flags().NFlag() == 1 && linebreak) {
+			title, body, err = editDescription(mr.Title, mr.Description, msgs, filename)
 			if err != nil {
 				log.Fatal(err)
 			}
-		} else {
-			// We only consider editing an mr with -m, -F or when no other flag
-			// is passed, but --linebreak.
-			if len(msgs) > 0 || cmd.Flags().NFlag() == 0 || (cmd.Flags().NFlag() == 1 && linebreak) {
-				title, body, err = editGetTitleDescription(mr.Title, mr.Description, msgs)
-				if err != nil {
-					_, f, l, _ := runtime.Caller(0)
-					log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
-				}
-			}
-
 			if title == "" {
 				log.Fatal("aborting: empty mr title")
+			}
+
+			if linebreak {
+				body = textToMarkdown(body)
 			}
 		}
 
@@ -254,10 +248,6 @@ var mrEditCmd = &cobra.Command{
 			!targetBranchChanged && !reviewersChanged)
 		if abortUpdate {
 			log.Fatal("aborting: no changes")
-		}
-
-		if linebreak {
-			body = textToMarkdown(body)
 		}
 
 		opts := &gitlab.UpdateMergeRequestOptions{

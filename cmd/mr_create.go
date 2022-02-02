@@ -243,7 +243,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 			log.Fatal("option -F cannot be combined with -m/-c")
 		}
 
-		title, body, err = editGetTitleDescFromFile(filename)
+		title, body, err = editDescription("", "", nil, filename)
 		if err != nil {
 			log.Fatal(err)
 		}
