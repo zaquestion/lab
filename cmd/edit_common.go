@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"text/template"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/zaquestion/lab/internal/git"
 )
 
@@ -80,4 +83,35 @@ func editGetTitleDescFromFile(filename string) (string, string, error) {
 	body = strings.Join(lines[1:], "\n")
 
 	return title, body, nil
+}
+
+// editText places the text title and body in a specific template following Git
+// standards.
+func editText(title string, body string) (string, error) {
+	tmpl := heredoc.Doc(`
+		{{.InitMsg}}
+
+		{{.CommentChar}} Edit the title and/or description. The first block of text
+		{{.CommentChar}} is the title and the rest is the description.`)
+
+	msg := &struct {
+		InitMsg     string
+		CommentChar string
+	}{
+		InitMsg:     title + "\n\n" + body,
+		CommentChar: git.CommentChar(),
+	}
+
+	t, err := template.New("tmpl").Parse(tmpl)
+	if err != nil {
+		return "", err
+	}
+
+	var b bytes.Buffer
+	err = t.Execute(&b, msg)
+	if err != nil {
+		return "", err
+	}
+
+	return b.String(), nil
 }

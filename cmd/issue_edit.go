@@ -1,19 +1,16 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
-	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -188,37 +185,6 @@ func issueGetCurrentAssignees(issue *gitlab.Issue) []string {
 		}
 	}
 	return currentAssignees
-}
-
-// editText returns an issue editing template that is suitable for loading
-// into an editor
-func editText(title string, body string) (string, error) {
-	tmpl := heredoc.Doc(`
-		{{.InitMsg}}
-
-		{{.CommentChar}} Edit the title and/or description. The first block of text
-		{{.CommentChar}} is the title and the rest is the description.`)
-
-	msg := &struct {
-		InitMsg     string
-		CommentChar string
-	}{
-		InitMsg:     title + "\n\n" + body,
-		CommentChar: git.CommentChar(),
-	}
-
-	t, err := template.New("tmpl").Parse(tmpl)
-	if err != nil {
-		return "", err
-	}
-
-	var b bytes.Buffer
-	err = t.Execute(&b, msg)
-	if err != nil {
-		return "", err
-	}
-
-	return b.String(), nil
 }
 
 func init() {
