@@ -242,7 +242,14 @@ func getTermRenderer(style glamour.TermRendererOption) (*glamour.TermRenderer, e
 	return r, err
 }
 
-func printDiscussions(project string, discussions []*gitlab.Discussion, since string, idstr string, idNum int, renderMarkdown bool) {
+const (
+	NoteLevelNone = iota
+	NoteLevelComments
+	NoteLevelActivities
+	NoteLevelFull
+)
+
+func printDiscussions(project string, discussions []*gitlab.Discussion, since string, idstr string, idNum int, renderMarkdown bool, noteLevel int) {
 	newAccessTime := time.Now().UTC()
 
 	issueEntry := fmt.Sprintf("%s%d", idstr, idNum)
@@ -269,7 +276,10 @@ func printDiscussions(project string, discussions []*gitlab.Discussion, since st
 	// https://godoc.org/github.com/xanzy/go-gitlab#Discussion
 	for _, discussion := range discussions {
 		for i, note := range discussion.Notes {
-
+			if (noteLevel == NoteLevelActivities && note.System == false) ||
+				(noteLevel == NoteLevelComments && note.System == true) {
+				continue
+			}
 			indentHeader, indentNote := "", ""
 			commented := "commented"
 			if !time.Time(*note.CreatedAt).Equal(time.Time(*note.UpdatedAt)) {
