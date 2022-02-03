@@ -140,6 +140,21 @@ func InitWithCustomCA(_host, _user, _token, caFile string) error {
 	return nil
 }
 
+func parseID(id interface{}) (string, error) {
+	var strID string
+
+	switch v := id.(type) {
+	case int:
+		strID = strconv.Itoa(v)
+	case string:
+		strID = v
+	default:
+		return "", fmt.Errorf("unknown id type %#v", id)
+	}
+
+	return strID, nil
+}
+
 // Defines filepath for default GitLab templates
 const (
 	TmplMR    = "merge_request_templates/default.md"
@@ -356,7 +371,7 @@ func Fork(projID interface{}, opts *gitlab.ForkProjectOptions, useHTTP bool, wai
 }
 
 // MRCreate opens a merge request on GitLab
-func MRCreate(projID string, opts *gitlab.CreateMergeRequestOptions) (string, error) {
+func MRCreate(projID interface{}, opts *gitlab.CreateMergeRequestOptions) (string, error) {
 	mr, _, err := lab.MergeRequests.CreateMergeRequest(projID, opts)
 	if err != nil {
 		return "", err
@@ -365,7 +380,7 @@ func MRCreate(projID string, opts *gitlab.CreateMergeRequestOptions) (string, er
 }
 
 // MRCreateDiscussion creates a discussion on a merge request on GitLab
-func MRCreateDiscussion(projID string, id int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
+func MRCreateDiscussion(projID interface{}, id int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
 	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -383,7 +398,7 @@ func MRCreateDiscussion(projID string, id int, opts *gitlab.CreateMergeRequestDi
 }
 
 // MRUpdate edits an merge request on a GitLab project
-func MRUpdate(projID string, id int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
+func MRUpdate(projID interface{}, id int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
 	mr, _, err := lab.MergeRequests.UpdateMergeRequest(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -393,7 +408,7 @@ func MRUpdate(projID string, id int, opts *gitlab.UpdateMergeRequestOptions) (st
 }
 
 // MRDelete deletes an merge request on a GitLab project
-func MRDelete(projID string, id int) error {
+func MRDelete(projID interface{}, id int) error {
 	resp, err := lab.MergeRequests.DeleteMergeRequest(projID, id)
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
@@ -405,7 +420,7 @@ func MRDelete(projID string, id int) error {
 }
 
 // MRCreateNote adds a note to a merge request on GitLab
-func MRCreateNote(projID string, id int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
+func MRCreateNote(projID interface{}, id int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
 	note, _, err := lab.Notes.CreateMergeRequestNote(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -431,7 +446,7 @@ func MRGet(projID interface{}, id int) (*gitlab.MergeRequest, error) {
 }
 
 // MRList lists the MRs on a GitLab project
-func MRList(projID string, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
+func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
@@ -501,7 +516,7 @@ func MRReopen(projID interface{}, id int) error {
 }
 
 // MRListDiscussions retrieves the discussions (aka notes & comments) for a merge request
-func MRListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
+func MRListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, error) {
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListMergeRequestDiscussionsOptions{
 		// 100 is the maximum allowed by the API
@@ -626,7 +641,7 @@ func MRThumbDown(projID interface{}, id int) error {
 }
 
 // IssueCreate opens a new issue on a GitLab project
-func IssueCreate(projID string, opts *gitlab.CreateIssueOptions) (string, error) {
+func IssueCreate(projID interface{}, opts *gitlab.CreateIssueOptions) (string, error) {
 	mr, _, err := lab.Issues.CreateIssue(projID, opts)
 	if err != nil {
 		return "", err
@@ -635,7 +650,7 @@ func IssueCreate(projID string, opts *gitlab.CreateIssueOptions) (string, error)
 }
 
 // IssueUpdate edits an issue on a GitLab project
-func IssueUpdate(projID string, id int, opts *gitlab.UpdateIssueOptions) (string, error) {
+func IssueUpdate(projID interface{}, id int, opts *gitlab.UpdateIssueOptions) (string, error) {
 	issue, _, err := lab.Issues.UpdateIssue(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -644,7 +659,7 @@ func IssueUpdate(projID string, id int, opts *gitlab.UpdateIssueOptions) (string
 }
 
 // IssueCreateNote creates a new note on an issue and returns the note URL
-func IssueCreateNote(projID string, id int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
+func IssueCreateNote(projID interface{}, id int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
 	note, _, err := lab.Notes.CreateIssueNote(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -670,7 +685,7 @@ func IssueGet(projID interface{}, id int) (*gitlab.Issue, error) {
 }
 
 // IssueList gets a list of issues on a GitLab Project
-func IssueList(projID string, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
+func IssueList(projID interface{}, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
 	if n == -1 {
 		opts.PerPage = maxItemsPerPage
 	}
@@ -722,20 +737,25 @@ func IssueClose(projID interface{}, id int) error {
 }
 
 // IssueDuplicate closes an issue as duplicate of another
-func IssueDuplicate(projID interface{}, id int, duprojID string) error {
-	// Not exposed in API, go through quick action
-	body := "/duplicate " + duprojID
+func IssueDuplicate(projID interface{}, id int, dupID interface{}) error {
+	dID, err := parseID(dupID)
+	if err != nil {
+		return err
+	}
 
-	_, _, err := lab.Notes.CreateIssueNote(projID, id, &gitlab.CreateIssueNoteOptions{
+	// Not exposed in API, go through quick action
+	body := "/duplicate " + dID
+
+	_, _, err = lab.Notes.CreateIssueNote(projID, id, &gitlab.CreateIssueNoteOptions{
 		Body: &body,
 	})
 	if err != nil {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, duprojID)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dID)
 	}
 
 	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if issue == nil || issue.State != "closed" {
-		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, duprojID)
+		return errors.Errorf("Failed to close issue #%d as duplicate of %s", id, dID)
 	}
 	return nil
 }
@@ -759,7 +779,7 @@ func IssueReopen(projID interface{}, id int) error {
 }
 
 // IssueListDiscussions retrieves the discussions (aka notes & comments) for an issue
-func IssueListDiscussions(projID string, id int) ([]*gitlab.Discussion, error) {
+func IssueListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, error) {
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListIssueDiscussionsOptions{
 		// 100 is the maximum allowed by the API
@@ -821,7 +841,7 @@ func GetCommit(projID interface{}, ref string) (*gitlab.Commit, error) {
 }
 
 // LabelList gets a list of labels on a GitLab Project
-func LabelList(projID string) ([]*gitlab.Label, error) {
+func LabelList(projID interface{}) ([]*gitlab.Label, error) {
 	labels := []*gitlab.Label{}
 	opt := &gitlab.ListLabelsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -849,7 +869,7 @@ func LabelList(projID string) ([]*gitlab.Label, error) {
 }
 
 // LabelCreate creates a new project label
-func LabelCreate(projID string, opts *gitlab.CreateLabelOptions) error {
+func LabelCreate(projID interface{}, opts *gitlab.CreateLabelOptions) error {
 	_, _, err := lab.Labels.CreateLabel(projID, opts)
 	return err
 }
@@ -864,7 +884,7 @@ func LabelDelete(projID, name string) error {
 
 // BranchList get all branches from the project that somehow matches the
 // requested options
-func BranchList(projID string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
+func BranchList(projID interface{}, opts *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
 	branches := []*gitlab.Branch{}
 	for {
 		bList, resp, err := lab.Branches.ListBranches(projID, opts)
@@ -883,7 +903,7 @@ func BranchList(projID string, opts *gitlab.ListBranchesOptions) ([]*gitlab.Bran
 }
 
 // MilestoneGet get a specific milestone from the list of available ones
-func MilestoneGet(projID string, name string) (*gitlab.Milestone, error) {
+func MilestoneGet(projID interface{}, name string) (*gitlab.Milestone, error) {
 	opts := &gitlab.ListMilestonesOptions{
 		Search: &name,
 	}
@@ -900,7 +920,7 @@ func MilestoneGet(projID string, name string) (*gitlab.Milestone, error) {
 }
 
 // MilestoneList gets a list of milestones on a GitLab Project
-func MilestoneList(projID string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.Milestone, error) {
+func MilestoneList(projID interface{}, opt *gitlab.ListMilestonesOptions) ([]*gitlab.Milestone, error) {
 	milestones := []*gitlab.Milestone{}
 	for {
 		m, resp, err := lab.Milestones.ListMilestones(projID, opt)
@@ -970,7 +990,7 @@ func MilestoneList(projID string, opt *gitlab.ListMilestonesOptions) ([]*gitlab.
 }
 
 // MilestoneCreate creates a new project milestone
-func MilestoneCreate(projID string, opts *gitlab.CreateMilestoneOptions) error {
+func MilestoneCreate(projID interface{}, opts *gitlab.CreateMilestoneOptions) error {
 	_, _, err := lab.Milestones.CreateMilestone(projID, opts)
 	return err
 }
@@ -1462,7 +1482,7 @@ func UserIDFromEmail(email string) (int, error) {
 }
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
-func AddMRDiscussionNote(projID string, mrID int, discussionID string, body string) (string, error) {
+func AddMRDiscussionNote(projID interface{}, mrID int, discussionID string, body string) (string, error) {
 	opts := &gitlab.AddMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1480,7 +1500,7 @@ func AddMRDiscussionNote(projID string, mrID int, discussionID string, body stri
 }
 
 // AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
-func AddIssueDiscussionNote(projID string, issueID int, discussionID string, body string) (string, error) {
+func AddIssueDiscussionNote(projID interface{}, issueID int, discussionID string, body string) (string, error) {
 	opts := &gitlab.AddIssueDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1499,7 +1519,7 @@ func AddIssueDiscussionNote(projID string, issueID int, discussionID string, bod
 
 // UpdateIssueDiscussionNote updates a specific discussion or note in the
 // specified issue number
-func UpdateIssueDiscussionNote(projID string, issueID int, discussionID string, noteID int, body string) (string, error) {
+func UpdateIssueDiscussionNote(projID interface{}, issueID int, discussionID string, noteID int, body string) (string, error) {
 	opts := &gitlab.UpdateIssueDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1518,7 +1538,7 @@ func UpdateIssueDiscussionNote(projID string, issueID int, discussionID string, 
 
 // UpdateMRDiscussionNote updates a specific discussion or note in the
 // specified MR ID.
-func UpdateMRDiscussionNote(projID string, mrID int, discussionID string, noteID int, body string) (string, error) {
+func UpdateMRDiscussionNote(projID interface{}, mrID int, discussionID string, noteID int, body string) (string, error) {
 	opts := &gitlab.UpdateMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1537,7 +1557,7 @@ func UpdateMRDiscussionNote(projID string, mrID int, discussionID string, noteID
 
 // ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
 // being closed
-func ListMRsClosingIssue(projID string, id int) ([]int, error) {
+func ListMRsClosingIssue(projID interface{}, id int) ([]int, error) {
 	var retArray []int
 
 	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(projID, id, nil, nil)
@@ -1554,7 +1574,7 @@ func ListMRsClosingIssue(projID string, id int) ([]int, error) {
 
 // ListMRsRelatedToIssue return a list of MR IDs that has any relations to a
 // certain issue
-func ListMRsRelatedToIssue(projID string, id int) ([]int, error) {
+func ListMRsRelatedToIssue(projID interface{}, id int) ([]int, error) {
 	var retArray []int
 
 	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(projID, id, nil, nil)
@@ -1571,7 +1591,7 @@ func ListMRsRelatedToIssue(projID string, id int) ([]int, error) {
 
 // ListIssuesClosedOnMerge retuns a list of issue numbers that were closed by
 // an MR being merged
-func ListIssuesClosedOnMerge(projID string, id int) ([]int, error) {
+func ListIssuesClosedOnMerge(projID interface{}, id int) ([]int, error) {
 	var retArray []int
 
 	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(projID, id, nil, nil)
@@ -1584,11 +1604,10 @@ func ListIssuesClosedOnMerge(projID string, id int) ([]int, error) {
 	}
 
 	return retArray, nil
-
 }
 
 // MoveIssue moves one issue from one project to another
-func MoveIssue(projID string, id int, destProjID string) (string, error) {
+func MoveIssue(projID interface{}, id int, destProjID interface{}) (string, error) {
 	destProject, err := FindProject(destProjID)
 	if err != nil {
 		return "", err
@@ -1607,7 +1626,7 @@ func MoveIssue(projID string, id int, destProjID string) (string, error) {
 }
 
 // GetMRApprovalsConfiguration returns the current MR approval rule
-func GetMRApprovalsConfiguration(projID string, id int) (*gitlab.MergeRequestApprovals, error) {
+func GetMRApprovalsConfiguration(projID interface{}, id int) (*gitlab.MergeRequestApprovals, error) {
 	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(projID, id)
 	if err != nil {
 		return nil, err
@@ -1617,7 +1636,7 @@ func GetMRApprovalsConfiguration(projID string, id int) (*gitlab.MergeRequestApp
 }
 
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
-func ResolveMRDiscussion(projID string, mrID int, discussionID string, noteID int) (string, error) {
+func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, noteID int) (string, error) {
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
 		Resolved: gitlab.Bool(true),
 	}
@@ -1688,7 +1707,7 @@ func TodoMarkAllDone() error {
 }
 
 // TodoMRCreate create a Todo item for an specific MR
-func TodoMRCreate(projID string, id int) (int, error) {
+func TodoMRCreate(projID interface{}, id int) (int, error) {
 	todo, resp, err := lab.MergeRequests.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
@@ -1700,7 +1719,7 @@ func TodoMRCreate(projID string, id int) (int, error) {
 }
 
 // TodoIssueCreate create a Todo item for an specific Issue
-func TodoIssueCreate(projID string, id int) (int, error) {
+func TodoIssueCreate(projID interface{}, id int) (int, error) {
 	todo, resp, err := lab.Issues.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
@@ -1711,7 +1730,7 @@ func TodoIssueCreate(projID string, id int) (int, error) {
 	return todo.ID, nil
 }
 
-func GetCommitDiff(projID string, sha string) ([]*gitlab.Diff, error) {
+func GetCommitDiff(projID interface{}, sha string) ([]*gitlab.Diff, error) {
 	var diffs []*gitlab.Diff
 	opt := &gitlab.GetCommitDiffOptions{
 		PerPage: maxItemsPerPage,
@@ -1739,7 +1758,7 @@ func GetCommitDiff(projID string, sha string) ([]*gitlab.Diff, error) {
 	return diffs, nil
 }
 
-func CreateCommitComment(projID string, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
 	// Ideally want to use lab.Commits.PostCommitComment, however,
 	// that API only support comments on linetype=new.
 	//
@@ -1789,7 +1808,7 @@ func CreateCommitComment(projID string, sha string, newFile string, oldFile stri
 	return fmt.Sprintf("%s#note_%d", commitInfo.WebURL, commitDiscussion.Notes[0].ID), nil
 }
 
-func CreateMergeRequestCommitDiscussion(projID string, id int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+func CreateMergeRequestCommitDiscussion(projID interface{}, id int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
 	commitInfo, err := GetCommit(projID, sha)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
