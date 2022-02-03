@@ -69,7 +69,7 @@ var forkCmd = &cobra.Command{
 		}
 
 		if project != "" {
-			forkToUpstream(project)
+			forkCleanProject(project)
 			return
 		}
 
@@ -81,11 +81,15 @@ var forkCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		forkFromOrigin(project)
+		forkRemoteProject(project)
 	},
 }
 
-func forkFromOrigin(project string) {
+// forkRemoteProject handle forks from within an already existent local
+// repository (working directory), using git-remote information passed (or
+// not) by the user. Since the directory already exists, only a new remote
+// is added.
+func forkRemoteProject(project string) {
 	// Check for custom target namespace
 	remote := determineForkRemote(project)
 	if _, err := gitconfig.Local("remote." + remote + ".url"); err == nil {
@@ -107,7 +111,11 @@ func forkFromOrigin(project string) {
 	}
 }
 
-func forkToUpstream(project string) {
+// forkCleanProject handle forks when the user passes a project name instead
+// of a remote name directly. Usually it happens when the user is outside an
+// existent local repository (working directory). Also, a clone step is
+// performed when not explicitly skipped by the user with --skip-clone.
+func forkCleanProject(project string) {
 	// lab.Fork doesn't have access to the useHTTP var, so we need to pass
 	// this info to that, so the process works correctly.
 	_, err := lab.Fork(project, forkOpts, useHTTP, waitFork)
