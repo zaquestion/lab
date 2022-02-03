@@ -100,7 +100,6 @@ var projectCreateCmd = &cobra.Command{
 }
 
 func determineNamespacePath(args []string, name string) (string, string) {
-	var path string
 	if len(args) > 0 {
 		ps := strings.Split(args[0], "/")
 		if len(ps) == 1 {
@@ -108,7 +107,9 @@ func determineNamespacePath(args []string, name string) (string, string) {
 		}
 		return strings.Join(ps[:len(ps)-1], "/"), ps[len(ps)-1]
 	}
-	if path == "" && name == "" && git.InsideGitRepo() {
+
+	var path string
+	if name == "" && git.InsideGitRepo() {
 		wd, err := git.WorkingDir()
 		if err != nil {
 			log.Fatal(err)
