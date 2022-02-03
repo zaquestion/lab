@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -182,33 +183,76 @@ func GetProject(projID interface{}) (*gitlab.Project, error) {
 
 // FindProject looks up the Gitlab project. If the namespace is not provided in
 // the project string it will search for projects in the users namespace
-func FindProject(projID string) (*gitlab.Project, error) {
-	if target, ok := localProjects[projID]; ok {
-		return target, nil
+func FindProject(projID interface{}) (*gitlab.Project, error) {
+	var (
+		id     string
+		search string
+	)
+
+	switch v := projID.(type) {
+	case int:
+		// If the project number is used directly, don't "guess" anything
+		id = strconv.Itoa(v)
+		search = id
+	case string:
+		id = v
+		search = id
+		// If the project name is used, check if it already has the
+		// namespace (already have a slash '/' in the name) or try to guess
+		// it's on user's own namespace.
+		if !strings.Contains(id, "/") {
+			search = user + "/" + id
+		}
 	}
 
-	search := projID
-	// Assuming that a "/" in the project means its owned by an org
-	if !strings.Contains(projID, "/") {
-		search = user + "/" + projID
+	if target, ok := localProjects[id]; ok {
+		return target, nil
 	}
 
 	target, err := GetProject(search)
 	if err != nil {
 		return nil, err
 	}
+
 	// fwiw, I feel bad about this
-	localProjects[projID] = target
+	localProjects[id] = target
 
 	return target, nil
 }
 
 // Fork creates a user fork of a GitLab project using the specified protocol
-func Fork(projID string, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bool) (string, error) {
-	if !strings.Contains(projID, "/") {
-		return "", errors.New("remote must include namespace")
+func Fork(projID interface{}, opts *gitlab.ForkProjectOptions, useHTTP bool, wait bool) (string, error) {
+	var id string
+
+	switch v := projID.(type) {
+	case int:
+		// If numeric ID, we need the complete name with namespace
+		p, err := FindProject(v)
+		if err != nil {
+			return "", err
+		}
+		id = p.NameWithNamespace
+	case string:
+		id = v
+		// Check if the ID passed already contains the namespace/path that
+		// we need.
+		if !strings.Contains(id, "/") {
+			// Is it a numeric ID passed as string?
+			if _, err := strconv.Atoi(id); err != nil {
+				return "", errors.New("remote must include namespace")
+			}
+
+			// Do the same as done in 'case int' for numeric ID passed as
+			// string
+			p, err := FindProject(id)
+			if err != nil {
+				return "", err
+			}
+			id = p.NameWithNamespace
+		}
 	}
-	parts := strings.Split(projID, "/")
+
+	parts := strings.Split(id, "/")
 
 	// See if a fork already exists in the destination
 	name := parts[len(parts)-1]

@@ -26,13 +26,15 @@ var (
 
 // forkCmd represents the fork command
 var forkCmd = &cobra.Command{
-	Use:   "fork [remote|repo]",
+	Use:   "fork [remote],[project name or ID]",
 	Short: "Fork a remote repository on GitLab and add as remote",
 	Long: heredoc.Doc(`
 		Fork a remote repository on user's location of choice.
 		Both an already existent remote or a repository path can be specified.`),
 	Example: heredoc.Doc(`
 		lab fork origin
+		lab fork coolGroup/coolProject
+		lab fork 1234567
 		lab fork upstream --remote-name origin
 		lab fork origin --name new-awesome-project
 		lab fork origin -g TheCoolestGroup -n InitialProject
