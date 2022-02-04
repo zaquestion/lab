@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc/v2"
 	"os"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitconfig "github.com/tcnksm/go-gitconfig"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
@@ -71,18 +70,37 @@ var checkoutCmd = &cobra.Command{
 		// the fetchToRef to the mr author/sourceBranch
 		if mrCheckoutCfg.track {
 			// Check if remote already exists
-			if _, err := gitconfig.Local("remote." + mr.Author.Username + ".url"); err != nil {
-				// Find and create remote
-				mrProject, err := lab.GetProject(mr.SourceProjectID)
+			project, err := lab.GetProject(mr.SourceProjectID)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			remotes, err := git.Remotes()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			remoteName := ""
+			for _, remote := range remotes {
+				path, err := git.PathWithNamespace(remote)
+				if err != nil {
+					continue
+				}
+				if path == project.PathWithNamespace {
+					remoteName = remote
+				}
+			}
+
+			if remoteName == "" {
+				remoteName = mr.Author.Username
+				urlToRepo := labURLToRepo(project)
+				err := git.RemoteAdd(remoteName, urlToRepo, ".")
 				if err != nil {
 					log.Fatal(err)
 				}
-				urlToRepo := labURLToRepo(mrProject)
-				if err := git.RemoteAdd(mr.Author.Username, urlToRepo, "."); err != nil {
-					log.Fatal(err)
-				}
 			}
-			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", mr.Author.Username, mr.SourceBranch)
+
+			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", remoteName, mr.SourceBranch)
 		}
 
 		if err := git.New("show-ref", "--verify", "--quiet", "refs/heads/"+fetchToRef).Run(); err == nil {
