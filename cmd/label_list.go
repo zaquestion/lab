@@ -27,6 +27,11 @@ var labelListCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		nameOnly, err := cmd.Flags().GetBool("name-only")
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		labelSearch = strings.ToLower(labelSearch)
 
 		labels, err := lab.LabelList(rn)
@@ -45,7 +50,7 @@ var labelListCmd = &cobra.Command{
 			}
 
 			description := ""
-			if label.Description != "" {
+			if !nameOnly && label.Description != "" {
 				description = " - " + label.Description
 			}
 
@@ -79,6 +84,7 @@ func mapLabels(rn string, labelTerms []string) ([]string, error) {
 }
 
 func init() {
+	labelListCmd.Flags().Bool("name-only", false, "only list label names, not descriptions")
 	labelCmd.AddCommand(labelListCmd)
 	carapace.Gen(labelCmd).PositionalCompletion(
 		action.Remotes(),
