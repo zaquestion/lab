@@ -88,6 +88,7 @@ var checkoutCmd = &cobra.Command{
 				}
 				if path == project.PathWithNamespace {
 					remoteName = remote
+					break
 				}
 			}
 
@@ -137,7 +138,7 @@ var checkoutCmd = &cobra.Command{
 
 func init() {
 	checkoutCmd.Flags().StringVarP(&mrCheckoutCfg.branch, "branch", "b", "", "checkout merge request with <branch> name")
-	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set checked out branch to track mr author remote branch, adds remote if needed")
+	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set branch to track remote branch, adds remote if needed")
 	// useHTTP is defined in "project_create.go"
 	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
 	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch checkout and override existing branch")

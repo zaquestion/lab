@@ -11,8 +11,6 @@ import (
 	"time"
 
 	retry "github.com/avast/retry-go"
-	gogit "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pkg/errors"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	"github.com/zaquestion/lab/internal/logger"
@@ -240,42 +238,42 @@ func RemoteAdd(name, url, dir string) error {
 
 // Remotes get the list of remotes available in the current repo dir
 func Remotes() ([]string, error) {
-	repo, err := gogit.PlainOpen(".")
+	cmd := New("remote")
+	cmd.Stderr = nil
+	cmd.Stdout = nil
+	out, err := cmd.Output()
 	if err != nil {
-		return []string{}, err
-	}
-	remotes, err := repo.Remotes()
-	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 
-	names := make([]string, len(remotes))
-	for i, r := range remotes {
-		names[i] = r.Config().Name
-	}
+	names := strings.Split(string(out), "\n")
+
 	return names, nil
 }
 
 // RemoteBranches get the list of branches the specified remote has
 func RemoteBranches(remote string) ([]string, error) {
-	repo, err := gogit.PlainOpen(".")
+	cmd := New("for-each-ref", "refs/remotes/")
+	cmd.Stderr = nil
+	cmd.Stdout = nil
+	out, err := cmd.Output()
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 
-	branches, err := repo.References() // TODO verify is a branch Branches didn't seem to work
-	if err != nil {
-		return []string{}, err
-	}
-	reg := regexp.MustCompile(`^refs/remotes/[^/]+/`)
+	refsData := strings.Split(string(out), "\n")
+	re := regexp.MustCompile(`^refs/remotes/[^/]+/`)
 
 	names := []string{}
-	branches.ForEach(func(ref *plumbing.Reference) error {
-		if ref.Name().IsRemote() && strings.HasPrefix(ref.Name().String(), "refs/remotes/"+remote) {
-			names = append(names, reg.ReplaceAllString(ref.Name().String(), ""))
+	for _, refData := range refsData {
+		// refData = <sha> <objtype>\t<refname>
+		dataParts := strings.Split(refData, "\t")
+		refname := dataParts[len(dataParts)-1]
+		if strings.HasPrefix(refname, "refs/remotes/"+remote) {
+			names = append(names, re.ReplaceAllString(refname, ""))
 		}
-		return nil
-	})
+	}
+
 	return names, nil
 }
 
