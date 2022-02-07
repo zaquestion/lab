@@ -72,8 +72,8 @@ func UserID() (int, error) {
 
 // Init initializes a gitlab client for use throughout lab.
 func Init(_host, _user, _token string, allowInsecure bool) {
-	if len(_host) > 0 && _host[len(_host)-1:][0] == '/' {
-		_host = _host[0 : len(_host)-1]
+	if len(_host) > 0 && _host[len(_host)-1] == '/' {
+		_host = _host[:len(_host)-1]
 	}
 	host = _host
 	user = _user
@@ -105,6 +105,13 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 // one for instance) instead of relying only on those installed in the current
 // system database
 func InitWithCustomCA(_host, _user, _token, caFile string) error {
+	if len(_host) > 0 && _host[len(_host)-1] == '/' {
+		_host = _host[:len(_host)-1]
+	}
+	host = _host
+	user = _user
+	token = _token
+
 	caCert, err := ioutil.ReadFile(caFile)
 	if err != nil {
 		return err
