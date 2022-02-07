@@ -151,7 +151,7 @@ func Test_mrDoubleCheckoutFailCmdRun(t *testing.T) {
 		t.Log(eLog)
 		t.Fatal(err)
 	}
-	require.Contains(t, eLog, "ERROR: mr 1 branch mrtest already exists")
+	require.Contains(t, eLog, "branch mrtest already exists")
 }
 
 func Test_mrDoubleCheckoutForceRun(t *testing.T) {

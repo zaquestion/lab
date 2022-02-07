@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
@@ -63,6 +62,18 @@ var checkoutCmd = &cobra.Command{
 		if mrCheckoutCfg.branch == "" {
 			mrCheckoutCfg.branch = mr.SourceBranch
 		}
+
+		err = git.New("show-ref", "--verify", "--quiet", "refs/heads/"+mrCheckoutCfg.branch).Run()
+		if err == nil {
+			if mrCheckoutCfg.force {
+				if err := git.New("branch", "-D", mrCheckoutCfg.branch).Run(); err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Fatalf("branch %s already exists", mrCheckoutCfg.branch)
+			}
+		}
+
 		// By default, fetch to configured branch
 		fetchToRef := mrCheckoutCfg.branch
 
@@ -101,26 +112,29 @@ var checkoutCmd = &cobra.Command{
 				}
 			}
 
-			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", remoteName, mr.SourceBranch)
-		}
-
-		if err := git.New("show-ref", "--verify", "--quiet", "refs/heads/"+fetchToRef).Run(); err == nil {
-			if mrCheckoutCfg.force {
-				if err := git.New("branch", "-D", mrCheckoutCfg.branch).Run(); err != nil {
-					log.Fatal(err)
+			trackRef := fmt.Sprintf("refs/remotes/%s/%s", remoteName, mr.SourceBranch)
+			err = git.New("show-ref", "--verify", "--quiet", trackRef).Run()
+			if err == nil {
+				if mrCheckoutCfg.force {
+					err = git.New("update-ref", "-d", trackRef).Run()
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					log.Fatalf("remote reference %s already exists", trackRef)
 				}
-			} else {
-				fmt.Println("ERROR: mr", mrID, "branch", fetchToRef, "already exists.")
-				os.Exit(1)
 			}
+
+			fetchToRef = trackRef
 		}
 
-		// https://docs.gitlab.com/ce/user/project/merge_requests/#checkout-merge-requests-locally
+		// https://docs.gitlab.com/ee/user/project/merge_requests/reviews/#checkout-merge-requests-locally-through-the-head-ref
 		mrRef := fmt.Sprintf("refs/merge-requests/%d/head", mrID)
 		fetchRefSpec := fmt.Sprintf("%s:%s", mrRef, fetchToRef)
 		if err := git.New("fetch", targetRemote, fetchRefSpec).Run(); err != nil {
 			log.Fatal(err)
 		}
+
 		if mrCheckoutCfg.track {
 			// Create configured branch with tracking from fetchToRef
 			// git branch --flags <branchname> [<start-point>]
@@ -141,7 +155,7 @@ func init() {
 	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set branch to track remote branch, adds remote if needed")
 	// useHTTP is defined in "project_create.go"
 	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
-	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch checkout and override existing branch")
+	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch and remote reference override")
 	mrCmd.AddCommand(checkoutCmd)
 	carapace.Gen(checkoutCmd).PositionalCompletion(
 		carapace.ActionCallback(func(c carapace.Context) carapace.Action {
