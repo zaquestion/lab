@@ -52,7 +52,7 @@ func Test_mrCheckoutCmd_track(t *testing.T) {
 	cmd.Dir = repo
 	cmd.CombinedOutput()
 
-	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "-t", "-b", "mrtest_track")
+	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "-f", "-t", "-b", "mrtest_track")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
