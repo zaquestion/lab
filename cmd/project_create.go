@@ -24,6 +24,7 @@ var projectCreateCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab project create myproject
 		lab project create myproject -n "new proj"
+		lab project create myproject -r myupstream
 		lab project create -g mygroup myproject
 		lab project create mygroup/myproject -n "new proj"
 		lab project create myproject --http
@@ -34,9 +35,10 @@ var projectCreateCmd = &cobra.Command{
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			name, _  = cmd.Flags().GetString("name")
-			desc, _  = cmd.Flags().GetString("description")
-			group, _ = cmd.Flags().GetString("group")
+			name, _   = cmd.Flags().GetString("name")
+			desc, _   = cmd.Flags().GetString("description")
+			group, _  = cmd.Flags().GetString("group")
+			remote, _ = cmd.Flags().GetString("remote")
 		)
 
 		g, path := determineNamespacePath(args, name)
@@ -88,13 +90,19 @@ var projectCreateCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		if git.InsideGitRepo() {
-			urlToRepo := labURLToRepo(p)
-			err = git.RemoteAdd("origin", urlToRepo, ".")
-			if err != nil {
-				log.Fatal(err)
+
+		if remote != "" {
+			if git.InsideGitRepo() {
+				urlToRepo := labURLToRepo(p)
+				err = git.RemoteAdd(remote, urlToRepo, ".")
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Warnf("outside of a git repo. remote '%s' not added\n", remote)
 			}
 		}
+
 		fmt.Println(strings.TrimSuffix(p.HTTPURLToRepo, ".git"))
 	},
 }
@@ -124,6 +132,7 @@ func init() {
 	projectCreateCmd.Flags().StringP("name", "n", "", "name of the new project")
 	projectCreateCmd.Flags().StringP("group", "g", "", "group name (also known as namespace)")
 	projectCreateCmd.Flags().StringP("description", "d", "", "description of the new project")
+	projectCreateCmd.Flags().StringP("remote", "r", "", "add remote referring to the new project")
 	projectCreateCmd.Flags().BoolVarP(&private, "private", "p", false, "make project private: visible only to project members")
 	projectCreateCmd.Flags().BoolVar(&public, "public", false, "make project public: visible without any authentication")
 	projectCreateCmd.Flags().BoolVar(&internal, "internal", false, "make project internal: visible to any authenticated user (default)")
