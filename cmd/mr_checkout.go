@@ -2,13 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc/v2"
-	"os"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitconfig "github.com/tcnksm/go-gitconfig"
-	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -42,28 +39,35 @@ var checkoutCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		var targetRemote = defaultRemote
+
+		targetRemote := defaultRemote
 		if len(args) == 2 {
 			// parseArgs above already validated this is a remote
 			targetRemote = args[0]
 		}
 
-		mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
-			IIDs: []int{int(mrID)},
-		}, 1)
+		mr, err := lab.MRGet(rn, int(mrID))
 		if err != nil {
 			log.Fatal(err)
 		}
-		if len(mrs) < 1 {
-			fmt.Printf("MR !%d not found\n", mrID)
-			return
-		}
 
-		mr := mrs[0]
 		// If the config does not specify a branch, use the mr source branch name
 		if mrCheckoutCfg.branch == "" {
 			mrCheckoutCfg.branch = mr.SourceBranch
 		}
+
+		err = git.New("show-ref", "--verify", "--quiet", "refs/heads/"+mrCheckoutCfg.branch).Run()
+		if err == nil {
+			if mrCheckoutCfg.force {
+				err = git.New("branch", "-D", mrCheckoutCfg.branch).Run()
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Fatalf("branch %s already exists", mrCheckoutCfg.branch)
+			}
+		}
+
 		// By default, fetch to configured branch
 		fetchToRef := mrCheckoutCfg.branch
 
@@ -71,47 +75,72 @@ var checkoutCmd = &cobra.Command{
 		// the fetchToRef to the mr author/sourceBranch
 		if mrCheckoutCfg.track {
 			// Check if remote already exists
-			if _, err := gitconfig.Local("remote." + mr.Author.Username + ".url"); err != nil {
-				// Find and create remote
-				mrProject, err := lab.GetProject(mr.SourceProjectID)
+			project, err := lab.GetProject(mr.SourceProjectID)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			remotes, err := git.Remotes()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			remoteName := ""
+			for _, remote := range remotes {
+				path, err := git.PathWithNamespace(remote)
+				if err != nil {
+					continue
+				}
+				if path == project.PathWithNamespace {
+					remoteName = remote
+					break
+				}
+			}
+
+			if remoteName == "" {
+				remoteName = mr.Author.Username
+				urlToRepo := labURLToRepo(project)
+				err := git.RemoteAdd(remoteName, urlToRepo, ".")
 				if err != nil {
 					log.Fatal(err)
 				}
-				urlToRepo := labURLToRepo(mrProject)
-				if err := git.RemoteAdd(mr.Author.Username, urlToRepo, "."); err != nil {
-					log.Fatal(err)
+			}
+
+			trackRef := fmt.Sprintf("refs/remotes/%s/%s", remoteName, mr.SourceBranch)
+			err = git.New("show-ref", "--verify", "--quiet", trackRef).Run()
+			if err == nil {
+				if mrCheckoutCfg.force {
+					err = git.New("update-ref", "-d", trackRef).Run()
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					log.Fatalf("remote reference %s already exists", trackRef)
 				}
 			}
-			fetchToRef = fmt.Sprintf("refs/remotes/%s/%s", mr.Author.Username, mr.SourceBranch)
+
+			fetchToRef = trackRef
 		}
 
-		if err := git.New("show-ref", "--verify", "--quiet", "refs/heads/"+fetchToRef).Run(); err == nil {
-			if mrCheckoutCfg.force {
-				if err := git.New("branch", "-D", mrCheckoutCfg.branch).Run(); err != nil {
-					log.Fatal(err)
-				}
-			} else {
-				fmt.Println("ERROR: mr", mrID, "branch", fetchToRef, "already exists.")
-				os.Exit(1)
-			}
-		}
-
-		// https://docs.gitlab.com/ce/user/project/merge_requests/#checkout-merge-requests-locally
+		// https://docs.gitlab.com/ee/user/project/merge_requests/reviews/#checkout-merge-requests-locally-through-the-head-ref
 		mrRef := fmt.Sprintf("refs/merge-requests/%d/head", mrID)
 		fetchRefSpec := fmt.Sprintf("%s:%s", mrRef, fetchToRef)
-		if err := git.New("fetch", targetRemote, fetchRefSpec).Run(); err != nil {
+		err = git.New("fetch", targetRemote, fetchRefSpec).Run()
+		if err != nil {
 			log.Fatal(err)
 		}
+
 		if mrCheckoutCfg.track {
 			// Create configured branch with tracking from fetchToRef
 			// git branch --flags <branchname> [<start-point>]
-			if err := git.New("branch", "--track", mrCheckoutCfg.branch, fetchToRef).Run(); err != nil {
+			err = git.New("branch", "--track", mrCheckoutCfg.branch, fetchToRef).Run()
+			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
-		// Check out branch
-		if err := git.New("checkout", mrCheckoutCfg.branch).Run(); err != nil {
+		err = git.New("checkout", mrCheckoutCfg.branch).Run()
+		if err != nil {
 			log.Fatal(err)
 		}
 	},
@@ -119,10 +148,10 @@ var checkoutCmd = &cobra.Command{
 
 func init() {
 	checkoutCmd.Flags().StringVarP(&mrCheckoutCfg.branch, "branch", "b", "", "checkout merge request with <branch> name")
-	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set checked out branch to track mr author remote branch, adds remote if needed")
+	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.track, "track", "t", false, "set branch to track remote branch, adds remote if needed")
 	// useHTTP is defined in "project_create.go"
 	checkoutCmd.Flags().BoolVar(&useHTTP, "http", false, "checkout using HTTP protocol instead of SSH")
-	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch checkout and override existing branch")
+	checkoutCmd.Flags().BoolVarP(&mrCheckoutCfg.force, "force", "f", false, "force branch and remote reference override")
 	mrCmd.AddCommand(checkoutCmd)
 	carapace.Gen(checkoutCmd).PositionalCompletion(
 		carapace.ActionCallback(func(c carapace.Context) carapace.Action {

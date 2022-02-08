@@ -52,7 +52,7 @@ func Test_mrCheckoutCmd_track(t *testing.T) {
 	cmd.Dir = repo
 	cmd.CombinedOutput()
 
-	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "-t", "-b", "mrtest_track")
+	cmd = exec.Command(labBinaryPath, "mr", "checkout", "1", "-f", "-t", "-b", "mrtest_track")
 	cmd.Dir = repo
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -87,7 +87,7 @@ func Test_mrCheckoutCmd_track(t *testing.T) {
 		t.Fatal(err)
 	}
 	remotes := string(gitOut)
-	require.Contains(t, remotes, "zaquestion	git@gitlab.com:zaquestion/test.git")
+	require.Contains(t, remotes, "origin	git@gitlab.com:zaquestion/test.git")
 }
 
 func Test_mrCheckoutCmdRunWithDifferentName(t *testing.T) {
@@ -151,7 +151,7 @@ func Test_mrDoubleCheckoutFailCmdRun(t *testing.T) {
 		t.Log(eLog)
 		t.Fatal(err)
 	}
-	require.Contains(t, eLog, "ERROR: mr 1 branch mrtest already exists")
+	require.Contains(t, eLog, "branch mrtest already exists")
 }
 
 func Test_mrDoubleCheckoutForceRun(t *testing.T) {
