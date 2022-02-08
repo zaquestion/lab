@@ -34,8 +34,6 @@ var (
 	// ErrActionRepeated is returned when a GitLab action is executed again.  For example
 	// this can be returned when an MR is approved twice.
 	ErrActionRepeated = errors.New("GitLab action repeated")
-	// ErrGroupNotFound is returned when a GitLab group cannot be found.
-	ErrGroupNotFound = errors.New("GitLab group not found")
 	// ErrNotModified is returned when adding an already existing item to a Todo list
 	ErrNotModified = errors.New("Not Modified")
 	// ErrProjectNotFound is returned when a GitLab project cannot be found.
@@ -1119,38 +1117,37 @@ func (s jobSorter) Less(i, j int) bool {
 
 // GroupSearch searches for a namespace on GitLab
 func GroupSearch(query string) (*gitlab.Group, error) {
+	query = strings.TrimSpace(query)
 	if query == "" {
-		return nil, errors.New("query is empty")
-	}
-	groups := strings.Split(query, "/")
-	list, _, err := lab.Groups.SearchGroup(groups[0])
-	if err != nil {
-		return nil, err
-	}
-	// SearchGroup doesn't return error if group isn't found. We need to do
-	// it ourselves.
-	if len(list) == 0 {
-		return nil, ErrGroupNotFound
-	}
-	// if we found a group and we aren't looking for a subgroup
-	if len(list) > 0 && len(groups) == 1 {
-		return list[0], nil
-	}
-	list, _, err = lab.Groups.ListDescendantGroups(list[0].ID, &gitlab.ListDescendantGroupsOptions{
-		Search: gitlab.String(groups[len(groups)-1]),
-	})
-	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid group query")
 	}
 
-	for _, g := range list {
-		fmt.Println(g.FullPath)
-		if g.FullPath == query {
-			return g, nil
+	groups := strings.Split(query, "/")
+	list, _, err := lab.Groups.SearchGroup(groups[len(groups)-1])
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, fmt.Errorf("group '%s' not found", query)
+	}
+	if len(list) == 1 {
+		return list[0], nil
+	}
+
+	for _, group := range list {
+		fullName := strings.TrimSpace(group.FullName)
+		if group.FullPath == query || fullName == query {
+			return group, nil
 		}
 	}
 
-	return nil, errors.Errorf("Group '%s' not found", query)
+	msg := fmt.Sprintf("found multiple groups with ambiguous name:\n")
+	for _, group := range list {
+		msg += fmt.Sprintf("\t%s\n", group.FullPath)
+	}
+	msg += fmt.Sprintf("use one of the above path options\n")
+
+	return nil, errors.New(msg)
 }
 
 // CIJobs returns a list of jobs in the pipeline with given id.

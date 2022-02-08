@@ -22,7 +22,7 @@ func Test_projectCreateCmd(t *testing.T) {
 	os.Remove(filepath.Join(repo, ".git/config"))
 
 	t.Run("create", func(t *testing.T) {
-		cmd := exec.Command(labBinaryPath, "project", "create", "-p")
+		cmd := exec.Command(labBinaryPath, "project", "create", "-p", "-r", "origin")
 		cmd.Dir = repo
 
 		b, err := cmd.CombinedOutput()
