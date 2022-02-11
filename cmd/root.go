@@ -197,7 +197,7 @@ func Execute(initSkipped bool) {
 	// Try to gather remote information if running inside a git tree/repo.
 	// Otherwise, skip it, since the info won't be used at all, also avoiding
 	// misleading error/warning messages about missing remote.
-	if git.InsideGitRepo() {
+	if !initSkipped && git.InsideGitRepo() {
 		defaultRemote = guessDefaultRemote()
 		if defaultRemote == "" {
 			log.Infoln("No default remote found")
