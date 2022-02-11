@@ -187,10 +187,10 @@ func TestPathWithNamespace(t *testing.T) {
 			expectedErr: "the key `remote.phoney.url` is not found",
 		},
 		{
-			desc:        "remote doesn't exist",
+			desc:        "invalid remote URL",
 			remote:      "garbage",
 			expected:    "",
-			expectedErr: "cannot parse remote: garbage url: garbageurl",
+			expectedErr: "invalid remote URL format for garbage",
 		},
 	}
 

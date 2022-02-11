@@ -13,6 +13,7 @@ import (
 	retry "github.com/avast/retry-go"
 	"github.com/pkg/errors"
 	gitconfig "github.com/tcnksm/go-gitconfig"
+	giturls "github.com/whilp/git-urls"
 	"github.com/zaquestion/lab/internal/logger"
 )
 
@@ -181,26 +182,27 @@ func PathWithNamespace(remote string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if remoteURL == "" {
+			// Branches can track remote based on ther URL, thus we don't
+			// really have a remote entity in the git config, but only the
+			// URL of the remote.
+			// https://git-scm.com/docs/git-push#Documentation/git-push.txt-ltrepositorygt
+			remoteURL = remote
+		}
 	}
 
-	parts := strings.Split(remoteURL, "//")
-
-	if len(parts) == 1 {
-		// scp-like short syntax (e.g. git@gitlab.com...)
-		part := parts[0]
-		parts = strings.Split(part, ":")
-	} else if len(parts) == 2 {
-		// every other protocol syntax (e.g. ssh://, http://, git://)
-		part := parts[1]
-		parts = strings.SplitN(part, "/", 2)
-	} else {
-		return "", errors.Errorf("cannot parse remote: %s url: %s", remote, remoteURL)
+	u, err := giturls.Parse(remoteURL)
+	if err != nil {
+		return "", err
 	}
 
-	if len(parts) != 2 {
-		return "", errors.Errorf("cannot parse remote: %s url: %s", remote, remoteURL)
+	// remote URLs can't refer to other files or local paths, ie., other remote
+	// names.
+	if u.Scheme == "file" {
+		return "", errors.Errorf("invalid remote URL format for %s", remote)
 	}
-	path := parts[1]
+
+	path := strings.TrimPrefix(u.Path, "/")
 	path = strings.TrimSuffix(path, ".git")
 	return path, nil
 }
