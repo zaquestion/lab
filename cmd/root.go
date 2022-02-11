@@ -155,14 +155,14 @@ func guessDefaultRemote() string {
 	// Since "origin" may have two different meanings depending on how the
 	// user forked the project, thus make "upstream" as the most significant
 	// remote.
-	// In forkFromOrigin approach, "origin" remote is the one pointing to
-	// the upstream project.
+	// In forkRemoteProject approach, "origin" remote is the one pointing to
+	// the upstream project by default.
 	_, err := gitconfig.Local("remote.origin.url")
 	if err == nil {
 		guess = "origin"
 	}
-	// In forkToUpstream approach, "upstream" remote is the one pointing to
-	// the upstream project
+	// In forkCleanProject approach, "upstream" remote is the one pointing
+	// to the upstream project by default.
 	_, err = gitconfig.Local("remote.upstream.url")
 	if err == nil {
 		guess = "upstream"
