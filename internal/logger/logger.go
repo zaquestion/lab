@@ -45,9 +45,9 @@ func GetInstance() *Logger {
 			// Setting Lmsgprefix preffix make the prefix to be printed before
 			// the actual message, but after the LstdFlags (date and time)
 			errorLogger: log.New(os.Stderr, "ERROR: ", log.LstdFlags|log.Lmsgprefix),
-			warnLogger:  log.New(os.Stdout, "WARNING: ", log.LstdFlags|log.Lmsgprefix),
-			infoLogger:  log.New(os.Stdout, "", log.LstdFlags|log.Lmsgprefix),
-			debugLogger: log.New(os.Stdout, "DEBUG: ", log.LstdFlags|log.Lmsgprefix),
+			warnLogger:  log.New(os.Stderr, "WARNING: ", log.LstdFlags|log.Lmsgprefix),
+			infoLogger:  log.New(os.Stderr, "", log.LstdFlags|log.Lmsgprefix),
+			debugLogger: log.New(os.Stderr, "DEBUG: ", log.LstdFlags|log.Lmsgprefix),
 		}
 	})
 	return internalLogger
@@ -68,13 +68,13 @@ func (l *Logger) LogLevel() int {
 	return l.level
 }
 
-// SetStdDest sets what's the desired stdout and stderr for the internal
-// log. It can be any io.Writer value.
-func (l *Logger) SetStdDest(stdout io.Writer, stderr io.Writer) {
-	l.errorLogger.SetOutput(stderr)
-	l.warnLogger.SetOutput(stdout)
-	l.infoLogger.SetOutput(stdout)
-	l.debugLogger.SetOutput(stdout)
+// SetStdDest sets what's the desired output stream for the internal log.
+// It can be any io.Writer value.
+func (l *Logger) SetStdDest(dest io.Writer) {
+	l.errorLogger.SetOutput(dest)
+	l.warnLogger.SetOutput(dest)
+	l.infoLogger.SetOutput(dest)
+	l.debugLogger.SetOutput(dest)
 }
 
 // printKeysAndValues prints the keys and valus, as pairs, passed to those
@@ -133,8 +133,7 @@ func (l *Logger) Fatalln(values ...interface{}) {
 }
 
 // Error prints error messages (prefixed with "ERROR:").
-// These parameters match the retryablehttp.LeveledLogger, which we want to
-// satisfy for silencing their debug messages being printed in the stdout.
+// These parameters match the retryablehttp.LeveledLogger.
 // Error message are always printed, regardless the log level.
 func (l *Logger) Error(msg string, keysAndValues ...interface{}) {
 	if l.level >= LogLevelError {
@@ -162,8 +161,7 @@ func (l *Logger) Errorln(values ...interface{}) {
 }
 
 // Warn prints warning messages (prefixed with "WARNING:").
-// These parameters match the retryablehttp.LeveledLogger, which we want to
-// satisfy for silencing their debug messages being printed in the stdout.
+// These parameters match the retryablehttp.LeveledLogger.
 // Warning messages require at least LogLevelInfo level.
 func (l *Logger) Warn(msg string, keysAndValues ...interface{}) {
 	if l.level >= LogLevelInfo {
@@ -191,8 +189,7 @@ func (l *Logger) Warnln(values ...interface{}) {
 }
 
 // Info prints informational messages (prefixed with "INFO:").
-// These parameters match the retryablehttp.LeveledLogger, which we want to
-// satisfy for silencing their debug messages being printed in the stdout.
+// These parameters match the retryablehttp.LeveledLogger.
 // Info messages require at least LogLevelInfo level.
 func (l *Logger) Info(msg string, keysAndValues ...interface{}) {
 	if l.level >= LogLevelInfo {
@@ -220,8 +217,7 @@ func (l *Logger) Infoln(values ...interface{}) {
 }
 
 // Debug prints warning messages (prefixed with "DEBUG:").
-// These parameters match the retryablehttp.LeveledLogger, which we want to
-// satisfy for silencing thier debug messages being printed in the stdout.
+// These parameters match the retryablehttp.LeveledLogger.
 // Debug messages require at least LogLevelDebug level.
 func (l *Logger) Debug(msg string, keysAndValues ...interface{}) {
 	if l.level >= LogLevelDebug {

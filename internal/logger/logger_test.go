@@ -90,13 +90,13 @@ func TestLogFunctions(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Redirect system stdout to our own so we can check log output
 			// to stdout
-			oldStdout := os.Stdout
+			oldStderr := os.Stderr
 			r, w, err := os.Pipe()
 			if err != nil {
-				t.Errorf("failed to redirect stdout: %s", err)
+				t.Errorf("failed to redirect stderr: %s", err)
 			}
-			os.Stdout = w
-			log.SetStdDest(w, w)
+			os.Stderr = w
+			log.SetStdDest(w)
 			outChan := make(chan string)
 
 			test.fn("test")
@@ -110,7 +110,7 @@ func TestLogFunctions(t *testing.T) {
 			}()
 
 			w.Close()
-			os.Stdout = oldStdout
+			os.Stderr = oldStderr
 			out := <-outChan
 
 			regex := regexp.MustCompile(test.prefix + " logger_test.go:[0-9]+: test")
