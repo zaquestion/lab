@@ -231,6 +231,9 @@ func FindProject(projID interface{}) (*gitlab.Project, error) {
 
 	target, err := GetProject(search)
 	if err != nil {
+		if err == ErrProjectNotFound {
+			return nil, fmt.Errorf("GitLab project (%s) not found, verify you have access to the requested resource\n", search)
+		}
 		return nil, err
 	}
 
