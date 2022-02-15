@@ -8,6 +8,7 @@ import (
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -133,9 +134,24 @@ var issueEditCmd = &cobra.Command{
 		title := issue.Title
 		body := issue.Description
 
-		// We only consider editing an issue with -m or when no other flag is
-		// passed, but --linebreak.
-		if len(msgs) > 0 || cmd.Flags().NFlag() == 0 || (cmd.Flags().NFlag() == 1 && linebreak) {
+		// We only consider opening the editor to edit the title and body on
+		// -m, when --force-linebreak is used alone, or when no other flag is
+		// passed. However, it's common to set --force-linebreak through the
+		// config file, so we need to check if it's being set through the CLI
+		// or config file.
+		var openEditor bool
+		if len(msgs) > 0 || cmd.Flags().NFlag() == 0 {
+			openEditor = true
+		} else if linebreak && cmd.Flags().NFlag() == 1 {
+			cmd.Flags().Visit(func(f *pflag.Flag) {
+				if f.Name == "force-linebreak" {
+					openEditor = true
+					return
+				}
+			})
+		}
+
+		if openEditor {
 			title, body, err = editDescription(issue.Title, issue.Description, msgs, "")
 			if err != nil {
 				log.Fatal(err)
