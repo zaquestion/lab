@@ -198,6 +198,9 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	}
 	targetProject, err := lab.FindProject(targetProjectName)
 	if err != nil {
+		if err == lab.ErrProjectNotFound {
+			log.Fatalf("GitLab project (%s) not found, verify you have access to the requested resource", targetProjectName)
+		}
 		log.Fatal(err)
 	}
 
