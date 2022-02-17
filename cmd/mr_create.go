@@ -139,7 +139,11 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	sourceRemote := determineSourceRemote(localBranch)
+	sourceRemote, err := determineSourceRemote(localBranch)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Get the pushed branch name
 	sourceBranch, _ := git.UpstreamBranch(localBranch)
 	if sourceBranch == "" {

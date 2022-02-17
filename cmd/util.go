@@ -14,6 +14,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitconfig "github.com/tcnksm/go-gitconfig"
+	giturls "github.com/whilp/git-urls"
 	gitlab "github.com/xanzy/go-gitlab"
 	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
@@ -187,7 +188,10 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	}
 
 	if remote == "" {
-		remote = determineSourceRemote(branch)
+		remote, err = determineSourceRemote(branch)
+		if err != nil {
+			return "", "", err
+		}
 	}
 	remote, err = getRemoteName(remote)
 	if err != nil {
@@ -474,24 +478,29 @@ func labURLToRepo(project *gitlab.Project) string {
 	return urlToRepo
 }
 
-func determineSourceRemote(branch string) string {
+func determineSourceRemote(branch string) (string, error) {
 	// There is a precendence of options that should be considered here:
 	// branch.<name>.pushRemote > remote.pushDefault > branch.<name>.remote
 	// This rule is placed in git-config(1) manpage
 	r, err := gitconfig.Local("branch." + branch + ".pushRemote")
-	if err == nil {
-		return r
-	}
-	r, err = gitconfig.Local("remote.pushDefault")
-	if err == nil {
-		return r
-	}
-	r, err = gitconfig.Local("branch." + branch + ".remote")
-	if err == nil {
-		return r
+	if err != nil {
+		r, err = gitconfig.Local("remote.pushDefault")
+		if err != nil {
+			r, err = gitconfig.Local("branch." + branch + ".remote")
+			if err != nil {
+				return forkRemote, nil
+			}
+		}
 	}
 
-	return forkRemote
+	// Parse the remote name for possible URL.
+	u, err := giturls.Parse(r)
+	if err != nil {
+		return "", err
+	}
+
+	path := strings.TrimPrefix(u.Path, "/")
+	return path, nil
 }
 
 // Check of a case-insensitive prefix in a string

@@ -345,7 +345,10 @@ func Test_determineSourceRemote(t *testing.T) {
 		}
 
 		t.Run(test.desc, func(t *testing.T) {
-			sourceRemote := determineSourceRemote(test.branch)
+			sourceRemote, err := determineSourceRemote(test.branch)
+			if err != nil {
+				t.Fatal(err)
+			}
 			assert.Equal(t, test.expected, sourceRemote)
 		})
 	}
