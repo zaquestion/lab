@@ -1762,6 +1762,40 @@ func GetCommitDiff(projID interface{}, sha string) ([]*gitlab.Diff, error) {
 	return diffs, nil
 }
 
+func IssueDeleteNote(projID interface{}, issue int, discussion string, note int) error {
+
+	if discussion == "" {
+		_, err := lab.Notes.DeleteIssueNote(projID, issue, note)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	_, err := lab.Discussions.DeleteIssueDiscussionNote(projID, issue, discussion, note)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func MRDeleteNote(projID interface{}, mr int, discussion string, note int) error {
+
+	if discussion == "" {
+		_, err := lab.Notes.DeleteMergeRequestNote(projID, mr, note)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	_, err := lab.Discussions.DeleteMergeRequestDiscussionNote(projID, mr, discussion, note)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
 	// Ideally want to use lab.Commits.PostCommitComment, however,
 	// that API only support comments on linetype=new.
