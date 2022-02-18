@@ -26,7 +26,8 @@ var issueEditCmd = &cobra.Command{
 		lab issue edit 14 -m "new title" -m "new desc"
 		lab issue edit 14 -l new_label --unlabel old_label
 		lab issue edit --milestone "NewYear"
-		lab issue edit --force-linebreak`),
+		lab issue edit --force-linebreak
+		lab issue edit --delete-note 14:2065489`),
 	Args:             cobra.MinimumNArgs(1),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -52,6 +53,35 @@ var issueEditCmd = &cobra.Command{
 		issue, err := lab.IssueGet(rn, issueNum)
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		deleteNote, err := cmd.Flags().GetBool("delete-note")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if deleteNote {
+			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			discussion := ""
+		findDiscussionID:
+			for _, d := range discussions {
+				for _, n := range d.Notes {
+					if n.ID == commentNum {
+						discussion = d.ID
+						break findDiscussionID
+					}
+				}
+			}
+
+			// delete the note
+			err = lab.IssueDeleteNote(rn, issueNum, discussion, commentNum)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
 		}
 
 		linebreak, err := cmd.Flags().GetBool("force-linebreak")
@@ -217,6 +247,7 @@ func init() {
 	issueEditCmd.Flags().StringSliceP("unassign", "", []string{}, "remove an assignee by username")
 	issueEditCmd.Flags().String("milestone", "", "set milestone")
 	issueEditCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	issueEditCmd.Flags().Bool("delete-note", false, "delete the given note; must be provided in <issueID>:<noteID> format")
 	issueEditCmd.Flags().SortFlags = false
 
 	issueCmd.AddCommand(issueEditCmd)

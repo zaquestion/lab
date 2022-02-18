@@ -21,6 +21,7 @@ var mrEditCmd = &cobra.Command{
 	Short:   "Edit or update an MR",
 	Example: heredoc.Doc(`
 		lab mr edit 2
+		lab mr edit 2:5684032
 		lab mr edit 3 remote -m "new title"
 		lab mr edit 5 upstream -m "new title" -m "new desc"
 		lab mr edit 7 -l new_label --unlabel old_label
@@ -33,7 +34,8 @@ var mrEditCmd = &cobra.Command{
 		lab mr edit 31 upstream --draft
 		lab mr edit 37 upstream --ready
 		lab mr edit 41 upstream -r johndoe -r janedoe
-		lab mr edit 43 upstream --unreview johndoe`),
+		lab mr edit 43 upstream --unreview johndoe
+		lab mr edit --delete-note 2:5684032`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		commentNum, branchArgs, err := filterCommentArg(args)
@@ -55,6 +57,35 @@ var mrEditCmd = &cobra.Command{
 		mr, err := lab.MRGet(rn, mrNum)
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		deleteNote, err := cmd.Flags().GetBool("delete-note")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if deleteNote {
+			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			discussion := ""
+		findDiscussionID:
+			for _, d := range discussions {
+				for _, n := range d.Notes {
+					if n.ID == commentNum {
+						discussion = d.ID
+						break findDiscussionID
+					}
+				}
+			}
+
+			// delete the note
+			err = lab.MRDeleteNote(rn, mrNum, discussion, commentNum)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
 		}
 
 		linebreak, err := cmd.Flags().GetBool("force-linebreak")
@@ -378,6 +409,7 @@ func init() {
 	mrEditCmd.Flags().Bool("ready", false, "mark the merge request as ready")
 	mrEditCmd.Flags().StringSliceP("review", "r", []string{}, "add an reviewer by username")
 	mrEditCmd.Flags().StringSliceP("unreview", "", []string{}, "remove an reviewer by username")
+	mrEditCmd.Flags().Bool("delete-note", false, "delete the given note; must be provided in <mrID>:<noteID> format")
 	mrEditCmd.Flags().SortFlags = false
 
 	mrCmd.AddCommand(mrEditCmd)
