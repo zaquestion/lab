@@ -2,29 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var todoMRCmd = &cobra.Command{
-	Use:              "mr",
-	Short:            "Add a Merge Request to Todo list",
-	Example:          "lab todo mr 1234    #adds MR 1234 to user's Todo list",
+	Use:   "mr [remote] <id>",
+	Short: "Add a Merge Request to Todo list",
+	Example: heredoc.Doc(`
+			lab todo mr 1234              #adds MR 1234 to user's Todo list
+			lab todo mr otherRemote 5678`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := getRemoteName("")
+		rn, num, err := parseArgsRemoteAndID(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		num, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		todoAddMergeRequest(rn, num)
+		todoAddMergeRequest(rn, int(num))
 	},
 }
 

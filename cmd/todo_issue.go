@@ -2,31 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	lab "github.com/zaquestion/lab/internal/gitlab"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
+	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
 var todoIssueCmd = &cobra.Command{
-	Use:   "issue",
+	Use:   "issue [remote] <id>",
 	Short: "Add a Issue to Todo list",
 	Example: heredoc.Doc(`
-		lab todo issue 5678`),
+		lab todo issue 5678               #adds issue 5678 to user's Todo list
+		lab todo issue otherRemote 91011`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, err := getRemoteName("")
+		rn, num, err := parseArgsRemoteAndID(args)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		num, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		todoAddIssue(rn, num)
+		todoAddIssue(rn, int(num))
 
 	},
 }
