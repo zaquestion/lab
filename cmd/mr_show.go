@@ -78,8 +78,21 @@ var mrShowCmd = &cobra.Command{
 
 		printMR(mr, rn, renderMarkdown)
 
+		var noteLevel = NoteLevelNone
+
 		showComments, _ := cmd.Flags().GetBool("comments")
-		if showComments {
+		showActivities, _ := cmd.Flags().GetBool("activities")
+		showFull, _ := cmd.Flags().GetBool("full")
+
+		if showFull || showComments && showActivities {
+			noteLevel = NoteLevelFull
+		} else if showComments {
+			noteLevel = NoteLevelComments
+		} else if showActivities {
+			noteLevel = NoteLevelActivities
+		}
+
+		if noteLevel != NoteLevelNone {
 			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
 			if err != nil {
 				log.Fatal(err)
@@ -90,7 +103,7 @@ var mrShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(rn, discussions, since, "mr", int(mrNum), renderMarkdown)
+			printDiscussions(rn, discussions, since, "mr", int(mrNum), renderMarkdown, noteLevel)
 		}
 	},
 }
@@ -248,7 +261,9 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 
 func init() {
 	mrShowCmd.Flags().BoolP("no-markdown", "M", false, "don't use markdown renderer to print the issue description")
-	mrShowCmd.Flags().BoolP("comments", "c", false, "show comments for the merge request (does not work with --patch)")
+	mrShowCmd.Flags().BoolP("comments", "c", false, "show only comments for the merge request (does not work with --patch)")
+	mrShowCmd.Flags().BoolP("activities", "a", false, "show only activities for the merge request (does not work with --patch)")
+	mrShowCmd.Flags().BoolP("full", "f", false, "show both activities and comments for the merge request (does not work with --patch)")
 	mrShowCmd.Flags().StringP("since", "s", "", "show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	mrShowCmd.Flags().BoolVarP(&mrShowPatch, "patch", "p", false, "show MR patches (does not work with --comments)")
 	mrShowCmd.Flags().BoolVarP(&mrShowPatchReverse, "reverse", "", false, "reverse order when showing MR patches (chronological instead of anti-chronological)")

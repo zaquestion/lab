@@ -54,8 +54,21 @@ var issueShowCmd = &cobra.Command{
 
 		printIssue(issue, rn, renderMarkdown)
 
+		var noteLevel = NoteLevelNone
+
 		showComments, _ := cmd.Flags().GetBool("comments")
-		if showComments {
+		showActivities, _ := cmd.Flags().GetBool("activities")
+		showFull, _ := cmd.Flags().GetBool("full")
+
+		if showFull || showComments && showActivities {
+			noteLevel = NoteLevelFull
+		} else if showComments {
+			noteLevel = NoteLevelComments
+		} else if showActivities {
+			noteLevel = NoteLevelActivities
+		}
+
+		if noteLevel != NoteLevelNone {
 			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
 			if err != nil {
 				log.Fatal(err)
@@ -66,7 +79,7 @@ var issueShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(rn, discussions, since, "issues", int(issueNum), renderMarkdown)
+			printDiscussions(rn, discussions, since, "issues", int(issueNum), renderMarkdown, noteLevel)
 		}
 	},
 }
@@ -150,7 +163,9 @@ func printIssue(issue *gitlab.Issue, project string, renderMarkdown bool) {
 
 func init() {
 	issueShowCmd.Flags().BoolP("no-markdown", "M", false, "don't use markdown renderer to print the issue description")
-	issueShowCmd.Flags().BoolP("comments", "c", false, "show comments for the issue")
+	issueShowCmd.Flags().BoolP("comments", "c", false, "show only comments for the issue")
+	issueShowCmd.Flags().BoolP("activities", "a", false, "show only activities for the issue")
+	issueShowCmd.Flags().BoolP("full", "f", false, "show both activities and comments for the issue")
 	issueShowCmd.Flags().StringP("since", "s", "", "show comments since specified date (format: 2020-08-21 14:57:46.808 +0000 UTC)")
 	issueCmd.AddCommand(issueShowCmd)
 
