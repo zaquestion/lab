@@ -24,6 +24,19 @@ var cloneCmd = &cobra.Command{
 		lab clone company/backend-team/awesome-repo`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			log.Fatal("You must specify a repository to clone.")
+		}
+
+		useHTTP, err := cmd.Flags().GetBool("http")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if useHTTP {
+			args = append(args, []string{"--http"}...)
+		}
+
 		project, err := gitlab.FindProject(args[0])
 		if err == gitlab.ErrProjectNotFound {
 			err = git.New(append([]string{"clone"}, args...)...).Run()
