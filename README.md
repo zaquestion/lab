@@ -91,6 +91,25 @@ instance. There are several ways to provide this information to `lab`:
 3. local configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
     - No other config files will be used as overrides if a local configuration file is specified
 4. user-specific configuration file in TOML: `~/.config/lab/lab.toml`.
+    - An example of user-specfic configurations in lab.toml can be found below.  As seen in the example file below, any command options specified by --help (for example 'lab mr show --help', or 'lab issue edit --help') can be set in the configuration file using TOML format.
+
+```
+[core]
+  host = "https://gitlab.com"
+  token = "1223334444555556789K"
+  user = "yourusername"
+
+[mr_checkout]
+  force = true
+
+[mr_create]
+  force-linebreak = true
+  draft = true
+
+[mr_edit]
+  force-linebreak = true
+```
+
 5. work-tree configuration file in TOML: `.git/lab/lab.toml`.  The values in
 this file will override any values set in the user-specific configuration file.
 
