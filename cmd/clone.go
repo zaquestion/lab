@@ -12,7 +12,6 @@ import (
 )
 
 // cloneCmd represents the clone command
-// NOTE: There is special handling for "clone" in cmd/root.go
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
 	Short: "GitLab aware clone repo command",
