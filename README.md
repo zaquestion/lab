@@ -1,25 +1,64 @@
-# git + <img src="https://user-images.githubusercontent.com/3167497/34473826-40b4987c-ef2c-11e7-90b9-5ff322c4966f.png" width="30" height="30"> = gitlab [![Build Status](https://travis-ci.org/zaquestion/lab.svg?branch=master)](https://travis-ci.org/zaquestion/lab) [![Go Report Card](https://goreportcard.com/badge/github.com/zaquestion/lab)](https://goreportcard.com/report/github.com/zaquestion/lab) [![codecov](https://codecov.io/gh/zaquestion/lab/branch/master/graph/badge.svg)](https://codecov.io/gh/zaquestion/lab) [![Join the chat at https://gitter.im/labcli](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/labcli) [![CC0 License](http://i.creativecommons.org/p/zero/1.0/88x31.png)](https://creativecommons.org/share-your-work/public-domain/cc0/) [![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/zaquestion/donate)
+<p align="center">
+    <p align="center">
+        git + <img src="https://user-images.githubusercontent.com/3167497/34473826-40b4987c-ef2c-11e7-90b9-5ff322c4966f.png" width="100" height="100"> = gitlab
+    </p>
+    <p align="center">
+        <a href="https://travis-ci.org/zaquestion/lab">
+            <img src="https://travis-ci.org/zaquestion/lab.svg?branch=master" alt="Build Status">
+        </a>
+        <a href="https://goreportcard.com/report/github.com/zaquestion/lab">
+            <img src="https://goreportcard.com/badge/github.com/zaquestion/lab" alt="Go Report Card">
+        </a>
+        <a href="https://codecov.io/gh/zaquestion/lab">
+            <img src="https://codecov.io/gh/zaquestion/lab/branch/master/graph/badge.svg" alt="codecov">
+        </a>
+        <a href="https://gitter.im/labcli">
+            <img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat">
+        </a>
+    </p>
+    <p align="center">
+        <a href="https://liberapay.com/zaquestion/donate">
+            <img src="https://liberapay.com/assets/widgets/donate.svg" alt="Donate">
+        </a>
+    </p>
+    <p align="center">
+        <img src="https://user-images.githubusercontent.com/1964720/42740177-6478d834-8858-11e8-9667-97f193ecb404.gif" align="center">
+    </p>
+</p>
 
-<p align="center"><img src="https://user-images.githubusercontent.com/1964720/42740177-6478d834-8858-11e8-9667-97f193ecb404.gif" align="center"></p>
+_lab_ interacts with repositories on GitLab, including creating/editing merge requests, issues, milestones, snippets
+and CI pipelines.
 
-Lab wraps Git, making it simple to clone, fork, and interact with repositories on GitLab, including seamless workflows for creating merge requests, issues and snippets.
+The development team has focused on keeping _lab_ a simple and intuitive command line interface for commands provided
+in the [GitLab API](https://docs.gitlab.com/ee/api/api_resources.html). _lab_'s aim is to provide GitLab users an
+experience similar to the GitLab WebUI with respect to errors and messages.
 
+# Usage recommendation
+
+One can use _lab_ as a Git alias, integrating seamlessly to their Git workflow.
 ```
-$ lab clone gitlab-com/infrastructure
+$ cat ~/.gitconfig
+...
+[alias]
+    lab = "!lab"
+    lab-i = "!lab issue"
+    li = "!lab issue"
 
-# expands to:
-$ git clone git@gitlab.com:gitlab-com/infrastructure
+$ git lab mr list
+$ git lab-i close
+$ git li create
 ```
 
-# Inspiration
+Also, _lab_ can be set as shell aliases:
 
-The [hub](https://github.com/github/hub) tool made my life significantly easier and still does! lab is heavily inspired by hub and attempts to provide a similar feel.
+```bash
+alias mrlist="lab mr list"
+```
 
 # Installation
 
-Dependencies
-
-* `git`
+In compilation-time, _lab_ depends only on other Go external modules, defined at go.mod. At runtime, _git_ is required
+as many git commands are used by _lab_ to retrieve local repository information.
 
 ### Homebrew
 ```
@@ -43,14 +82,16 @@ apk add lab
 ```
 
 ### Bash
+In case you don't want to install _lab_ using any of the above package managers you can use the Bash script available:
 
-Installs lab into `/usr/local/bin/`
+> :warning: The script will install _lab_ into `/usr/local/bin/`.
+
 ```
 curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | sudo bash
 ```
-NOTE: Please take care when executing scripts in this fashion. Make sure you
-trust the developer providing the script and consider peeking at the install
-script itself (ours is pretty simple ;)
+
+> :warning: Please take care when executing scripts in this fashion. Make sure you trust the developer providing the
+> script and consider peeking at the install script itself (ours is pretty simple ;)
 
 ### PreBuilt Binaries
 
@@ -58,13 +99,13 @@ Head to the [releases](https://github.com/zaquestion/lab/releases) page and down
 
 ### Source
 
-Required
-* [Go 1.15+](https://golang.org/doc/install)
+For building _lab_ from source it's required [Go 1.17+](https://golang.org/doc/install). Older versions (ie. 1.15)
+might still be able to build _lab_, but warnings related to unsupported `go.mod` format might be prompted.
 
 ```
 git clone git@github.com:zaquestion/lab
 cd lab
-go install -ldflags "-X \"main.version=$(git  rev-parse --short=10 HEAD)\"" .
+go install -ldflags "-X \"main.version=$(git rev-parse --short=10 HEAD)\"" .
 ```
 
 or
@@ -73,27 +114,49 @@ or
 make install
 ```
 
-### Tests
-See the [contribution guide](CONTRIBUTING.md).
-
 # Configuration
 
-`lab` needs your GitLab information in order to interact with to your GitLab
-instance. There are several ways to provide this information to `lab`:
+_lab_ needs your GitLab information in order to interact with to your GitLab instance. There are several ways to
+provide this information to `lab`:
 
-1. environment variables: `CI_PROJECT_URL`, `CI_JOB_TOKEN`, `GITLAB_USER_LOGIN`;
-    - Note: these are meant for when `lab` is running within a GitLab CI pipeline
-    - If all of these variables are set, the config files will not be updated.
-    - If all of these variables are set, these take precedence over all other values.
-2. environment variables: `LAB_CORE_HOST`, `LAB_CORE_TOKEN`;
-    - If these variables are set, the config files will not be updated.
-    - For example to use gitlab.com do: `export LAB_CORE_HOST="https://gitlab.com"`
-3. local configuration file in [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml): `./lab.toml`;
-    - No other config files will be used as overrides if a local configuration file is specified
-4. user-specific configuration file in TOML: `~/.config/lab/lab.toml`.
-    - An example of user-specfic configurations in lab.toml can be found below.  As seen in the example file below, any command options specified by --help (for example 'lab mr show --help', or 'lab issue edit --help') can be set in the configuration file using TOML format.
+### Fresh start
+
+When _lab_ is executed for the first time, no suitable configuration found, it will prompt for your GitLab information.
+For example:
 
 ```
+$ lab
+Enter default GitLab host (default: https://gitlab.com):
+Enter default GitLab token:
+```
+
+These informations are going to be save it into `~/.config/lab/lab.toml` and won't be asked again.
+In case multiple projects require different information (ie. _gitlab.com_ and a self-hosted GitLab service), using
+different configuration files as explained in the section below.
+
+### Configuration file
+
+The most common option is to use _lab_ configuration files, which can be placed in different places in an hierarchical
+style. The [Tom's Obvious, Minimal Language (TOML)](https://github.com/toml-lang/toml) is used for the configuration
+file.
+
+When a local configuration file is present (`./lab.toml`), no other configuration file will be checked, this will be
+the only one used for looking up required information.
+
+However, other two options are possible:
+
+1. User-specific: `~/.config/lab/lab.toml`
+2. Worktree-specific: `.git/lab/lab.toml`
+
+These two files are merged before _lab_ runs, meaning that they're complementary to each other.  One thing is important
+to note though, options set in the worktree configuration file overrides (take precedence over) any value set in the
+user-specific file.
+
+An example of user-specific configurations can be found below. As seen in the example file below, any command options
+specified by `--help` (for example `lab mr show --help`, or `lab issue edit --help`) can be set in the configuration
+file using TOML format.
+
+```toml
 [core]
   host = "https://gitlab.com"
   token = "1223334444555556789K"
@@ -110,28 +173,23 @@ instance. There are several ways to provide this information to `lab`:
   force-linebreak = true
 ```
 
-5. work-tree configuration file in TOML: `.git/lab/lab.toml`.  The values in
-this file will override any values set in the user-specific configuration file.
+### Local environment variables
 
-If no suitable config values are found, `lab` will prompt for your GitLab
-information and save it into `~/.config/lab/lab.toml`.
-For example:
+If running _lab_ locally, the variables `LAB_CORE_HOST` and `LAB_CORE_TOKEN` can be used, preventing configuration file
+creation/update. For example to use _gitlab.com_ do:
 ```
-$ lab
-Enter default GitLab host (default: https://gitlab.com):
-Enter default GitLab token:
+export LAB_CORE_HOST="https://gitlab.com"
 ```
 
-Command-specific flags can be set in the config files.
+### CI environment variables
 
-```
-[mr_show]
-  comments = true # sets --comments on 'mr show' commands
+The environment variables `CI_PROJECT_URL`, `CI_JOB_TOKEN` and `GITLAB_USER_LOGIN`, intended to be used in a CI
+environment, can be set to prevent any configuration file creation/update. Also, any of these take precedence over all
+other options. 
 
-```
 # Completions
 
-`lab` provides completions for [Bash], [Elvish], [Fish], [Oil], [Powershell], [Xonsh] and [Zsh].
+_lab_ provides completions for [Bash], [Elvish], [Fish], [Oil], [Powershell], [Xonsh] and [Zsh].
 Scripts can be directly sourced (though using pre-generated versions is recommended to avoid shell startup delay):
 
 ```sh
@@ -159,17 +217,18 @@ exec($(lab completion xonsh))
 source <(lab completion zsh)
 ```
 
-## What about [GLab](https://github.com/profclems/glab)?
+# Contributing
 
-Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying the developer workflow. In many ways `lab` is to [hub], what [glab] is to [gh].
+We welcome all contributors and their contributions to _lab_! See the [contribution guide](CONTRIBUTING.md).
 
-`lab` aims to feel familiar to a `git` user and leverages `git` to power many of it's commands. `glab` will feel more familiar to `gh` users and in turn is more interactive and likely more beginner friendly for that reason.
+# What about [GLab](https://github.com/profclems/glab)?
 
+Both [glab] and `lab` are open-source tools with the same goal of bringing GitLab to your command line and simplifying
+the developer workflow. In many ways `lab` is to [hub], what [glab] is to [gh].
 
-```
-$ lab
-Enter GitLab host (default: https://gitlab.com):
-```
+If you're looking for a tool like _hub_, less opinionated, that feels like using _git_ and allows you to interact with
+GitLab then _lab_ is for you. However, if you're looking for a more opinionated tool intended to simplify your GitLab
+workflows, you might consider using [glab].
 
 <p align="center"><img src="https://user-images.githubusercontent.com/2358914/34196973-420d389a-e519-11e7-92e6-3a1486d6b280.png" align="center"></p>
 
