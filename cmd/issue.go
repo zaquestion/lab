@@ -6,6 +6,7 @@ import (
 
 var issueCmd = &cobra.Command{
 	Use:              "issue",
+	Aliases:          []string{"i"},
 	Short:            `Describe, list, and create issues`,
 	Long:             ``,
 	PersistentPreRun: labPersistentPreRun,
