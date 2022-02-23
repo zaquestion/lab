@@ -5,27 +5,34 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zaquestion/lab/internal/git"
 )
 
 func Test_ciTrace(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "fetch", "origin")
+	cmd := git.New("fetch", "origin")
 	cmd.Dir = repo
+	cmd.Stdout = nil
+	cmd.Stderr = nil
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(labBinaryPath, "checkout", "origin/ci_test_pipeline")
+	cmd = git.New("checkout", "origin/ci_test_pipeline")
 	cmd.Dir = repo
+	cmd.Stdout = nil
+	cmd.Stderr = nil
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command(labBinaryPath, "checkout", "-b", "ci_test_pipeline")
+	cmd = git.New("checkout", "-b", "ci_test_pipeline")
 	cmd.Dir = repo
+	cmd.Stdout = nil
+	cmd.Stderr = nil
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(b))
 		t.Fatal(err)

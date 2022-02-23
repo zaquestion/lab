@@ -98,16 +98,6 @@ func TestRootCloneNoArg(t *testing.T) {
 	require.Contains(t, string(b), "You must specify a repository to clone.")
 }
 
-func TestRootGitCmd(t *testing.T) {
-	cmd := exec.Command(labBinaryPath, "log", "-n", "1")
-	b, _ := cmd.CombinedOutput()
-	require.Contains(t, string(b), `commit 09b519cba018b707c98fc56e37df15806d89d866
-Author: Zaq? Wiedmann <zaquestion@gmail.com>
-Date:   Sun Apr 1 19:40:47 2018 -0700
-
-    (ci) jobs with interleaved sleeps and prints`)
-}
-
 func TestRootNoArg(t *testing.T) {
 	cmd := exec.Command(labBinaryPath)
 	b, err := cmd.CombinedOutput()
