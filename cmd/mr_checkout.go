@@ -24,9 +24,14 @@ var (
 
 // listCmd represents the list command
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout [remote] [<MR id or branch>]",
-	Short: "Checkout an open merge request",
-	Args:  cobra.RangeArgs(1, 2),
+	Use:     "checkout [remote] [<MR id or branch>]",
+	Aliases: []string{"co"},
+	Short:   "Checkout an open merge request",
+	Long: heredoc.Doc(`
+		Checkout an open merge request using the MR's source branch name as
+		local branch name; this behavior can be changed using --branch
+		option.`),
+	Args: cobra.RangeArgs(1, 2),
 	Example: heredoc.Doc(`
 		lab mr checkout origin 10
 		lab mr checkout upstream -b a_branch_name
