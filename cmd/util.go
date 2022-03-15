@@ -32,10 +32,13 @@ var (
 // files.  The command line value will always override any value set in the
 // config files.
 func flagConfig(fs *flag.FlagSet) {
+	var cmdFlags string
+
 	fs.VisitAll(func(f *flag.Flag) {
 		var (
 			configValue  interface{}
 			configString string
+			flagChanged  bool
 		)
 
 		switch f.Value.Type() {
@@ -57,15 +60,26 @@ func flagConfig(fs *flag.FlagSet) {
 			log.Fatal("ERROR: found unidentified flag: ", f.Value.Type(), f)
 		}
 
-		// if set, always use the command line option (flag) value
 		if f.Changed {
-			return
+			flagChanged = true
 		}
+
 		// o/w use the value in the configfile
-		if configString != "" && configString != f.DefValue {
+		if !flagChanged && configString != "" && configString != f.DefValue {
 			f.Value.Set(configString)
+			flagChanged = true
+		}
+
+		if flagChanged {
+			if f.Name != "debug" {
+				cmdFlags += fmt.Sprintf("  %s = %s\n", f.Name, f.Value.String())
+			}
 		}
 	})
+
+	if len(cmdFlags) != 0 {
+		log.Debugf("command flags enabled: \n%s", cmdFlags)
+	}
 }
 
 // getCurrentBranchMR returns the MR ID associated with the current branch.
