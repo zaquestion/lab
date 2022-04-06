@@ -1,14 +1,15 @@
 package git
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func Test_parseTitleBody(t *testing.T) {
+func TestParseTitleBody(t *testing.T) {
 	tests := []struct {
 		Name          string
 		Message       string
@@ -63,7 +64,7 @@ func Test_parseTitleBody(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			title, body, err := parseTitleBody(test.Message)
+			title, body, err := ParseTitleBody(test.Message)
 			if err != nil {
 				t.Fatal(err)
 			}
