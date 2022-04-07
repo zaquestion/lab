@@ -32,7 +32,7 @@ var issueShowCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if issueNum == 0 {
-			log.Fatalf("Specify <id> of issue to be show")
+			log.Fatalf("Specify <id> of issue to be shown")
 		}
 
 		issue, err := lab.IssueGet(rn, int(issueNum))
