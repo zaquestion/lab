@@ -1907,3 +1907,74 @@ func hasNextPage(resp *gitlab.Response) (int, bool) {
 	}
 	return resp.NextPage, true
 }
+
+// ContainerRegistryList gets a list of registries on GitLab
+func ContainerRegistryList(projectID interface{}, opts *gitlab.ListRegistryRepositoriesOptions, n int) ([]*gitlab.RegistryRepository, error) {
+	if n == -1 {
+		opts.PerPage = maxItemsPerPage
+	}
+
+	list, resp, err := lab.ContainerRegistry.ListRegistryRepositories(projectID, opts)
+	if err != nil {
+		return nil, err
+	}
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		repositories, resp, err := lab.ContainerRegistry.ListRegistryRepositories(projectID, opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, repositories...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
+	}
+	return list, nil
+}
+
+// ContainerRegistryTagList gets a list of registry tags on GitLab
+func ContainerRegistryTagList(projectID interface{}, repository int, opts *gitlab.ListRegistryRepositoryTagsOptions, n int) ([]*gitlab.RegistryRepositoryTag, error) {
+	if n == -1 {
+		opts.PerPage = maxItemsPerPage
+	}
+
+	list, resp, err := lab.ContainerRegistry.ListRegistryRepositoryTags(projectID, repository, opts)
+	if err != nil {
+		return nil, err
+	}
+	if resp.CurrentPage == resp.TotalPages {
+		return list, nil
+	}
+	opts.Page = resp.NextPage
+	for len(list) < n || n == -1 {
+		if n != -1 {
+			opts.PerPage = n - len(list)
+		}
+		repositories, resp, err := lab.ContainerRegistry.ListRegistryRepositoryTags(projectID, repository, opts)
+		if err != nil {
+			return nil, err
+		}
+		opts.Page = resp.NextPage
+		list = append(list, repositories...)
+		if resp.CurrentPage == resp.TotalPages {
+			break
+		}
+	}
+	return list, nil
+}
+
+// ContainerRegistryTagDetail get details of a registry repository tag
+func ContainerRegistryTagDetail(projectID interface{}, repository int, tagName string) (*gitlab.RegistryRepositoryTag, error) {
+	tag, _, err := lab.ContainerRegistry.GetRegistryRepositoryTagDetail(projectID, repository, tagName)
+	if err != nil {
+		return nil, err
+	}
+	return tag, nil
+}
