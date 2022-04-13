@@ -136,11 +136,14 @@ type fatalLogger interface {
 // Note: testdata-* must be in the .gitignore or the copies will create write
 // errors as Git attempts to add the Git repo to the the project repo's index.
 func copyTestRepo(log fatalLogger) string {
-	dst, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + strconv.Itoa(int(rand.Uint64()))))
+	dstDir := strconv.FormatUint(rand.Uint64(), 10)
+	dst, err := filepath.Abs(
+		os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata-" + dstDir))
 	if err != nil {
 		log.Fatal(err)
 	}
-	src, err := filepath.Abs(os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
+	src, err := filepath.Abs(
+		os.ExpandEnv("$GOPATH/src/github.com/zaquestion/lab/testdata"))
 	if err != nil {
 		log.Fatal(err)
 	}
