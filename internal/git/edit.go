@@ -19,7 +19,7 @@ func Edit(filePrefix, message string) (string, string, error) {
 		return "", "", err
 	}
 
-	return parseTitleBody(strings.TrimSpace(string(contents)))
+	return ParseTitleBody(strings.TrimSpace(string(contents)))
 }
 
 // EditFile opens a file in the users editor and returns the contents. It
@@ -144,7 +144,7 @@ func removeComments(message string) (string, error) {
 	return strings.TrimSpace(strings.Join(noComments, "\n")), nil
 }
 
-func parseTitleBody(message string) (string, string, error) {
+func ParseTitleBody(message string) (string, string, error) {
 	msg, err := removeComments(message)
 	if err != nil {
 		return "", "", err

@@ -57,6 +57,7 @@ func init() {
 	mrCreateCmd.Flags().String("milestone", "", "set milestone by milestone title or ID")
 	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Title and Description")
 	mrCreateCmd.Flags().StringP("file-edit", "f", "", "use the given file as the Title and Description and open the editor")
+	mrCreateCmd.Flags().Bool("no-edit", false, "use the selected commit message without opening the editor")
 	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
 	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
@@ -123,10 +124,9 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatalf("Cannot specify both -F and -f options.")
 	}
 
-	openEditor := false
-	if ofilename != "" {
-		filename = ofilename
-		openEditor = true
+	noEdit, err := cmd.Flags().GetBool("no-edit")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	coverLetterFormat, err := cmd.Flags().GetBool("cover-letter")
@@ -242,6 +242,13 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	var title, body string
 
 	if filename != "" {
+		var openEditor bool
+
+		if ofilename != "" {
+			filename = ofilename
+			openEditor = true
+		}
+
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
 			log.Fatalf("file %s cannot be found", filename)
 		}
@@ -256,7 +263,8 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		}
 
 		if openEditor {
-			msg, err := mrText(sourceRemote, sourceBranch, targetRemote, targetBranch, coverLetterFormat, false)
+			msg, err := mrText(sourceRemote, sourceBranch, targetRemote,
+				targetBranch, coverLetterFormat, false)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -275,15 +283,28 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 		title, body = msgs[0], strings.Join(msgs[1:], "\n\n")
 	} else {
-		msg, err := mrText(sourceRemote, sourceBranch, targetRemote, targetBranch, coverLetterFormat, true)
+		msg, err := mrText(sourceRemote, sourceBranch, targetRemote,
+			targetBranch, coverLetterFormat, true)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		title, body, err = git.Edit("MERGEREQ", msg)
-		if err != nil {
-			_, f, l, _ := runtime.Caller(0)
-			log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+		openEditor := !noEdit
+		if openEditor {
+			title, body, err = git.Edit("MERGEREQ", msg)
+			if err != nil {
+				_, f, l, _ := runtime.Caller(0)
+				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
+			}
+		} else {
+			title, body, err = git.ParseTitleBody(msg)
+			if title == "" {
+				// The only way to get here is if the auto-generated MR
+				// description has no title or body, which happens when the
+				// MR is made of multiple commits instead of a single one
+				// where the commit log is used as the MR description.
+				log.Fatal("use of --no-edit with multiple commits not allowed")
+			}
 		}
 	}
 
