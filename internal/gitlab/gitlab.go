@@ -910,7 +910,7 @@ func BranchList(projID interface{}, opts *gitlab.ListBranchesOptions) ([]*gitlab
 // MilestoneGet get a specific milestone from the list of available ones
 func MilestoneGet(projID interface{}, name string) (*gitlab.Milestone, error) {
 	opts := &gitlab.ListMilestonesOptions{
-		Search: &name,
+		Title: &name,
 	}
 	milestones, _ := MilestoneList(projID, opts)
 
