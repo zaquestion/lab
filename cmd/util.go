@@ -658,8 +658,13 @@ func getUserID(user string) *int {
 // getUsers returns the userIDs for use with other GitLab API calls.
 func getUserIDs(users []string) []int {
 	var ids []int
-	for _, a := range users {
-		ids = append(ids, *getUserID(a))
+	for _, user := range users {
+		userID := getUserID(user)
+		if userID != nil {
+			ids = append(ids, *userID)
+		} else {
+			fmt.Printf("Warning: %s is not a valid username\n", user)
+		}
 	}
 	return ids
 }
