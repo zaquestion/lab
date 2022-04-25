@@ -8,7 +8,6 @@ require (
 	github.com/charmbracelet/glamour v0.3.0
 	github.com/fatih/color v1.13.0
 	github.com/gdamore/tcell/v2 v2.4.1-0.20210905002822-f057f0a857a1
-	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/lunixbochs/vtclean v1.0.0
@@ -28,37 +27,27 @@ require (
 )
 
 require (
-	github.com/Microsoft/go-winio v0.5.0 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20210920160938-87db9fbc61c7 // indirect
-	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/alecthomas/chroma v0.9.2 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
-	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
-	github.com/go-git/gcfg v1.5.0 // indirect
-	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.15 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
@@ -74,7 +63,6 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/whilp/git-urls v1.0.0
-	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/yuin/goldmark v1.4.1 // indirect
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf // indirect
@@ -86,7 +74,6 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
-	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
