@@ -69,7 +69,7 @@ var mrShowCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			git.Show(remote+"/"+mr.TargetBranch, mr.SHA, mrShowPatchReverse)
+			git.Show(mr.DiffRefs.BaseSha, mr.SHA, mrShowPatchReverse)
 			return
 		}
 
