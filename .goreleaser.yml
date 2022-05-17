@@ -6,8 +6,7 @@ release:
   name_template: '{{.Tag}}'
 
 brews:
-  -
-    description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
+  - description: "Interacts with GitLab repositories creating/editing merge requests, issues, milestones, snippets and CI pipelines."
     homepage: "https://github.com/zaquestion/lab"
     tap:
       owner: zaquestion
@@ -32,37 +31,33 @@ scoop:
     name: goreleaserbot
     email: goreleaser@carlosbecker.com
   homepage: "https://github.com/zaquestion/lab"
-  description: "Lab wraps Git or Hub, making it simple to clone, fork, and interact with repositories on GitLab"
+  description: "Interacts with GitLab repositories creating/editing merge requests, issues, milestones, snippets and CI pipelines."
   license: CC0
+
 builds:
-- goos:
-  - linux
-  - darwin
-  - windows
+- env:
+    - CGO_ENABLED=0
+  goos:
+    - linux
+    - darwin
+    - windows
   goarch:
-  - amd64
-  - arm
-  - arm64
-  - "386"
-  goarm:
-  - "6"
-  main: .
+    - amd64
+    - arm64
   ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
   binary: lab
+
 archives:
-  -
-    format: tar.gz
-    name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{
-      .Arm }}{{ end }}'
-snapshot:
-  name_template: SNAPSHOT-{{ .Commit }}
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{.Arm }}{{ end }}'
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
+
 changelog:
   filters:
-    # commit messages matching the regexp listed here will be removed from
-    # the changelog
-    # Default is empty
     exclude:
       - '^\(docs\)'
       - '^\(gitlab-ci\)'
