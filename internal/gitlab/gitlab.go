@@ -453,29 +453,19 @@ func MRGet(projID interface{}, id int) (*gitlab.MergeRequest, error) {
 // MRList lists the MRs on a GitLab project
 func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
 	if n == -1 {
-		opts.PerPage = maxItemsPerPage
+		n = maxItemsPerPage
 	}
 
-	list, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
-	if err != nil {
-		return nil, err
-	}
-
-	var ok bool
-	if opts.Page, ok = hasNextPage(resp); !ok {
-		return list, nil
-	}
-
-	for len(list) < n || n == -1 {
-		if n != -1 {
-			opts.PerPage = n - len(list)
-		}
+	var list []*gitlab.MergeRequest
+	for len(list) < n {
+		opts.PerPage = n - len(list)
 		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, mrs...)
 
+		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
@@ -692,30 +682,19 @@ func IssueGet(projID interface{}, id int) (*gitlab.Issue, error) {
 // IssueList gets a list of issues on a GitLab Project
 func IssueList(projID interface{}, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
 	if n == -1 {
-		opts.PerPage = maxItemsPerPage
+		n = maxItemsPerPage
 	}
 
-	list, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
-	if err != nil {
-		return nil, err
-	}
-
-	var ok bool
-	if opts.Page, ok = hasNextPage(resp); !ok {
-		return list, nil
-	}
-
-	opts.Page = resp.NextPage
-	for len(list) < n || n == -1 {
-		if n != -1 {
-			opts.PerPage = n - len(list)
-		}
+	var list []*gitlab.Issue
+	for len(list) < n {
+		opts.PerPage = n - len(list)
 		issues, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, issues...)
 
+		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
@@ -1030,28 +1009,19 @@ func ProjectSnippetDelete(projID interface{}, id int) error {
 // ProjectSnippetList lists snippets on a project
 func ProjectSnippetList(projID interface{}, opts gitlab.ListProjectSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
 	if n == -1 {
-		opts.PerPage = maxItemsPerPage
-	}
-	list, resp, err := lab.ProjectSnippets.ListSnippets(projID, &opts)
-	if err != nil {
-		return nil, err
+		n = maxItemsPerPage
 	}
 
-	var ok bool
-	if opts.Page, ok = hasNextPage(resp); !ok {
-		return list, nil
-	}
-
-	for len(list) < n || n == -1 {
-		if n != -1 {
-			opts.PerPage = n - len(list)
-		}
+	var list []*gitlab.Snippet
+	for len(list) < n {
+		opts.PerPage = n - len(list)
 		snips, resp, err := lab.ProjectSnippets.ListSnippets(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, snips...)
 
+		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
@@ -1079,28 +1049,19 @@ func SnippetDelete(id int) error {
 // SnippetList lists snippets on a project
 func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
 	if n == -1 {
-		opts.PerPage = maxItemsPerPage
-	}
-	list, resp, err := lab.Snippets.ListSnippets(&opts)
-	if err != nil {
-		return nil, err
+		n = maxItemsPerPage
 	}
 
-	var ok bool
-	if opts.Page, ok = hasNextPage(resp); !ok {
-		return list, nil
-	}
-
-	for len(list) < n || n == -1 {
-		if n != -1 {
-			opts.PerPage = n - len(list)
-		}
+	var list []*gitlab.Snippet
+	for len(list) < n {
+		opts.PerPage = n - len(list)
 		snips, resp, err := lab.Snippets.ListSnippets(&opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, snips...)
 
+		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
@@ -1141,26 +1102,20 @@ func ProjectDelete(projID interface{}) error {
 
 // ProjectList gets a list of projects on GitLab
 func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, error) {
-	list, resp, err := lab.Projects.ListProjects(&opts)
-	if err != nil {
-		return nil, err
+	if n == -1 {
+		n = maxItemsPerPage
 	}
 
-	var ok bool
-	if opts.Page, ok = hasNextPage(resp); !ok {
-		return list, nil
-	}
-
-	for len(list) < n || n == -1 {
-		if n != -1 {
-			opts.PerPage = n - len(list)
-		}
+	var list []*gitlab.Project
+	for len(list) < n {
+		opts.PerPage = n - len(list)
 		projects, resp, err := lab.Projects.ListProjects(&opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, projects...)
 
+		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
@@ -1660,30 +1615,19 @@ func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, note
 // TodoList retuns a list of *gitlab.Todo refering to user's Todo list
 func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 	if n == -1 {
-		opts.PerPage = maxItemsPerPage
+		n = maxItemsPerPage
 	}
 
-	list, resp, err := lab.Todos.ListTodos(&opts)
-	if err != nil {
-		return nil, err
-	}
-
-	var ok bool
-	if opts.Page, ok = hasNextPage(resp); !ok {
-		return list, nil
-	}
-
-	for len(list) < n || n == -1 {
-		if n != -1 {
-			opts.PerPage = n - len(list)
-		}
-
+	var list []*gitlab.Todo
+	for len(list) < n {
+		opts.PerPage = n - len(list)
 		todos, resp, err := lab.Todos.ListTodos(&opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, todos...)
 
+		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
 			break
 		}
