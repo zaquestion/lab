@@ -325,7 +325,7 @@ func Test_mrCmd_Milestone(t *testing.T) {
 	repo := copyTestRepo(t)
 	var mrID string
 	t.Run("prepare", func(t *testing.T) {
-		cleanupMR(t, "origin", repo, "Test draft")
+		cleanupMR(t, "origin", repo, "MR for 1.0")
 	})
 	t.Run("create", func(t *testing.T) {
 		git := exec.Command("git", "checkout", "mrtest")
@@ -346,9 +346,13 @@ func Test_mrCmd_Milestone(t *testing.T) {
 		t.Log(out)
 		require.Contains(t, out, "https://gitlab.com/zaquestion/test/-/merge_requests")
 
-		i := strings.Index(out, "/diffs\n")
+		i := strings.Index(out, "/diffs")
+		if i < 0 {
+			t.Error("wrong MR URL format")
+		}
+
 		mrID = strings.TrimPrefix(out[:i], "https://gitlab.com/zaquestion/test/-/merge_requests/")
-		t.Log(mrID)
+		t.Log("mrID:", mrID)
 	})
 	t.Run("list", func(t *testing.T) {
 		if mrID == "" {
@@ -366,7 +370,8 @@ func Test_mrCmd_Milestone(t *testing.T) {
 		if mrID == "" {
 			t.Skip("mrID is empty, create likely failed")
 		}
-		cmd := exec.Command(labBinaryPath, "mr", "edit", "--milestone", "", "origin")
+		t.Log("mrID: ", mrID)
+		cmd := exec.Command(labBinaryPath, "mr", "edit", mrID, "--milestone", "")
 		cmd.Dir = repo
 
 		b, _ := cmd.CombinedOutput()
