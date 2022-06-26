@@ -24,7 +24,7 @@ I am the default merge request template for lab
 #
 # Changes:
 #
-# 54fd49a (Zaq? Wiedmann`)
+# 54fd49a`)
 
 }
 
@@ -45,6 +45,6 @@ I am the default merge request template for lab
 # Changes:
 #
 
-54fd49a (Zaq? Wiedmann`)
+54fd49a`)
 
 }

@@ -103,9 +103,6 @@ func getBranchMR(rn, branch string) int {
 	}
 
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
-		ListOptions: gitlab.ListOptions{
-			PerPage: 10,
-		},
 		Labels:       mrLabels,
 		State:        &mrState,
 		OrderBy:      gitlab.String("updated_at"),

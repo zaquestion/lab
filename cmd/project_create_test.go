@@ -22,6 +22,12 @@ func Test_projectCreateCmd(t *testing.T) {
 	os.Remove(filepath.Join(repo, ".git/config"))
 
 	t.Run("create", func(t *testing.T) {
+		// Depending on the test env the parent dirs can still contain a .git
+		// dir, meaning it's running inside a git repo and the test might fail.
+		if git.InsideGitRepo() {
+			t.Skip("inside git repo")
+		}
+
 		cmd := exec.Command(labBinaryPath, "project", "create", "-p", "-r", "origin")
 		cmd.Dir = repo
 
@@ -42,15 +48,16 @@ func Test_projectCreateCmd(t *testing.T) {
 			t.Fatal(err)
 		}
 		require.Equal(t, "git@gitlab.com:lab-testing/"+expectedPath+".git\n", string(remote))
+
+		p, err := lab.FindProject(expectedPath)
+		if err != nil {
+			t.Fatal(errors.Wrap(err, "failed to find project for cleanup"))
+		}
+		err = lab.ProjectDelete(p.ID)
+		if err != nil {
+			t.Fatal(errors.Wrap(err, "failed to delete project during cleanup"))
+		}
 	})
-	p, err := lab.FindProject(expectedPath)
-	if err != nil {
-		t.Fatal(errors.Wrap(err, "failed to find project for cleanup"))
-	}
-	err = lab.ProjectDelete(p.ID)
-	if err != nil {
-		t.Fatal(errors.Wrap(err, "failed to delete project during cleanup"))
-	}
 }
 
 func Test_determineNamespacePath(t *testing.T) {

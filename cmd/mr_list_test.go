@@ -78,18 +78,14 @@ func Test_mrListStateMerged(t *testing.T) {
 func Test_mrListStateClosed(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)
-	cmd := exec.Command(labBinaryPath, "mr", "list", "-a", "-s", "closed")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "-n", "1", "-s", "closed")
 	cmd.Dir = repo
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	mrs := strings.Split(string(b), "\n")
-	t.Log(mrs)
-	require.Contains(t, mrs, "!5 closed mr")
-
+	require.Regexp(t, `!\d+`, string(b))
 }
 
 func Test_mrListFivePerPage(t *testing.T) {
@@ -102,10 +98,8 @@ func Test_mrListFivePerPage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	mrs := strings.Split(string(b), "\n")
-	t.Log(mrs)
-	require.Contains(t, mrs, "!1 Test MR for lab list")
+	mrs := getAppOutput(b)
+	require.Len(t, mrs, 5)
 }
 
 func Test_mrFilterByTargetBranch(t *testing.T) {
