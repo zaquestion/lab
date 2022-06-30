@@ -463,18 +463,6 @@ func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n i
 		if err != nil {
 			return nil, err
 		}
-		// SourceBranch was specified, so we need to make sure we're listing MRs
-		// for the source branch for the specific projID and not a fork.
-		if opts.SourceBranch != nil {
-			var projMRs []*gitlab.MergeRequest
-			for _, mr := range mrs {
-				if mr.SourceProjectID != mr.ProjectID {
-					continue
-				}
-				projMRs = append(projMRs, mr)
-			}
-			mrs = projMRs
-		}
 		list = append(list, mrs...)
 
 		var ok bool
