@@ -102,6 +102,21 @@ func getBranchMR(rn, branch string) int {
 		mrBranch = branch
 	}
 
+	branchRemote, err := determineSourceRemote(branch)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	branchProjectName, err := git.PathWithNamespace(branchRemote)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	branchProject, err := lab.FindProject(branchProjectName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
 		Labels:       mrLabels,
 		State:        &mrState,
@@ -112,8 +127,11 @@ func getBranchMR(rn, branch string) int {
 		log.Fatal(err)
 	}
 
-	if len(mrs) > 0 {
-		num = mrs[0].IID
+	for _, mr := range mrs {
+		if mr.SourceProjectID == branchProject.ID {
+			num = mr.IID
+			break
+		}
 	}
 	return num
 }
