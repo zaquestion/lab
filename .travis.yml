@@ -28,7 +28,7 @@ before_script:
   - ssh-add ~/.ssh/id_rsa
 
 script:
-  - make test
+  - travis_wait 20 make test
   - diff -u <(echo -n) <(gofmt -d .)
 
 after_success:
