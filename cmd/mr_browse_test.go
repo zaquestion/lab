@@ -20,7 +20,7 @@ func Test_mrBrowseWithParameter(t *testing.T) {
 }
 
 func Test_mrBrowseCurrent(t *testing.T) {
-	git := exec.Command("git", "checkout", "mrtest")
+	git := exec.Command("git", "checkout", "mrtest2")
 	b, err := git.CombinedOutput()
 	if err != nil {
 		t.Log(string(b))
@@ -39,7 +39,7 @@ func Test_mrBrowseCurrent(t *testing.T) {
 	defer func() { browse = oldBrowse }()
 
 	browse = func(url string) error {
-		require.Equal(t, "https://gitlab.com/zaquestion/test/merge_requests/1", url)
+		require.Equal(t, "https://gitlab.com/zaquestion/test/merge_requests/3", url)
 		return nil
 	}
 
