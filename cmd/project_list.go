@@ -15,6 +15,7 @@ var projectListConfig struct {
 	Owned      bool
 	Membership bool
 	Starred    bool
+	Group      bool
 	Number     string
 }
 
@@ -27,6 +28,7 @@ var projectListCmd = &cobra.Command{
 		lab project list -m
 		lab project list --member
 		lab project list --starred
+		lab project list -g my_group/
 		lab project list -n 10`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -44,13 +46,14 @@ var projectListCmd = &cobra.Command{
 			ListOptions: gitlab.ListOptions{
 				PerPage: num,
 			},
-			Simple:     gitlab.Bool(true),
-			OrderBy:    gitlab.String("id"),
-			Sort:       gitlab.String("asc"),
-			Owned:      gitlab.Bool(projectListConfig.Owned),
-			Membership: gitlab.Bool(projectListConfig.Membership),
-			Starred:    gitlab.Bool(projectListConfig.Starred),
-			Search:     gitlab.String(search),
+			Simple:           gitlab.Bool(true),
+			OrderBy:          gitlab.String("id"),
+			Sort:             gitlab.String("asc"),
+			Owned:            gitlab.Bool(projectListConfig.Owned),
+			Membership:       gitlab.Bool(projectListConfig.Membership),
+			Starred:          gitlab.Bool(projectListConfig.Starred),
+			SearchNamespaces: gitlab.Bool(projectListConfig.Group),
+			Search:           gitlab.String(search),
 		}
 		projects, err := lab.ProjectList(opt, num)
 		if err != nil {
@@ -72,6 +75,7 @@ func init() {
 	projectListCmd.Flags().BoolVarP(&projectListConfig.Owned, "mine", "m", false, "limit by your projects")
 	projectListCmd.Flags().BoolVar(&projectListConfig.Membership, "member", false, "limit by projects which you are a member")
 	projectListCmd.Flags().BoolVar(&projectListConfig.Starred, "starred", false, "limit by your starred projects")
+	projectListCmd.Flags().BoolVarP(&projectListConfig.Group, "group", "g", false, "search also in groups matching the search query")
 	projectListCmd.Flags().StringVarP(&projectListConfig.Number, "number", "n", "100", "Number of projects to return")
 	projectListCmd.Flags().SortFlags = false
 }
