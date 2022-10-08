@@ -308,3 +308,55 @@ func Test_mrListFlagMilestoneNone(t *testing.T) {
 	t.Log(mrs)
 	require.NotContains(t, mrs, "!1 Test MR for lab list")
 }
+
+func Test_mrListApprover(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	// cmd := exec.Command(labBinaryPath, "mr", "approve", "1")
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--approver=lab-testing")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "!1 Test MR for lab list")
+	require.NotContains(t, mrs, "!3 for testings filtering with labels and lists")
+}
+
+func Test_mrListApproverAny(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--approver=any")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "!1 Test MR for lab list")
+	require.NotContains(t, mrs, "!3 for testings filtering with labels and lists")
+}
+
+func Test_mrListApproverNone(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--approver=none")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.NotContains(t, mrs, "!1 Test MR for lab list")
+	require.Contains(t, mrs, "!3 for testings filtering with labels and lists")
+}
