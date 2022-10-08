@@ -29,6 +29,8 @@ var (
 	mrConflicts        bool
 	mrNoConflicts      bool
 	mrExactMatch       bool
+	mrApprover         string
+	mrApproverID       *gitlab.ApproverIDsValue
 	mrAssignee         string
 	mrAssigneeID       *gitlab.AssigneeIDValue
 	mrOrder            string
@@ -92,6 +94,18 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	num, err := strconv.Atoi(mrNumRet)
 	if mrAll || (err != nil) {
 		num = -1
+	}
+
+	if mrApprover == "any" {
+		mrApproverID = gitlab.ApproverIDs(gitlab.UserIDAny)
+	} else if mrApprover == "none" {
+		mrApproverID = gitlab.ApproverIDs(gitlab.UserIDNone)
+	} else if mrApprover != "" {
+		approverID := getUserID(mrApprover)
+		if approverID == nil {
+			log.Fatalf("%s user not found\n", mrApprover)
+		}
+		mrApproverID = gitlab.ApproverIDs([]int{*approverID})
 	}
 
 	// gitlab lib still doesn't have search by assignee and author username
@@ -159,6 +173,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		OrderBy:                orderBy,
 		Sort:                   sort,
 		AuthorID:               mrAuthorID,
+		ApprovedByIDs:          mrApproverID,
 		AssigneeID:             mrAssigneeID,
 		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
 		ReviewerID:             mrGitLabReviewerID,
@@ -220,6 +235,8 @@ func init() {
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().MarkDeprecated("mine", "use --assignee instead")
 	listCmd.Flags().StringVar(&mrAuthor, "author", "", "list only MRs authored by $username")
+	listCmd.Flags().StringVar(
+		&mrApprover, "approver", "", "list only MRs approved by $username/any/none")
 	listCmd.Flags().StringVar(
 		&mrAssignee, "assignee", "", "list only MRs assigned to $username/any/none")
 	listCmd.Flags().StringVar(&mrOrder, "order", "updated_at", "display order (updated_at/created_at)")
