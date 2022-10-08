@@ -8,6 +8,60 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_issueListAssignedTo(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "issue", "list", "--assignee=zaquestion")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.Contains(t, issues, "#1 test issue for lab list")
+	require.NotContains(t, issues, "#2 test creating issue")
+	require.NotContains(t, issues, "#3 test filter labels 1")
+}
+
+func Test_issueListAssignedToAny(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "issue", "list", "--assignee=any")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.Contains(t, issues, "#1 test issue for lab list")
+	require.NotContains(t, issues, "#2 test creating issue")
+	require.Contains(t, issues, "#3 test filter labels 1")
+}
+
+func Test_issueListAssignedToNone(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "issue", "list", "--assignee=none")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.NotContains(t, issues, "#1 test issue for lab list")
+	require.Contains(t, issues, "#2 test creating issue")
+	require.NotContains(t, issues, "#3 test filter labels 1")
+}
+
 func Test_issueList(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)

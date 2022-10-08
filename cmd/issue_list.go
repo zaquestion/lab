@@ -15,20 +15,19 @@ import (
 )
 
 var (
-	issueLabels           []string
-	issueMilestone        string
-	issueState            string
-	issueSearch           string
-	issueNumRet           string
-	issueAll              bool
-	issueExactMatch       bool
-	issueAssignee         string
-	issueAssigneeID       *int
-	issueGitlabAssigneeID *gitlab.AssigneeIDValue
-	issueAuthor           string
-	issueAuthorID         *int
-	issueOrder            string
-	issueSortedBy         string
+	issueLabels     []string
+	issueMilestone  string
+	issueState      string
+	issueSearch     string
+	issueNumRet     string
+	issueAll        bool
+	issueExactMatch bool
+	issueAssignee   string
+	issueAssigneeID *gitlab.AssigneeIDValue
+	issueAuthor     string
+	issueAuthorID   *int
+	issueOrder      string
+	issueSortedBy   string
 )
 
 var issueListCmd = &cobra.Command{
@@ -104,12 +103,16 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		}
 	}
 
-	if issueAssignee != "" {
-		issueAssigneeID = getUserID(issueAssignee)
-		if issueAssigneeID == nil {
+	if issueAssignee == "any" {
+		issueAssigneeID = gitlab.AssigneeID(gitlab.UserIDAny)
+	} else if issueAssignee == "none" {
+		issueAssigneeID = gitlab.AssigneeID(gitlab.UserIDNone)
+	} else if issueAssignee != "" {
+		assigneeID := getUserID(issueAssignee)
+		if assigneeID == nil {
 			log.Fatalf("%s user not found\n", issueAssignee)
 		}
-		issueGitlabAssigneeID = gitlab.AssigneeID(*issueAssigneeID)
+		issueAssigneeID = gitlab.AssigneeID(*assigneeID)
 	}
 
 	orderBy := gitlab.String(issueOrder)
@@ -126,7 +129,7 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		OrderBy:    orderBy,
 		Sort:       sort,
 		AuthorID:   issueAuthorID,
-		AssigneeID: issueGitlabAssigneeID,
+		AssigneeID: issueAssigneeID,
 	}
 
 	if issueExactMatch {
@@ -161,7 +164,7 @@ func init() {
 		"filter issues by milestone/any/none")
 	issueListCmd.Flags().StringVar(
 		&issueAssignee, "assignee", "",
-		"filter issues by assignee")
+		"filter issues by assignee/any/none")
 	issueListCmd.Flags().StringVar(
 		&issueAuthor, "author", "",
 		"filter issues by author")

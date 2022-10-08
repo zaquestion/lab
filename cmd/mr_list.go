@@ -30,8 +30,7 @@ var (
 	mrNoConflicts      bool
 	mrExactMatch       bool
 	mrAssignee         string
-	mrAssigneeID       *int
-	mrGitLabAssigneeID *gitlab.AssigneeIDValue
+	mrAssigneeID       *gitlab.AssigneeIDValue
 	mrOrder            string
 	mrSortedBy         string
 	mrReviewer         string
@@ -97,19 +96,22 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 
 	// gitlab lib still doesn't have search by assignee and author username
 	// for merge requests, because of that we need to get the ID for both.
-	if mrAssignee != "" {
-		mrAssigneeID = getUserID(mrAssignee)
-		if mrAssigneeID == nil {
+	if mrAssignee == "any" {
+		mrAssigneeID = gitlab.AssigneeID(gitlab.UserIDAny)
+	} else if mrAssignee == "none" {
+		mrAssigneeID = gitlab.AssigneeID(gitlab.UserIDNone)
+	} else if mrAssignee != "" {
+		assigneeID := getUserID(mrAssignee)
+		if assigneeID == nil {
 			log.Fatalf("%s user not found\n", mrAssignee)
 		}
-		mrGitLabAssigneeID = gitlab.AssigneeID(*mrAssigneeID)
+		mrAssigneeID = gitlab.AssigneeID(*assigneeID)
 	} else if mrMine {
 		assigneeID, err := lab.UserID()
 		if err != nil {
 			log.Fatal(err)
 		}
-		mrAssigneeID = &assigneeID
-		mrGitLabAssigneeID = gitlab.AssigneeID(*mrAssigneeID)
+		mrAssigneeID = gitlab.AssigneeID(assigneeID)
 	}
 
 	if mrAuthor != "" {
@@ -157,7 +159,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		OrderBy:                orderBy,
 		Sort:                   sort,
 		AuthorID:               mrAuthorID,
-		AssigneeID:             mrGitLabAssigneeID,
+		AssigneeID:             mrAssigneeID,
 		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
 		ReviewerID:             mrGitLabReviewerID,
 	}
@@ -219,7 +221,7 @@ func init() {
 	listCmd.Flags().MarkDeprecated("mine", "use --assignee instead")
 	listCmd.Flags().StringVar(&mrAuthor, "author", "", "list only MRs authored by $username")
 	listCmd.Flags().StringVar(
-		&mrAssignee, "assignee", "", "list only MRs assigned to $username")
+		&mrAssignee, "assignee", "", "list only MRs assigned to $username/any/none")
 	listCmd.Flags().StringVar(&mrOrder, "order", "updated_at", "display order (updated_at/created_at)")
 	listCmd.Flags().StringVar(&mrSortedBy, "sort", "desc", "sort order (desc/asc)")
 	listCmd.Flags().BoolVarP(&mrDraft, "draft", "", false, "list MRs marked as draft")
