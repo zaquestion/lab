@@ -249,13 +249,15 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 			Labels: %s
 			Issues Closed by this MR: %s
 			Subscribed: %s
+			Created At: %s
+			Updated At: %s
 			WebURL: %s
 		`),
 		mr.IID, mr.Title, mr.Description, project, mr.SourceBranch,
 		mr.TargetBranch, state, assignee, mr.Author.Username,
 		approvedByUsers, approvers, approverGroups, reviewers, milestone, labels,
 		strings.Trim(strings.Replace(fmt.Sprint(closingIssues), " ", ",", -1), "[]"),
-		subscribed, mr.WebURL,
+		subscribed, mr.CreatedAt, mr.UpdatedAt, mr.WebURL,
 	)
 }
 
