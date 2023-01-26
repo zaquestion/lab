@@ -28,6 +28,10 @@ func main() {
 }
 
 func skipInit() bool {
+	if carapace.IsCallback() {
+		return true
+	}
+
 	nArgs := len(os.Args)
 	if nArgs <= 1 {
 		return false
@@ -43,8 +47,6 @@ func skipInit() bool {
 		return true
 	case "completion":
 		return true
-	case "_carapace":
-		return !carapace.IsCallback()
 	default:
 		return false
 	}
