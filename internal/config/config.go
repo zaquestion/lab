@@ -14,6 +14,7 @@ import (
 	"path"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -79,7 +80,7 @@ func New(confpath string, r io.Reader) error {
 	err = MainConfig.ReadInConfig()
 	if err != nil {
 		log.Fatal(err)
-		UserConfigError()
+		UserConfigError(host)
 	}
 	return nil
 }
@@ -185,11 +186,31 @@ func ConvertHCLtoTOML(oldpath string, newpath string, file string) {
 	fmt.Println("INFO: Converted old config", oldconfig, "to new config", newconfig)
 }
 
-func getUser(host, token string, skipVerify bool) string {
-	user := MainConfig.GetString("core.user")
-	if user != "" {
-		return user
+func checkTokenAndGetUser(host, token string, skipVerify bool) string {
+
+	loc, _ := time.LoadLocation("UTC")
+	checkTime := time.Now().UTC()
+	midnightUTC := MainConfig.GetTime("core.TokenCheckTime")
+
+	// Check to see if core.TokenCheckTime is unset
+	if midnightUTC.Equal(time.Date(1, 1, 1, 0, 0, 0, 0, loc)) {
+		year, month, day := time.Now().UTC().Date()
+		midnightUTC = time.Date(year, month, day, 0, 0, 0, 0, loc).AddDate(0, 0, -1)
 	}
+
+	// GitLab tokens are valid for a maximum of a year.  They expire at the UTC midnight
+	// on their expiry date.
+	if checkTime.Before(midnightUTC) {
+		user := MainConfig.GetString("core.user")
+		if user != "" {
+			return user
+		}
+	}
+
+	year, month, day := time.Now().UTC().Date()
+	midnightUTC = time.Date(year, month, day, 0, 0, 0, 0, loc).AddDate(0, 0, 1)
+	MainConfig.Set("core.TokenCheckTime", midnightUTC)
+	MainConfig.WriteConfig()
 
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -202,7 +223,7 @@ func getUser(host, token string, skipVerify bool) string {
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
 		log.Infoln(err)
-		UserConfigError()
+		UserConfigError(host)
 	}
 
 	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
@@ -224,7 +245,7 @@ func GetToken() string {
 		_token, err := exec.Command(args[0], args[1:]...).Output()
 		if err != nil {
 			log.Infoln(err)
-			UserConfigError()
+			UserConfigError("")
 		}
 		token = string(_token)
 		// tools like pass and a simple bash script add a '\n' to
@@ -328,12 +349,12 @@ func LoadMainConfig() (string, string, string, string, bool) {
 	}
 
 	if token = GetToken(); token == "" {
-		UserConfigError()
+		UserConfigError(host)
 	}
 
 	caFile := MainConfig.GetString("tls.ca_file")
 	tlsSkipVerify := MainConfig.GetBool("tls.skip_verify")
-	user = getUser(host, token, tlsSkipVerify)
+	user = checkTokenAndGetUser(host, token, tlsSkipVerify)
 
 	return host, user, token, caFile, tlsSkipVerify
 }
@@ -392,7 +413,11 @@ func WriteConfigEntry(desc string, value interface{}, configpath string, confign
 }
 
 // UserConfigError returns a default error message about authentication
-func UserConfigError() {
-	fmt.Println("Error: User authentication failed.  This is likely due to a misconfigured Personal Access Token.  Verify the token or token_load config settings before attempting to authenticate.")
+func UserConfigError(host string) {
+	fmt.Printf("Error: User authentication failed.  This is likely due to a misconfigured or expired Personal Access Token.  Verify the token or token_load config settings before attempting to authenticate.  ")
+	if host != "" {
+		fmt.Printf("A new token can be created at %s", host+"/-/profile/personal_access_tokens")
+	}
+	fmt.Printf("\n")
 	os.Exit(1)
 }
