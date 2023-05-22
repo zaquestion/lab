@@ -1378,7 +1378,8 @@ func CIPlayOrRetry(projID interface{}, jobID int, status string) (*gitlab.Job, e
 	case "pending", "running":
 		return nil, nil
 	case "manual":
-		j, _, err := lab.Jobs.PlayJob(projID, jobID)
+		opts := &gitlab.PlayJobOptions{}
+		j, _, err := lab.Jobs.PlayJob(projID, jobID, opts)
 		if err != nil {
 			return nil, err
 		}
