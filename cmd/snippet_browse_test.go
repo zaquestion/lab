@@ -20,14 +20,14 @@ func Test_snippetBrowse(t *testing.T) {
 	defer func() { browse = oldBrowse }()
 
 	browse = func(url string) error {
-		require.Equal(t, "https://gitlab.com/zaquestion/test/snippets", url)
+		require.Equal(t, "https://gitlab.com/zaquestion/test/-/snippets", url)
 		return nil
 	}
 
 	snippetBrowseCmd.Run(nil, []string{})
 
 	browse = func(url string) error {
-		require.Equal(t, "https://gitlab.com/zaquestion/test/snippets/23", url)
+		require.Equal(t, "https://gitlab.com/zaquestion/test/-/snippets/23", url)
 		return nil
 	}
 

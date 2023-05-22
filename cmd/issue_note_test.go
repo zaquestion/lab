@@ -20,7 +20,7 @@ func Test_issueCreateNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/issues/1#note_")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/-/issues/1#note_")
 }
 
 func Test_issueReplyNote(t *testing.T) {

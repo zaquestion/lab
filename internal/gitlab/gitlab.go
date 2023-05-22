@@ -399,7 +399,7 @@ func MRCreateDiscussion(projID interface{}, id int, opts *gitlab.CreateMergeRequ
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRUpdate edits an merge request on a GitLab project
@@ -437,7 +437,7 @@ func MRCreateNote(projID interface{}, id int, opts *gitlab.CreateMergeRequestNot
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // MRGet retrieves the merge request from GitLab project
@@ -666,7 +666,7 @@ func IssueCreateNote(projID interface{}, id int, opts *gitlab.CreateIssueNoteOpt
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // IssueGet retrieves the issue information from a GitLab project
@@ -1460,7 +1460,7 @@ func AddMRDiscussionNote(projID interface{}, mrID int, discussionID string, body
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
@@ -1478,7 +1478,7 @@ func AddIssueDiscussionNote(projID interface{}, issueID int, discussionID string
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // UpdateIssueDiscussionNote updates a specific discussion or note in the
@@ -1497,7 +1497,7 @@ func UpdateIssueDiscussionNote(projID interface{}, issueID int, discussionID str
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/issues/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // UpdateMRDiscussionNote updates a specific discussion or note in the
@@ -1516,7 +1516,7 @@ func UpdateMRDiscussionNote(projID interface{}, mrID int, discussionID string, n
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
@@ -1586,7 +1586,7 @@ func MoveIssue(projID interface{}, id int, destProjID interface{}) (string, erro
 		return "", err
 	}
 
-	return fmt.Sprintf("%s/issues/%d", destProject.WebURL, issue.IID), nil
+	return fmt.Sprintf("%s/-/issues/%d", destProject.WebURL, issue.IID), nil
 }
 
 // GetMRApprovalsConfiguration returns the current MR approval rule
@@ -1614,7 +1614,7 @@ func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, note
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("Resolved %s/merge_requests/%d#note_%d", p.WebURL, mrID, noteID), nil
+	return fmt.Sprintf("Resolved %s/-/merge_requests/%d#note_%d", p.WebURL, mrID, noteID), nil
 }
 
 // TodoList retuns a list of *gitlab.Todo refering to user's Todo list
@@ -1842,7 +1842,7 @@ func CreateMergeRequestCommitDiscussion(projID interface{}, id int, sha string, 
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+	return fmt.Sprintf("%s/-/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
 }
 
 // hasNextPage get the next page number in case the API response has more

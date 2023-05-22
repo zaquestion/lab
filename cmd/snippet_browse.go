@@ -36,7 +36,7 @@ var snippetBrowseCmd = &cobra.Command{
 		if global || rn == "" {
 			hostURL.Path = path.Join(hostURL.Path, "dashboard", "snippets")
 		} else {
-			hostURL.Path = path.Join(hostURL.Path, rn, "snippets")
+			hostURL.Path = path.Join(hostURL.Path, rn, "-", "snippets")
 		}
 
 		if id > 0 {

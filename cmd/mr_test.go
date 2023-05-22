@@ -200,7 +200,7 @@ func Test_mrCmd_MR_description_and_options(t *testing.T) {
 
 		t.Log("commentID =", commentID)
 
-		url := "https://gitlab.com/lab-testing/test/merge_requests/" + mrID + "#note_" + commentID
+		url := "https://gitlab.com/lab-testing/test/-/merge_requests/" + mrID + "#note_" + commentID
 		require.Contains(t, out, url)
 	})
 	t.Run("show MR with comment", func(t *testing.T) {

@@ -28,7 +28,7 @@ var mrBrowseCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		hostURL.Path = path.Join(hostURL.Path, rn, "merge_requests")
+		hostURL.Path = path.Join(hostURL.Path, rn, "-", "merge_requests")
 		hostURL.Path = path.Join(hostURL.Path, strconv.FormatInt(num, 10))
 
 		err = browse(hostURL.String())
