@@ -31,7 +31,7 @@ var issueBrowseCmd = &cobra.Command{
 
 		// path.Join will remove 1 "/" from "http://" as it's consider that's
 		// file system path. So we better use normal string concat
-		issueURL := project.WebURL + "/issues"
+		issueURL := project.WebURL + "/-/issues"
 		if num > 0 {
 			issueURL = issueURL + "/" + strconv.FormatInt(num, 10)
 		}

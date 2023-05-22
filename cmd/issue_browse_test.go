@@ -11,7 +11,7 @@ func Test_issueBrowse(t *testing.T) {
 	defer func() { browse = oldBrowse }()
 
 	browse = func(url string) error {
-		require.Equal(t, "https://gitlab.com/zaquestion/test/issues/1", url)
+		require.Equal(t, "https://gitlab.com/zaquestion/test/-/issues/1", url)
 		return nil
 	}
 

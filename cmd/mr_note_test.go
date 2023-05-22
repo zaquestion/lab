@@ -23,7 +23,7 @@ func Test_mrCreateNote(t *testing.T) {
 		{
 			Name:         "Normal text",
 			Args:         []string{"lab-testing", mrCommentSlashDiscussionDumpsterID, "-m", "note text"},
-			ExpectedBody: "https://gitlab.com/lab-testing/test/merge_requests/" + mrCommentSlashDiscussionDumpsterID + "#note_",
+			ExpectedBody: "https://gitlab.com/lab-testing/test/-/merge_requests/" + mrCommentSlashDiscussionDumpsterID + "#note_",
 		},
 		{
 			// Escaped sequence text direct in the argument list as the
@@ -31,7 +31,7 @@ func Test_mrCreateNote(t *testing.T) {
 			// https://github.com/zaquestion/lab/issues/376
 			Name:         "Escape char",
 			Args:         []string{"lab-testing", mrCommentSlashDiscussionDumpsterID, "-m", "{\"key\": \"value\"}"},
-			ExpectedBody: "https://gitlab.com/lab-testing/test/merge_requests/" + mrCommentSlashDiscussionDumpsterID + "#note_",
+			ExpectedBody: "https://gitlab.com/lab-testing/test/-/merge_requests/" + mrCommentSlashDiscussionDumpsterID + "#note_",
 		},
 	}
 	noteCmd := []string{"mr", "note"}
@@ -71,7 +71,7 @@ func Test_mrCreateNote_file(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/merge_requests/"+mrCommentSlashDiscussionDumpsterID+"#note_")
+	require.Contains(t, string(b), "https://gitlab.com/lab-testing/test/-/merge_requests/"+mrCommentSlashDiscussionDumpsterID+"#note_")
 }
 
 func Test_mrReplyAndResolve(t *testing.T) {
