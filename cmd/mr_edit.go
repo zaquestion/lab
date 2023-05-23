@@ -186,7 +186,7 @@ var mrEditCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		updateMilestone := cmd.Flags().Lookup("milestone").Changed
-		milestoneID := -1
+		milestoneID := 0
 
 		if milestoneName != "" {
 			ms, err := lab.MilestoneGet(rn, milestoneName)
