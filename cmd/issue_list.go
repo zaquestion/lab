@@ -14,19 +14,20 @@ import (
 )
 
 var (
-	issueLabels     []string
-	issueMilestone  string
-	issueState      string
-	issueSearch     string
-	issueNumRet     string
-	issueAll        bool
-	issueExactMatch bool
-	issueAssignee   string
-	issueAssigneeID *int
-	issueAuthor     string
-	issueAuthorID   *int
-	issueOrder      string
-	issueSortedBy   string
+	issueLabels           []string
+	issueMilestone        string
+	issueState            string
+	issueSearch           string
+	issueNumRet           string
+	issueAll              bool
+	issueExactMatch       bool
+	issueAssignee         string
+	issueAssigneeID       *int
+	issueGitlabAssigneeID *gitlab.AssigneeIDValue
+	issueAuthor           string
+	issueAuthorID         *int
+	issueOrder            string
+	issueSortedBy         string
 )
 
 var issueListCmd = &cobra.Command{
@@ -103,6 +104,7 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		if issueAssigneeID == nil {
 			log.Fatalf("%s user not found\n", issueAssignee)
 		}
+		issueGitlabAssigneeID = gitlab.AssigneeID(*issueAssigneeID)
 	}
 
 	orderBy := gitlab.String(issueOrder)
@@ -119,7 +121,7 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		OrderBy:    orderBy,
 		Sort:       sort,
 		AuthorID:   issueAuthorID,
-		AssigneeID: issueAssigneeID,
+		AssigneeID: issueGitlabAssigneeID,
 	}
 
 	if issueExactMatch {

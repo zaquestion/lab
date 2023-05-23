@@ -308,11 +308,11 @@ var mrEditCmd = &cobra.Command{
 		}
 
 		if assigneesChanged {
-			opts.AssigneeIDs = assigneeIDs
+			opts.AssigneeIDs = &assigneeIDs
 		}
 
 		if reviewersChanged {
-			opts.ReviewerIDs = reviewerIDs
+			opts.ReviewerIDs = &reviewerIDs
 		}
 
 		if updateMilestone {

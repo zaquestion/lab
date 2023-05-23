@@ -104,7 +104,7 @@ var issueCreateCmd = &cobra.Command{
 			Title:       &title,
 			Description: &body,
 			Labels:      &labels,
-			AssigneeIDs: assigneeIDs,
+			AssigneeIDs: &assigneeIDs,
 			MilestoneID: milestoneID,
 		})
 		if err != nil {

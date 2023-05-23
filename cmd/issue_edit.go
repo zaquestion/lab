@@ -212,7 +212,7 @@ var issueEditCmd = &cobra.Command{
 		}
 
 		if assigneesChanged {
-			opts.AssigneeIDs = assigneeIDs
+			opts.AssigneeIDs = &assigneeIDs
 		}
 
 		if updateMilestone {

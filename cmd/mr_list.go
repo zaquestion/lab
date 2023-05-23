@@ -14,26 +14,28 @@ import (
 )
 
 var (
-	mrLabels       []string
-	mrState        string
-	mrTargetBranch string
-	mrMilestone    string
-	mrNumRet       string
-	mrAll          bool
-	mrMine         bool
-	mrAuthor       string
-	mrAuthorID     *int
-	mrDraft        bool
-	mrReady        bool
-	mrConflicts    bool
-	mrNoConflicts  bool
-	mrExactMatch   bool
-	mrAssignee     string
-	mrAssigneeID   *int
-	mrOrder        string
-	mrSortedBy     string
-	mrReviewer     string
-	mrReviewerID   *int
+	mrLabels           []string
+	mrState            string
+	mrTargetBranch     string
+	mrMilestone        string
+	mrNumRet           string
+	mrAll              bool
+	mrMine             bool
+	mrAuthor           string
+	mrAuthorID         *int
+	mrDraft            bool
+	mrReady            bool
+	mrConflicts        bool
+	mrNoConflicts      bool
+	mrExactMatch       bool
+	mrAssignee         string
+	mrAssigneeID       *int
+	mrGitLabAssigneeID *gitlab.AssigneeIDValue
+	mrOrder            string
+	mrSortedBy         string
+	mrReviewer         string
+	mrReviewerID       *int
+	mrGitLabReviewerID *gitlab.ReviewerIDValue
 )
 
 // listCmd represents the list command
@@ -99,12 +101,14 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		if mrAssigneeID == nil {
 			log.Fatalf("%s user not found\n", mrAssignee)
 		}
+		mrGitLabAssigneeID = gitlab.AssigneeID(*mrAssigneeID)
 	} else if mrMine {
 		assigneeID, err := lab.UserID()
 		if err != nil {
 			log.Fatal(err)
 		}
 		mrAssigneeID = &assigneeID
+		mrGitLabAssigneeID = gitlab.AssigneeID(*mrAssigneeID)
 	}
 
 	if mrAuthor != "" {
@@ -127,6 +131,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		if mrReviewerID == nil {
 			log.Fatalf("%s user not found\n", mrReviewer)
 		}
+		mrGitLabReviewerID = gitlab.ReviewerID(*mrReviewerID)
 	}
 
 	orderBy := gitlab.String(mrOrder)
@@ -147,9 +152,9 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		OrderBy:                orderBy,
 		Sort:                   sort,
 		AuthorID:               mrAuthorID,
-		AssigneeID:             mrAssigneeID,
+		AssigneeID:             mrGitLabAssigneeID,
 		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
-		ReviewerID:             mrReviewerID,
+		ReviewerID:             mrGitLabReviewerID,
 	}
 
 	if mrDraft && !mrReady {
