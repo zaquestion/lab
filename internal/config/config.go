@@ -258,7 +258,8 @@ func GetToken() string {
 }
 
 // LoadMainConfig loads the main config file and returns a tuple of
-//  host, user, token, ca_file, skipVerify
+//
+//	host, user, token, ca_file, skipVerify
 func LoadMainConfig() (string, string, string, string, bool) {
 	// The lab config heirarchy is:
 	//	1. ENV variables (LAB_CORE_TOKEN, LAB_CORE_HOST)
