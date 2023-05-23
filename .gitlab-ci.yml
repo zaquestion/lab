@@ -17,7 +17,7 @@ stages:
   - release
 
 default:
-  image: golang:1.17
+  image: golang:1.18
   tags:
     - gitlab-org
 
@@ -35,7 +35,7 @@ gosec-sast:
     - make install
 
 code_navigation:
-  image: golang:1.17
+  image: golang:1.18
   allow_failure: true
   script:
     - go get github.com/sourcegraph/lsif-go/cmd/lsif-go
@@ -81,11 +81,11 @@ code_navigation:
 test:
   stage: test
   extends: .test
-  image: golang:1.17
+  image: golang:1.18
 
 release:
   stage: release
-  image: golang:1.17
+  image: golang:1.18
   only:
     refs:
       - tags
@@ -96,7 +96,7 @@ release:
 
 docs:
   stage: release
-  image: golang:1.17
+  image: golang:1.18
   only:
     refs:
       - tags

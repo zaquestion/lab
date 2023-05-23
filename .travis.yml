@@ -4,7 +4,7 @@ os:
   - linux
 
 go:
-  - 1.17.x
+  - 1.18.x
 
 # use containers which run faster and have cache
 sudo: false
