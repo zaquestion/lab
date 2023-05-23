@@ -1091,7 +1091,7 @@ func ProjectCreate(opts *gitlab.CreateProjectOptions) (*gitlab.Project, error) {
 	return p, nil
 }
 
-// ProjectDelete creates a new project on GitLab
+// ProjectDelete deletes a project on GitLab
 func ProjectDelete(projID interface{}) error {
 	_, err := lab.Projects.DeleteProject(projID)
 	if err != nil {
