@@ -338,14 +338,17 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	squash, _ := cmd.Flags().GetBool("squash")
 	allowCollaboration, _ := cmd.Flags().GetBool("allow-collaboration")
 
+	assigneesUserIDs := getUserIDs(assignees)
+	reviewersUserIDs := getUserIDs(reviewers)
+
 	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
 		SourceBranch:       &sourceBranch,
 		TargetBranch:       gitlab.String(targetBranch),
 		TargetProjectID:    &targetProject.ID,
 		Title:              &title,
 		Description:        &body,
-		AssigneeIDs:        getUserIDs(assignees),
-		ReviewerIDs:        getUserIDs(reviewers),
+		AssigneeIDs:        &assigneesUserIDs,
+		ReviewerIDs:        &reviewersUserIDs,
 		RemoveSourceBranch: &removeSourceBranch,
 		Squash:             &squash,
 		AllowCollaboration: &allowCollaboration,
