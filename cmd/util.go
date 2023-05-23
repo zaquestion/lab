@@ -118,7 +118,6 @@ func getBranchMR(rn, branch string) int {
 	}
 
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
-		Labels:       mrLabels,
 		State:        &mrState,
 		OrderBy:      gitlab.String("updated_at"),
 		SourceBranch: gitlab.String(mrBranch),
@@ -682,4 +681,40 @@ func getUserIDs(users []string) []int {
 		}
 	}
 	return ids
+}
+
+// mapLabelsAsStrings returns a list of labels as an array of strings
+func mapLabelsAsStrings(rn string, labelTerms []string) ([]string, error) {
+	// Don't bother fetching project labels if nothing is being really requested
+	if len(labelTerms) == 0 {
+		return []string{}, nil
+	}
+
+	labels, err := lab.LabelList(rn)
+	if err != nil {
+		return nil, err
+	}
+
+	labelNames := make([]string, len(labels))
+	for _, label := range labels {
+		labelNames = append(labelNames, label.Name)
+	}
+
+	matches, err := matchTerms(labelTerms, labelNames)
+	if err != nil {
+		return nil, errors.Errorf("Label %s\n", err.Error())
+	}
+
+	return matches, nil
+}
+
+// malLabelsAsLabels returns a list of labels as gitlab.Labels
+func mapLabelsAsLabels(rn string, labelTerms []string) (gitlab.Labels, error) {
+
+	matches, err := mapLabelsAsStrings(rn, labelTerms)
+	if err != nil {
+		return nil, err
+	}
+
+	return gitlab.Labels(matches), nil
 }

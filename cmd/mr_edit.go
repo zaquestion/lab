@@ -105,7 +105,7 @@ var mrEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		addLabels, err := mapLabels(rn, addLabelTerms)
+		addLabels, err := mapLabelsAsLabels(rn, addLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -118,7 +118,7 @@ var mrEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		rmLabels, err := mapLabels(rn, rmLabelTerms)
+		rmLabels, err := mapLabelsAsLabels(rn, rmLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -303,8 +303,8 @@ var mrEditCmd = &cobra.Command{
 
 		if labelsChanged {
 			// empty arrays are just ignored
-			opts.AddLabels = addLabels
-			opts.RemoveLabels = rmLabels
+			opts.AddLabels = &addLabels
+			opts.RemoveLabels = &rmLabels
 		}
 
 		if assigneesChanged {

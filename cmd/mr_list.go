@@ -82,7 +82,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		return nil, err
 	}
 
-	labels, err := mapLabels(rn, mrLabels)
+	labels, err := mapLabelsAsLabels(rn, mrLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		ListOptions: gitlab.ListOptions{
 			PerPage: num,
 		},
-		Labels:                 labels,
+		Labels:                 &labels,
 		State:                  &mrState,
 		TargetBranch:           &mrTargetBranch,
 		Milestone:              &mrMilestone,
