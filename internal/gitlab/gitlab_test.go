@@ -103,7 +103,7 @@ func TestLint(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			ok, _ := Lint(test.content)
+			ok, _ := Lint("lab-testing/test", test.content)
 			require.Equal(t, test.expected, ok)
 		})
 	}
