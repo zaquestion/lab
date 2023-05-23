@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
-	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/zaquestion/lab/internal/action"
@@ -57,30 +56,6 @@ var labelListCmd = &cobra.Command{
 			fmt.Printf("%s%s\n", label.Name, description)
 		}
 	},
-}
-
-func mapLabels(rn string, labelTerms []string) ([]string, error) {
-	// Don't bother fetching project labels if nothing is being really requested
-	if len(labelTerms) == 0 {
-		return []string{}, nil
-	}
-
-	labels, err := lab.LabelList(rn)
-	if err != nil {
-		return nil, err
-	}
-
-	labelNames := make([]string, len(labels))
-	for _, label := range labels {
-		labelNames = append(labelNames, label.Name)
-	}
-
-	matches, err := matchTerms(labelTerms, labelNames)
-	if err != nil {
-		return nil, errors.Errorf("Label %s\n", err.Error())
-	}
-
-	return matches, nil
 }
 
 func init() {

@@ -67,7 +67,7 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		labels, err := mapLabels(rn, labelTerms)
+		labels, err := mapLabelsAsLabels(rn, labelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -103,7 +103,7 @@ var issueCreateCmd = &cobra.Command{
 		issueURL, err := lab.IssueCreate(rn, &gitlab.CreateIssueOptions{
 			Title:       &title,
 			Description: &body,
-			Labels:      labels,
+			Labels:      &labels,
 			AssigneeIDs: assigneeIDs,
 			MilestoneID: milestoneID,
 		})

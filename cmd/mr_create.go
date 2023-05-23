@@ -218,7 +218,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	labels, err := mapLabels(targetProjectName, labelTerms)
+	labels, err := mapLabelsAsLabels(targetProjectName, labelTerms)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -349,7 +349,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		RemoveSourceBranch: &removeSourceBranch,
 		Squash:             &squash,
 		AllowCollaboration: &allowCollaboration,
-		Labels:             labels,
+		Labels:             &labels,
 		MilestoneID:        milestone,
 	})
 	if err != nil {
