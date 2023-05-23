@@ -1071,15 +1071,20 @@ func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, err
 }
 
 // Lint validates .gitlab-ci.yml contents
-func Lint(content string) (bool, error) {
-	lint, _, err := lab.Validate.Lint(content)
+func Lint(projID interface{}, content string) (bool, error) {
+	lint, _, err := lab.Validate.ProjectNamespaceLint(
+		projID,
+		&gitlab.ProjectNamespaceLintOptions{
+			Content: &content,
+		},
+	)
 	if err != nil {
 		return false, err
 	}
 	if len(lint.Errors) > 0 {
 		return false, errors.New(strings.Join(lint.Errors, " - "))
 	}
-	return lint.Status == "valid", nil
+	return lint.Valid, nil
 }
 
 // ProjectCreate creates a new project on GitLab

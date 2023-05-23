@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -29,7 +30,13 @@ var ciLintCmd = &cobra.Command{
 		if !os.IsNotExist(err) && err != nil {
 			log.Fatal(err)
 		}
-		ok, err := lab.Lint(string(b))
+
+		pid, err := git.PathWithNamespace(defaultRemote)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ok, err := lab.Lint(pid, string(b))
 		if !ok || err != nil {
 			log.Fatal(errors.Wrap(err, "ci yaml invalid"))
 		}
