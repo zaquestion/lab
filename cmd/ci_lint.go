@@ -18,7 +18,7 @@ var ciLintCmd = &cobra.Command{
 	Short: "Validate .gitlab-ci.yml against GitLab",
 	Example: heredoc.Doc(`
 		lab ci lint
-		lab ci lint upstream`),
+		lab ci lint ../path/to/.gitlab-ci.yml`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		path := ".gitlab-ci.yml"
