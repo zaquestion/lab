@@ -78,10 +78,9 @@ func TestNewConfig(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, `
-[core]
-  host = "https://gitlab.zaquestion.io"
-  token = "abcde12345"
+		assert.Equal(t, `[core]
+host = 'https://gitlab.zaquestion.io'
+token = 'abcde12345'
 `, string(cfgData))
 	})
 	resetMainConfig()
@@ -144,10 +143,9 @@ func TestNewConfigHostOverride(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, `
-[core]
-  host = "https://gitlab2.zaquestion.io"
-  token = "abcde12345"
+		assert.Equal(t, `[core]
+host = 'https://gitlab2.zaquestion.io'
+token = 'abcde12345'
 `, string(cfgData))
 	})
 	resetMainConfig()
@@ -202,10 +200,9 @@ func TestNewLoadTokenConfig(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, `
-[core]
-  host = "https://gitlab.zaquestion.io"
-  load_token = "bash echo abcde12345"
+		assert.Equal(t, `[core]
+host = 'https://gitlab.zaquestion.io'
+load_token = 'bash echo abcde12345'
 `, string(cfgData))
 	})
 	resetMainConfig()
@@ -242,11 +239,10 @@ func TestConvertHCLtoTOML(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, `
-[core]
-  host = "https://gitlab.com"
-  token = "foobar"
-  user = "lab-testing"
+	assert.Equal(t, `[core]
+host = 'https://gitlab.com'
+token = 'foobar'
+user = 'lab-testing'
 `, string(cfgData))
 }
 
