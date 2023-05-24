@@ -1857,3 +1857,60 @@ func hasNextPage(resp *gitlab.Response) (int, bool) {
 	}
 	return resp.NextPage, true
 }
+
+func GetCurrentPAT() (*gitlab.PersonalAccessToken, error) {
+	tokendata, _, err := lab.PersonalAccessTokens.GetSinglePersonalAccessToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return tokendata, nil
+}
+
+func GetAllPATs() ([]*gitlab.PersonalAccessToken, error) {
+
+	opt := &gitlab.ListPersonalAccessTokensOptions{}
+
+	tokens, _, err := lab.PersonalAccessTokens.ListPersonalAccessTokens(opt)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokens, nil
+}
+
+func CreatePAT(name string, ExpiresAt time.Time, scopes []string) (*gitlab.PersonalAccessToken, error) {
+	isotime := gitlab.ISOTime(ExpiresAt)
+	opt := &gitlab.CreatePersonalAccessTokenOptions{
+		Name:      &name,
+		ExpiresAt: &isotime,
+		Scopes:    &scopes,
+	}
+
+	userID, err := UserID()
+	if err != nil {
+		return nil, err
+	}
+
+	token, _, err := lab.Users.CreatePersonalAccessToken(userID, opt)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
+func RevokePAT(id int) error {
+	PATs, err := GetAllPATs()
+	if err != nil {
+		return err
+	}
+
+	for _, PAT := range PATs {
+		if PAT.ID == id {
+			_, err := lab.PersonalAccessTokens.RevokePersonalAccessToken(PAT.ID)
+			return err
+		}
+	}
+
+	return fmt.Errorf("%d is not a valid Token ID\n", id)
+}
