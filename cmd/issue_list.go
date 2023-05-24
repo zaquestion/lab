@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
@@ -76,7 +77,11 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		return nil, err
 	}
 
-	if issueMilestone != "" {
+	if strings.ToLower(issueMilestone) == "any" {
+		issueMilestone = "Any"
+	} else if strings.ToLower(issueMilestone) == "none" {
+		issueMilestone = "None"
+	} else if issueMilestone != "" {
 		milestone, err := lab.MilestoneGet(rn, issueMilestone)
 		if err != nil {
 			return nil, err
@@ -153,7 +158,7 @@ func init() {
 		"list all issues on the project")
 	issueListCmd.Flags().StringVar(
 		&issueMilestone, "milestone", "",
-		"filter issues by milestone")
+		"filter issues by milestone/any/none")
 	issueListCmd.Flags().StringVar(
 		&issueAssignee, "assignee", "",
 		"filter issues by assignee")
