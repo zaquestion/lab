@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -717,4 +718,18 @@ func mapLabelsAsLabels(rn string, labelTerms []string) (gitlab.Labels, error) {
 	}
 
 	return gitlab.Labels(matches), nil
+}
+
+// dumpToken dumps information about a specific Personal Access Token
+func dumpToken(tokendata *gitlab.PersonalAccessToken) {
+	fmt.Println("ID:        ", tokendata.ID)
+	fmt.Println("Name:      ", tokendata.Name)
+	fmt.Println("Revoked:   ", tokendata.Revoked)
+	fmt.Println("CreatedAt: ", tokendata.CreatedAt)
+	fmt.Println("Scopes:    ", strings.Join(tokendata.Scopes, ","))
+	fmt.Println("UserID:    ", tokendata.UserID)
+	fmt.Println("LastUsedAt:", tokendata.LastUsedAt)
+	fmt.Println("Active:    ", tokendata.Active)
+	fmt.Println("ExpiresAt: ", time.Time(*tokendata.ExpiresAt).String())
+	fmt.Println("")
 }
