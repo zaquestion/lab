@@ -191,10 +191,10 @@ func checkTokenAndGetUser(host, token string, skipVerify bool) string {
 	loc, _ := time.LoadLocation("UTC")
 	checkTime := time.Now().UTC()
 	midnightUTC := MainConfig.GetTime("core.TokenCheckTime")
+	year, month, day := time.Now().UTC().Date()
 
 	// Check to see if core.TokenCheckTime is unset
 	if midnightUTC.Equal(time.Date(1, 1, 1, 0, 0, 0, 0, loc)) {
-		year, month, day := time.Now().UTC().Date()
 		midnightUTC = time.Date(year, month, day, 0, 0, 0, 0, loc).AddDate(0, 0, -1)
 	}
 
@@ -207,11 +207,11 @@ func checkTokenAndGetUser(host, token string, skipVerify bool) string {
 		}
 	}
 
-	year, month, day := time.Now().UTC().Date()
 	midnightUTC = time.Date(year, month, day, 0, 0, 0, 0, loc).AddDate(0, 0, 1)
 	MainConfig.Set("core.TokenCheckTime", midnightUTC)
 	MainConfig.WriteConfig()
 
+	// start a client to fetch the user's ID
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -219,11 +219,27 @@ func checkTokenAndGetUser(host, token string, skipVerify bool) string {
 			},
 		},
 	}
+
+	// If this fails it's most likely due to a bad token.
 	lab, _ := gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"))
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
 		log.Infoln(err)
 		UserConfigError(host)
+	}
+
+	// Output a warning if the token is going to expire in two weeks
+	tokendata, _, err := lab.PersonalAccessTokens.GetSinglePersonalAccessToken()
+	if err != nil {
+		log.Infoln(err)
+		UserConfigError(host)
+	}
+
+	twoweeks := time.Date(year, month, day, 0, 0, 0, 0, loc).AddDate(0, 0, 14)
+	if twoweeks.After(time.Time(*tokendata.ExpiresAt)) {
+		fmt.Printf("WARNING: Token '%s' is set to expire on %s.  A new token can be created at %s\n\n",
+			tokendata.Name, time.Time(*tokendata.ExpiresAt).String(),
+			host+"/-/profile/personal_access_tokens")
 	}
 
 	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
