@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/pkg/errors"
@@ -118,7 +119,11 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		}
 	}
 
-	if mrMilestone != "" {
+	if strings.ToLower(mrMilestone) == "any" {
+		mrMilestone = "Any"
+	} else if strings.ToLower(mrMilestone) == "none" {
+		mrMilestone = "None"
+	} else if mrMilestone != "" {
 		milestone, err := lab.MilestoneGet(rn, mrMilestone)
 		if err != nil {
 			log.Fatal(err)
@@ -208,7 +213,7 @@ func init() {
 		&mrTargetBranch, "target-branch", "t", "",
 		"filter merge requests by target branch")
 	listCmd.Flags().StringVar(
-		&mrMilestone, "milestone", "", "list only MRs for the given milestone")
+		&mrMilestone, "milestone", "", "list only MRs for the given milestone/any/none")
 	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "list all MRs on the project")
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().MarkDeprecated("mine", "use --assignee instead")

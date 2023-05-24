@@ -72,6 +72,38 @@ func Test_issueListFlagMilestone(t *testing.T) {
 	require.Contains(t, issues, "#1 test issue for lab list")
 }
 
+func Test_issueListFlagMilestoneAny(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "issue", "list", "--milestone", "any")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.Contains(t, issues, "#1 test issue for lab list")
+}
+
+func Test_issueListFlagMilestoneNone(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "issue", "list", "--milestone", "none")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	issues := strings.Split(string(b), "\n")
+	t.Log(issues)
+	require.NotContains(t, issues, "#1 test issue for lab list")
+}
+
 func Test_issueListSearch(t *testing.T) {
 	t.Parallel()
 	repo := copyTestRepo(t)

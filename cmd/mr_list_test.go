@@ -224,3 +224,51 @@ func Test_mrListSearch(t *testing.T) {
 	t.Log(mrs)
 	require.Contains(t, mrs, "!6 test award emoji")
 }
+
+func Test_mrListFlagMilestone(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--milestone", "1.0")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "!1 Test MR for lab list")
+}
+
+func Test_mrListFlagMilestoneAny(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--milestone", "any")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.Contains(t, mrs, "!1 Test MR for lab list")
+}
+
+func Test_mrListFlagMilestoneNone(t *testing.T) {
+	t.Parallel()
+	repo := copyTestRepo(t)
+	cmd := exec.Command(labBinaryPath, "mr", "list", "--milestone", "none")
+	cmd.Dir = repo
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mrs := strings.Split(string(b), "\n")
+	t.Log(mrs)
+	require.NotContains(t, mrs, "!1 Test MR for lab list")
+}
