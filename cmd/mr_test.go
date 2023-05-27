@@ -519,18 +519,11 @@ func Test_mrCmd_assign_and_review(t *testing.T) {
 	mrID = s[0]
 	// strip off "!"
 	mrID = mrID[1:]
+	t.Log("mrID:", mrID)
 
 	mrURL := "https://gitlab.com/zaquestion/test/-/merge_requests/" + mrID
 
 	t.Run("assign_and_unassign", func(t *testing.T) {
-		mrEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--assign", "lab-testing")
-		mrEdit.Dir = repo
-		mrEditOut, err := mrEdit.CombinedOutput()
-		if err != nil {
-			t.Log(string(mrEditOut))
-			t.Fatal(err)
-		}
-
 		mrList := exec.Command(labBinaryPath, "mr", "list", "--assignee", "lab-testing")
 		mrList.Dir = repo
 		mrListOut, err := mrList.CombinedOutput()
@@ -547,14 +540,7 @@ func Test_mrCmd_assign_and_review(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		require.Contains(t, string(mrEditOut), mrURL)
-		require.Contains(t, string(mrListOut), mrIDString)
-		require.Contains(t, string(mrUnEditOut), mrURL)
-	})
-
-	// This tests 'lab mr edit --review' and 'lab mr list --unreview'
-	t.Run("review_and_unreview", func(t *testing.T) {
-		mrEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--review", "lab-testing")
+		mrEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--assign", "lab-testing")
 		mrEdit.Dir = repo
 		mrEditOut, err := mrEdit.CombinedOutput()
 		if err != nil {
@@ -562,6 +548,13 @@ func Test_mrCmd_assign_and_review(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		require.Contains(t, string(mrEditOut), mrURL)
+		require.Contains(t, string(mrListOut), mrIDString)
+		require.Contains(t, string(mrUnEditOut), mrURL)
+	})
+
+	// This tests 'lab mr edit --review' and 'lab mr list --unreview'
+	t.Run("review_and_unreview", func(t *testing.T) {
 		mrList := exec.Command(labBinaryPath, "mr", "list", "--reviewer", "lab-testing")
 		mrList.Dir = repo
 		mrListOut, err := mrList.CombinedOutput()
@@ -575,6 +568,14 @@ func Test_mrCmd_assign_and_review(t *testing.T) {
 		mrUnEditOut, err := mrUnEdit.CombinedOutput()
 		if err != nil {
 			t.Log(string(mrUnEditOut))
+			t.Fatal(err)
+		}
+
+		mrEdit := exec.Command(labBinaryPath, "mr", "edit", mrID, "--review", "lab-testing")
+		mrEdit.Dir = repo
+		mrEditOut, err := mrEdit.CombinedOutput()
+		if err != nil {
+			t.Log(string(mrEditOut))
 			t.Fatal(err)
 		}
 
