@@ -15,29 +15,28 @@ import (
 )
 
 var (
-	mrLabels           []string
-	mrState            string
-	mrTargetBranch     string
-	mrMilestone        string
-	mrNumRet           string
-	mrAll              bool
-	mrMine             bool
-	mrAuthor           string
-	mrAuthorID         *int
-	mrDraft            bool
-	mrReady            bool
-	mrConflicts        bool
-	mrNoConflicts      bool
-	mrExactMatch       bool
-	mrApprover         string
-	mrApproverID       *gitlab.ApproverIDsValue
-	mrAssignee         string
-	mrAssigneeID       *gitlab.AssigneeIDValue
-	mrOrder            string
-	mrSortedBy         string
-	mrReviewer         string
-	mrReviewerID       *int
-	mrGitLabReviewerID *gitlab.ReviewerIDValue
+	mrLabels       []string
+	mrState        string
+	mrTargetBranch string
+	mrMilestone    string
+	mrNumRet       string
+	mrAll          bool
+	mrMine         bool
+	mrAuthor       string
+	mrAuthorID     *int
+	mrDraft        bool
+	mrReady        bool
+	mrConflicts    bool
+	mrNoConflicts  bool
+	mrExactMatch   bool
+	mrApprover     string
+	mrApproverID   *gitlab.ApproverIDsValue
+	mrAssignee     string
+	mrAssigneeID   *gitlab.AssigneeIDValue
+	mrOrder        string
+	mrSortedBy     string
+	mrReviewer     string
+	mrReviewerID   *gitlab.ReviewerIDValue
 )
 
 // listCmd represents the list command
@@ -148,11 +147,11 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 	}
 
 	if mrReviewer != "" {
-		mrReviewerID = getUserID(mrReviewer)
-		if mrReviewerID == nil {
+		reviewerID := getUserID(mrReviewer)
+		if reviewerID == nil {
 			log.Fatalf("%s user not found\n", mrReviewer)
 		}
-		mrGitLabReviewerID = gitlab.ReviewerID(*mrReviewerID)
+		mrReviewerID = gitlab.ReviewerID(*reviewerID)
 	}
 
 	orderBy := gitlab.String(mrOrder)
@@ -176,7 +175,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		ApprovedByIDs:          mrApproverID,
 		AssigneeID:             mrAssigneeID,
 		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
-		ReviewerID:             mrGitLabReviewerID,
+		ReviewerID:             mrReviewerID,
 	}
 
 	if mrDraft && !mrReady {
