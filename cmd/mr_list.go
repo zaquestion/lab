@@ -146,7 +146,11 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 		mrMilestone = milestone.Title
 	}
 
-	if mrReviewer != "" {
+	if mrReviewer == "any" {
+		mrReviewerID = gitlab.ReviewerID(gitlab.UserIDAny)
+	} else if mrReviewer == "none" {
+		mrReviewerID = gitlab.ReviewerID(gitlab.UserIDNone)
+	} else if mrReviewer != "" {
 		reviewerID := getUserID(mrReviewer)
 		if reviewerID == nil {
 			log.Fatalf("%s user not found\n", mrReviewer)
@@ -247,7 +251,7 @@ func init() {
 	listCmd.Flags().BoolVar(&mrConflicts, "conflicts", false, "list only MRs that cannot be merged")
 	listCmd.Flags().BoolVarP(&mrExactMatch, "exact-match", "x", false, "match on the exact (case-insensitive) search terms")
 	listCmd.Flags().StringVar(
-		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username")
+		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username/any/none")
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
