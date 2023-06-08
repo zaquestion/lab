@@ -30,6 +30,8 @@ var tokenCmd = &cobra.Command{
 			tokenRevokeCmd.Run(cmd, args)
 			return
 		}
+
+		cmd.Help()
 	},
 }
 
