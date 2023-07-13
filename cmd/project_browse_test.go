@@ -11,9 +11,29 @@ func Test_projectBrowse(t *testing.T) {
 	defer func() { browse = oldBrowse }()
 
 	browse = func(url string) error {
-		require.Equal(t, "https://gitlab.com/zaquestion/test", url)
+		require.Equal(t, "https://gitlab.com/zaquestion/test/-/tree/master", url)
 		return nil
 	}
 
 	projectBrowseCmd.Run(nil, []string{""})
+}
+
+func Test_projectGetPath(t *testing.T) {
+	defaultPath := projectBrowseGetPath("https://gitlab.com/zaquestion/test", "master", "", "", "")
+	require.Equal(t, defaultPath, "https://gitlab.com/zaquestion/test/-/tree/master")
+}
+
+func Test_projectGetPathAndFile(t *testing.T) {
+	pathAndFile := projectBrowseGetPath("https://gitlab.com/zaquestion/test", "master", "", "README.md", "")
+	require.Equal(t, pathAndFile, "https://gitlab.com/zaquestion/test/-/blob/master/README.md")
+}
+
+func Test_projectGetPathAndFileAndBranch(t *testing.T) {
+	pathAndFileAndBranch := projectBrowseGetPath("https://gitlab.com/zaquestion/test", "master", "newbranch", "README.md", "")
+	require.Equal(t, pathAndFileAndBranch, "https://gitlab.com/zaquestion/test/-/blob/newbranch/README.md")
+}
+
+func Test_projectGetPathAndRef(t *testing.T) {
+	pathRef := projectBrowseGetPath("https://gitlab.com/zaquestion/test", "", "", "", "12345abcdef")
+	require.Equal(t, pathRef, "https://gitlab.com/zaquestion/test/-/tree/12345abcdef")
 }
