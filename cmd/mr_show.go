@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
@@ -37,7 +38,8 @@ var mrShowCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
-			log.Fatal(err)
+			log.Infoln("ERROR: cannot determine MR id")
+			os.Exit(0x16) // EINVAL
 		}
 
 		mr, err := lab.MRGet(rn, int(mrNum))
