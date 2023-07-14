@@ -242,6 +242,23 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal("empty MR message")
 	}
 
+	closeIssues, err := cmd.Flags().GetStringSlice("close-issue")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(closeIssues) > 0 {
+		closeIssueString := "\n\nCloses "
+		for i, issue := range closeIssues {
+			closeIssueString = closeIssueString + "#" + issue
+			if i != (len(closeIssues) - 1) {
+				closeIssueString = closeIssueString + ", "
+			}
+		}
+		closeIssueString += "\n"
+		body += closeIssueString
+	}
+
 	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 	if linebreak {
 		body = textToMarkdown(body)
@@ -418,6 +435,8 @@ func init() {
 	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
 	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
 	mrCreateCmd.Flags().String("source", "", "specify the source remote and branch in the form of remote:branch")
+	mrCreateCmd.Flags().StringSlice("close-issue", []string{}, "close issue when this merge request is merged; can be specified multiple times")
+
 	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
 
 	mrCmd.AddCommand(mrCreateCmd)
