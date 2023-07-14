@@ -13,7 +13,8 @@ test:
 internal-test:
 	rm -f coverage-*
 	GO111MODULE=on go test -coverprofile=coverage-main.out -covermode=count -coverpkg ./... -run=$(run) $(GOURL)/cmd $(GOURL)/internal/...
-	go install -mod=readonly github.com/wadey/gocovmerge
+	go get github.com/wadey/gocovmerge
+	go install github.com/wadey/gocovmerge
 	$(GOPATH)/bin/gocovmerge coverage-*.out > coverage.txt && rm coverage-*.out
 
 .PHONY: build install test internal-test
