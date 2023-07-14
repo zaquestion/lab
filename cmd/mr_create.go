@@ -241,7 +241,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	var title, body string
 
-	if filename != "" {
+	if filename != "" || ofilename != "" {
 		var openEditor bool
 
 		if ofilename != "" {
