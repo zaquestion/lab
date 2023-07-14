@@ -7,28 +7,22 @@ import (
 )
 
 var (
-	projectFile    string
-	projectBranch  string
-	projectFileRef string
+	projectFile   string
+	projectGitRef string
 )
 
-func projectBrowseGetPath(webURL string, defaultBranch string, branch string, file string, ref string) (path string) {
-	if branch == "" {
-		branch = defaultBranch
+func projectBrowseGetPath(webURL string, defaultBranch string, ref string, file string) (path string) {
+	if ref == "" {
+		ref = defaultBranch
 	}
 
-	if ref != "" {
-		path = webURL + "/-/tree/" + ref
-		return path
-	}
+	path = webURL + "/-/blob/" + ref
 
 	if file != "" {
-		path = webURL + "/-/blob/" + branch + "/" + file
-	} else {
-		path = webURL + "/-/tree/" + branch
+		path += "/" + file
 	}
 
-	return path
+	return
 }
 
 var projectBrowseCmd = &cobra.Command{
@@ -51,7 +45,7 @@ var projectBrowseCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = browse(projectBrowseGetPath(p.WebURL, p.DefaultBranch, projectBranch, projectFile, projectFileRef))
+		err = browse(projectBrowseGetPath(p.WebURL, p.DefaultBranch, projectGitRef, projectFile))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -60,7 +54,6 @@ var projectBrowseCmd = &cobra.Command{
 
 func init() {
 	projectBrowseCmd.Flags().StringVar(&projectFile, "file", "", "path to specified file")
-	projectBrowseCmd.Flags().StringVar(&projectFileRef, "ref", "", "commit reference for file")
-	projectBrowseCmd.Flags().StringVar(&projectBranch, "branch", "", "specific branch (overrides default branch)")
+	projectBrowseCmd.Flags().StringVar(&projectGitRef, "ref", "", "git reference (branch, tag, or SHA)")
 	projectCmd.AddCommand(projectBrowseCmd)
 }
