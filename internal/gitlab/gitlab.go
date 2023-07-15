@@ -1600,6 +1600,16 @@ func GetMRApprovalsConfiguration(projID interface{}, id int) (*gitlab.MergeReque
 	return configuration, err
 }
 
+// GetMRApprovalsState returns the current MR approval rule
+func GetMRApprovalState(projID interface{}, id int) (*gitlab.MergeRequestApprovalState, error) {
+	state, _, err := lab.MergeRequestApprovals.GetApprovalState(projID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, err
+}
+
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
 func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, noteID int) (string, error) {
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
