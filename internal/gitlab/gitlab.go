@@ -1600,6 +1600,60 @@ func GetMRApprovalsConfiguration(projID interface{}, id int) (*gitlab.MergeReque
 	return configuration, err
 }
 
+// GetMRApprovalsState returns the current MR approval rule
+func GetMRApprovalState(projID interface{}, id int) (*gitlab.MergeRequestApprovalState, error) {
+	state, _, err := lab.MergeRequestApprovals.GetApprovalState(projID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, err
+}
+
+// CreateMRApprovalRule creates a new approval rule for a merge request.  Calling this without
+// users or groups set defaults to creating an 'All Eligible Members' rule.
+func CreateMRApprovalRule(projID interface{}, approvalsRequired int, mrID int, name string, projectRuleID int, groups []int, users []int) (*gitlab.MergeRequestApprovalRule, error) {
+
+	opts := &gitlab.CreateMergeRequestApprovalRuleOptions{
+		Name:                  &name,
+		ApprovalsRequired:     &approvalsRequired,
+		ApprovalProjectRuleID: &projectRuleID,
+		UserIDs:               &users,
+		GroupIDs:              &groups,
+	}
+
+	rule, _, err := lab.MergeRequestApprovals.CreateApprovalRule(projID, mrID, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return rule, nil
+}
+
+// DeleteMRApprovalRule deletes an approval rule for a given MR
+func DeleteMRApprovalRule(projID interface{}, name string, mrID int) (string, error) {
+	approvalState, err := GetMRApprovalState(projID, mrID)
+	if err != nil {
+		return "", err
+	}
+
+	nameID := 0
+	for r, rule := range approvalState.Rules {
+		if rule.Name == name {
+			nameID = rule.ID
+			break
+		}
+		if r == (len(approvalState.Rules) + 1) {
+			return "", fmt.Errorf("Could not find '%s' rule for MR !%d", name, mrID)
+		}
+	}
+	_, err = lab.MergeRequestApprovals.DeleteApprovalRule(projID, mrID, nameID)
+	if err != nil {
+		return "", fmt.Errorf("Rule %s not deleted for MR !%d", name, mrID)
+	}
+	return fmt.Sprintf("Rule %s deleted for MR !%d", name, mrID), nil
+}
+
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
 func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, noteID int) (string, error) {
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
