@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
+	"log"
 	"os"
+	"os/signal"
 
 	"github.com/rsteube/carapace"
 	"github.com/zaquestion/lab/cmd"
@@ -13,15 +16,20 @@ import (
 var version = "master"
 
 func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
 	cmd.Version = version
 	initSkipped := skipInit()
 	if !initSkipped {
 		h, u, t, ca, skipVerify := config.LoadMainConfig()
 
 		if ca != "" {
-			lab.InitWithCustomCA(h, u, t, ca)
+			if err := lab.InitWithCustomCA(ctx, h, u, t, ca); err != nil {
+				log.Fatal(err)
+			}
 		} else {
-			lab.Init(h, u, t, skipVerify)
+			lab.Init(ctx, h, u, t, skipVerify)
 		}
 	}
 	cmd.Execute(initSkipped)

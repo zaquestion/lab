@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"math/rand"
 	"os"
@@ -65,7 +66,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	lab.Init(host, u.Username, token, false)
+	lab.Init(context.Background(), host, u.Username, token, false)
 
 	// Make "origin" the default remote for test cases calling
 	// cmd.Run() directly, instead of launching the labBinaryPath
