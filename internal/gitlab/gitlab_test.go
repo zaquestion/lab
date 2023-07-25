@@ -1,6 +1,7 @@
 package gitlab
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -39,7 +40,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	Init(host, u.Username, token, false)
+	Init(context.Background(), host, u.Username, token, false)
 
 	code := m.Run()
 

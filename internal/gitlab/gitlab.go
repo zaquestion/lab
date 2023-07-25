@@ -5,12 +5,12 @@
 package gitlab
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -69,8 +69,7 @@ func UserID() (int, error) {
 	return u.ID, nil
 }
 
-// Init initializes a gitlab client for use throughout lab.
-func Init(_host, _user, _token string, allowInsecure bool) {
+func initGitlabClient(ctx context.Context, _host, _user, _token string, tlsConfig *tls.Config) {
 	if len(_host) > 0 && _host[len(_host)-1] == '/' {
 		_host = _host[:len(_host)-1]
 	}
@@ -78,32 +77,31 @@ func Init(_host, _user, _token string, allowInsecure bool) {
 	user = _user
 	token = _token
 
+	tp := http.DefaultTransport.(*http.Transport).Clone()
+	tp.TLSClientConfig = tlsConfig
 	httpClient := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-				DualStack: true,
-			}).DialContext,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: allowInsecure,
-			},
-		},
+		Transport: tp,
 	}
 
-	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"), gitlab.WithCustomLeveledLogger(log))
+	lab, _ = gitlab.NewClient(token,
+		gitlab.WithHTTPClient(httpClient),
+		gitlab.WithBaseURL(host+"/api/v4"),
+		gitlab.WithCustomLeveledLogger(log),
+		gitlab.WithRequestOptions(gitlab.WithContext(ctx)),
+	)
+}
+
+// Init initializes a gitlab client for use throughout lab.
+func Init(ctx context.Context, _host, _user, _token string, allowInsecure bool) {
+	initGitlabClient(ctx, _host, _user, _token, &tls.Config{
+		InsecureSkipVerify: allowInsecure,
+	})
 }
 
 // InitWithCustomCA open the HTTP client using a custom CA file (a self signed
 // one for instance) instead of relying only on those installed in the current
 // system database
-func InitWithCustomCA(_host, _user, _token, caFile string) error {
+func InitWithCustomCA(ctx context.Context, _host, _user, _token, caFile string) error {
 	if len(_host) > 0 && _host[len(_host)-1] == '/' {
 		_host = _host[:len(_host)-1]
 	}
@@ -111,7 +109,7 @@ func InitWithCustomCA(_host, _user, _token, caFile string) error {
 	user = _user
 	token = _token
 
-	caCert, err := ioutil.ReadFile(caFile)
+	caCert, err := os.ReadFile(caFile)
 	if err != nil {
 		return err
 	}
@@ -122,26 +120,9 @@ func InitWithCustomCA(_host, _user, _token, caFile string) error {
 	}
 	caCertPool.AppendCertsFromPEM(caCert)
 
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-				DualStack: true,
-			}).DialContext,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			TLSClientConfig: &tls.Config{
-				RootCAs: caCertPool,
-			},
-		},
-	}
-
-	lab, _ = gitlab.NewClient(token, gitlab.WithHTTPClient(httpClient), gitlab.WithBaseURL(host+"/api/v4"))
+	initGitlabClient(ctx, _host, _user, _token, &tls.Config{
+		RootCAs: caCertPool,
+	})
 	return nil
 }
 
