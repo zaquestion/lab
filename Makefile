@@ -1,6 +1,7 @@
 VERSION ?= $(shell git describe --long --tags)
 GOURL ?= github.com/zaquestion/lab
 
+
 build:
 	GO111MODULE=on go build -ldflags "-X 'main.version=$(VERSION)'" $(GOURL)
 
