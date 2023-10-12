@@ -36,6 +36,7 @@ experience similar to the GitLab WebUI with respect to errors and messages.
 # Usage recommendation
 
 One can use _lab_ as a Git alias, integrating seamlessly to their Git workflow.
+
 ```
 $ cat ~/.gitconfig
 ...
@@ -72,7 +73,6 @@ nix-env -f '<nixpkgs>' -iA gitAndTools.lab
 
 ### Scoop
 ```
-scoop bucket add zaquestion https://github.com/zaquestion/scoop-bucket.git
 scoop install lab
 ```
 
@@ -95,7 +95,7 @@ curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | sud
 
 ### PreBuilt Binaries
 
-Head to the [releases](https://github.com/zaquestion/lab/releases) page and download your preferred release
+Head to the [releases](https://github.com/zaquestion/lab/releases) page and download your preferred release.
 
 ### Source
 
@@ -177,6 +177,7 @@ file using TOML format.
 
 If running _lab_ locally, the variables `LAB_CORE_HOST` and `LAB_CORE_TOKEN` can be used, preventing configuration file
 creation/update. For example to use _gitlab.com_ do:
+
 ```
 export LAB_CORE_HOST="https://gitlab.com"
 ```
@@ -185,7 +186,7 @@ export LAB_CORE_HOST="https://gitlab.com"
 
 The environment variables `CI_PROJECT_URL`, `CI_JOB_TOKEN` and `GITLAB_USER_LOGIN`, intended to be used in a CI
 environment, can be set to prevent any configuration file creation/update. Also, any of these take precedence over all
-other options. 
+other options.
 
 # Completions
 
