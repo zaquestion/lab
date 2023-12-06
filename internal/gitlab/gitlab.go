@@ -433,18 +433,25 @@ func MRGet(projID interface{}, id int) (*gitlab.MergeRequest, error) {
 
 // MRList lists the MRs on a GitLab project
 func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
-	if n == -1 {
-		n = maxItemsPerPage
-	}
-
 	var list []*gitlab.MergeRequest
-	for len(list) < n {
-		opts.PerPage = n - len(list)
+	for true {
+		opts.PerPage = maxItemsPerPage
+		if n != -1 {
+			opts.PerPage = n - len(list)
+			if opts.PerPage > maxItemsPerPage {
+				opts.PerPage = maxItemsPerPage
+			}
+		}
+
 		mrs, resp, err := lab.MergeRequests.ListProjectMergeRequests(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, mrs...)
+
+		if len(list) == n {
+			break
+		}
 
 		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
