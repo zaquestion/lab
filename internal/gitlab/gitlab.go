@@ -669,18 +669,25 @@ func IssueGet(projID interface{}, id int) (*gitlab.Issue, error) {
 
 // IssueList gets a list of issues on a GitLab Project
 func IssueList(projID interface{}, opts gitlab.ListProjectIssuesOptions, n int) ([]*gitlab.Issue, error) {
-	if n == -1 {
-		n = maxItemsPerPage
-	}
-
 	var list []*gitlab.Issue
-	for len(list) < n {
-		opts.PerPage = n - len(list)
+	for true {
+		opts.PerPage = maxItemsPerPage
+		if n != -1 {
+			opts.PerPage = n - len(list)
+			if opts.PerPage > maxItemsPerPage {
+				opts.PerPage = maxItemsPerPage
+			}
+		}
+
 		issues, resp, err := lab.Issues.ListProjectIssues(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, issues...)
+
+		if len(list) == n {
+			break
+		}
 
 		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
@@ -996,18 +1003,25 @@ func ProjectSnippetDelete(projID interface{}, id int) error {
 
 // ProjectSnippetList lists snippets on a project
 func ProjectSnippetList(projID interface{}, opts gitlab.ListProjectSnippetsOptions, n int) ([]*gitlab.Snippet, error) {
-	if n == -1 {
-		n = maxItemsPerPage
-	}
-
 	var list []*gitlab.Snippet
-	for len(list) < n {
-		opts.PerPage = n - len(list)
+	for true {
+		opts.PerPage = maxItemsPerPage
+		if n != -1 {
+			opts.PerPage = n - len(list)
+			if opts.PerPage > maxItemsPerPage {
+				opts.PerPage = maxItemsPerPage
+			}
+		}
+
 		snips, resp, err := lab.ProjectSnippets.ListSnippets(projID, &opts)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, snips...)
+
+		if len(list) == n {
+			break
+		}
 
 		var ok bool
 		if opts.Page, ok = hasNextPage(resp); !ok {
