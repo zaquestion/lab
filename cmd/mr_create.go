@@ -19,76 +19,6 @@ import (
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
-// mrCmd represents the mr command
-var mrCreateCmd = &cobra.Command{
-	Use:     "create [target_remote [target_branch]]",
-	Aliases: []string{"new"},
-	Short:   "Creates a merge request.",
-	Args:    cobra.MaximumNArgs(2),
-	Example: heredoc.Doc(`
-		lab mr create target_remote
-		lab mr create target_remote target_branch --allow-collaboration
-		lab mr create upstream main --source my_fork:feature-3
-		lab mr create a_remote -a johndoe -a janedoe
-		lab mr create my_remote -c
-		lab mr create my_remote --draft
-		lab mr create my_remote -F a_file.txt
-		lab mr create my_remote -F a_file.txt --force-linebreak
-		lab mr create my_remote -f a_file.txt
-		lab mr create my_remote -l bug -l confirmed
-		lab mr create my_remote -m "A title message"
-		lab mr create my_remote -m "A MR title" -m "A MR description"
-		lab mr create my_remote --milestone "Fall"
-		lab mr create my_remote -d
-		lab mr create my_remote -r johndoe -r janedoe
-		lab mr create my_remote -s`),
-	PersistentPreRun: labPersistentPreRun,
-	Run:              runMRCreate,
-}
-
-func init() {
-	mrCreateCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
-	mrCreateCmd.Flags().StringSliceP("assignee", "a", []string{}, "set assignee by username; can be specified multiple times for multiple assignees")
-	mrCreateCmd.Flags().StringSliceP("reviewer", "r", []string{}, "set reviewer by username; can be specified multiple times for multiple reviewers")
-	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "add label <label>; can be specified multiple times for multiple labels")
-	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "remove source branch from remote after merge")
-	mrCreateCmd.Flags().BoolP("squash", "s", false, "squash commits when merging")
-	mrCreateCmd.Flags().Bool("allow-collaboration", false, "allow commits from other members")
-	mrCreateCmd.Flags().String("milestone", "", "set milestone by milestone title or ID")
-	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Title and Description")
-	mrCreateCmd.Flags().StringP("file-edit", "f", "", "use the given file as the Title and Description and open the editor")
-	mrCreateCmd.Flags().Bool("no-edit", false, "use the selected commit message without opening the editor")
-	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
-	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
-	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
-	mrCreateCmd.Flags().String("source", "", "specify the source remote and branch in the form of remote:branch")
-	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
-
-	mrCmd.AddCommand(mrCreateCmd)
-
-	carapace.Gen(mrCreateCmd).FlagCompletion(carapace.ActionMap{
-		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
-			project, _, err := parseArgsRemoteAndProject(c.Args)
-			if err != nil {
-				return carapace.ActionMessage(err.Error())
-			}
-			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
-		}),
-		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
-			project, _, err := parseArgsRemoteAndProject(c.Args)
-			if err != nil {
-				return carapace.ActionMessage(err.Error())
-			}
-			return action.Milestones(project, action.MilestoneOpts{Active: true})
-		}),
-	})
-
-	carapace.Gen(mrCreateCmd).PositionalCompletion(
-		action.Remotes(),
-		action.RemoteBranches(0),
-	)
-}
-
 func verifyRemoteBranch(projID string, branch string) error {
 	if _, err := lab.GetCommit(projID, branch); err != nil {
 		return fmt.Errorf("%s is not a valid reference", branch)
@@ -312,6 +242,23 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 		log.Fatal("empty MR message")
 	}
 
+	closeIssues, err := cmd.Flags().GetStringSlice("close-issue")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(closeIssues) > 0 {
+		closeIssueString := "\n\nCloses "
+		for i, issue := range closeIssues {
+			closeIssueString = closeIssueString + "#" + issue
+			if i != (len(closeIssues) - 1) {
+				closeIssueString = closeIssueString + ", "
+			}
+		}
+		closeIssueString += "\n"
+		body += closeIssueString
+	}
+
 	linebreak, _ := cmd.Flags().GetBool("force-linebreak")
 	if linebreak {
 		body = textToMarkdown(body)
@@ -443,4 +390,76 @@ func mrText(sourceRemote, sourceBranch, targetRemote, targetBranch string, cover
 	}
 
 	return b.String(), nil
+}
+
+// mrCmd represents the mr command
+var mrCreateCmd = &cobra.Command{
+	Use:     "create [target_remote [target_branch]]",
+	Aliases: []string{"new"},
+	Short:   "Creates a merge request.",
+	Args:    cobra.MaximumNArgs(2),
+	Example: heredoc.Doc(`
+		lab mr create target_remote
+		lab mr create target_remote target_branch --allow-collaboration
+		lab mr create upstream main --source my_fork:feature-3
+		lab mr create a_remote -a johndoe -a janedoe
+		lab mr create my_remote -c
+		lab mr create my_remote --draft
+		lab mr create my_remote -F a_file.txt
+		lab mr create my_remote -F a_file.txt --force-linebreak
+		lab mr create my_remote -f a_file.txt
+		lab mr create my_remote -l bug -l confirmed
+		lab mr create my_remote -m "A title message"
+		lab mr create my_remote -m "A MR title" -m "A MR description"
+		lab mr create my_remote --milestone "Fall"
+		lab mr create my_remote -d
+		lab mr create my_remote -r johndoe -r janedoe
+		lab mr create my_remote -s`),
+	PersistentPreRun: labPersistentPreRun,
+	Run:              runMRCreate,
+}
+
+func init() {
+	mrCreateCmd.Flags().StringArrayP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
+	mrCreateCmd.Flags().StringSliceP("assignee", "a", []string{}, "set assignee by username; can be specified multiple times for multiple assignees")
+	mrCreateCmd.Flags().StringSliceP("reviewer", "r", []string{}, "set reviewer by username; can be specified multiple times for multiple reviewers")
+	mrCreateCmd.Flags().StringSliceP("label", "l", []string{}, "add label <label>; can be specified multiple times for multiple labels")
+	mrCreateCmd.Flags().BoolP("remove-source-branch", "d", false, "remove source branch from remote after merge")
+	mrCreateCmd.Flags().BoolP("squash", "s", false, "squash commits when merging")
+	mrCreateCmd.Flags().Bool("allow-collaboration", false, "allow commits from other members")
+	mrCreateCmd.Flags().String("milestone", "", "set milestone by milestone title or ID")
+	mrCreateCmd.Flags().StringP("file", "F", "", "use the given file as the Title and Description")
+	mrCreateCmd.Flags().StringP("file-edit", "f", "", "use the given file as the Title and Description and open the editor")
+	mrCreateCmd.Flags().Bool("no-edit", false, "use the selected commit message without opening the editor")
+	mrCreateCmd.Flags().Bool("force-linebreak", false, "append 2 spaces to the end of each line to force markdown linebreaks")
+	mrCreateCmd.Flags().BoolP("cover-letter", "c", false, "comment changelog and diffstat")
+	mrCreateCmd.Flags().Bool("draft", false, "mark the merge request as draft")
+	mrCreateCmd.Flags().String("source", "", "specify the source remote and branch in the form of remote:branch")
+	mrCreateCmd.Flags().StringSlice("close-issue", []string{}, "close issue when this merge request is merged; can be specified multiple times")
+
+	mergeRequestCmd.Flags().AddFlagSet(mrCreateCmd.Flags())
+
+	mrCmd.AddCommand(mrCreateCmd)
+
+	carapace.Gen(mrCreateCmd).FlagCompletion(carapace.ActionMap{
+		"label": carapace.ActionMultiParts(",", func(c carapace.Context) carapace.Action {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
+				return carapace.ActionMessage(err.Error())
+			}
+			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
+		}),
+		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
+			project, _, err := parseArgsRemoteAndProject(c.Args)
+			if err != nil {
+				return carapace.ActionMessage(err.Error())
+			}
+			return action.Milestones(project, action.MilestoneOpts{Active: true})
+		}),
+	})
+
+	carapace.Gen(mrCreateCmd).PositionalCompletion(
+		action.Remotes(),
+		action.RemoteBranches(0),
+	)
 }
