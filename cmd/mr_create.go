@@ -218,7 +218,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	labels, err := mapLabelsAsLabels(targetProjectName, labelTerms)
+	labels, err := mapLabelsAsLabelOptions(targetProjectName, labelTerms)
 	if err != nil {
 		log.Fatal(err)
 	}
