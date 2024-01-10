@@ -855,7 +855,7 @@ func LabelCreate(projID interface{}, opts *gitlab.CreateLabelOptions) error {
 
 // LabelDelete removes a project label
 func LabelDelete(projID, name string) error {
-	_, err := lab.Labels.DeleteLabel(projID, &gitlab.DeleteLabelOptions{
+	_, err := lab.Labels.DeleteLabel(projID, name, &gitlab.DeleteLabelOptions{
 		Name: &name,
 	})
 	return err
@@ -1689,7 +1689,9 @@ func TodoIssueCreate(projID interface{}, id int) (int, error) {
 func GetCommitDiff(projID interface{}, sha string) ([]*gitlab.Diff, error) {
 	var diffs []*gitlab.Diff
 	opt := &gitlab.GetCommitDiffOptions{
-		PerPage: maxItemsPerPage,
+		ListOptions: gitlab.ListOptions{
+			PerPage: maxItemsPerPage,
+		},
 	}
 
 	for {
@@ -1810,23 +1812,25 @@ func CreateMergeRequestCommitDiscussion(projID interface{}, id int, sha string, 
 		return "", err
 	}
 
-	position := gitlab.NotePosition{
-		NewPath:      newFile,
-		OldPath:      oldFile,
-		BaseSHA:      commitInfo.ParentIDs[0],
-		StartSHA:     commitInfo.ParentIDs[0],
-		HeadSHA:      sha,
-		PositionType: "text",
+	positionType := "text"
+
+	position := gitlab.PositionOptions{
+		NewPath:      &newFile,
+		OldPath:      &oldFile,
+		BaseSHA:      &commitInfo.ParentIDs[0],
+		StartSHA:     &commitInfo.ParentIDs[0],
+		HeadSHA:      &sha,
+		PositionType: &positionType,
 	}
 
 	switch linetype {
 	case "new":
-		position.NewLine = line
+		position.NewLine = &line
 	case "old":
-		position.OldLine = line
+		position.OldLine = &line
 	case "context":
-		position.NewLine = line
-		position.OldLine = line
+		position.NewLine = &line
+		position.OldLine = &line
 	}
 
 	opt := &gitlab.CreateMergeRequestDiscussionOptions{
