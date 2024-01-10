@@ -121,7 +121,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			return
 		}
 
-		var notePos *gitlab.NotePosition
+		var notePos gitlab.PositionOptions
 		if position != "" {
 			if commit == "" {
 				// We currently only support "--position" when commenting on individual commits within an MR.
@@ -137,23 +137,28 @@ var mrCreateDiscussionCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 			// WORKAROUND For added (-) and deleted (+) lines we only need one line number parameter, but for context lines we need both. https://gitlab.com/gitlab-org/gitlab/-/issues/325161
-			newLine := posLineNumberNew
+			newLine64 := posLineNumberNew
 			if posLineType == '-' {
-				newLine = 0
+				newLine64 = 0
 			}
-			oldLine := posLineNumberOld
+			newLine := int(newLine64)
+
+			oldLine64 := posLineNumberOld
 			if posLineType == '+' {
-				oldLine = 0
+				oldLine64 = 0
 			}
-			notePos = &gitlab.NotePosition{
-				BaseSHA:      parentSHA,
-				StartSHA:     parentSHA,
-				HeadSHA:      commit,
-				PositionType: "text",
-				NewPath:      posFile,
-				NewLine:      int(newLine),
-				OldPath:      posFile,
-				OldLine:      int(oldLine),
+			oldLine := int(oldLine64)
+
+			positionType := "text"
+			notePos = gitlab.PositionOptions{
+				BaseSHA:      &parentSHA,
+				StartSHA:     &parentSHA,
+				HeadSHA:      &commit,
+				PositionType: &positionType,
+				NewPath:      &posFile,
+				NewLine:      &newLine,
+				OldPath:      &posFile,
+				OldLine:      &oldLine,
 			}
 		}
 
@@ -168,7 +173,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 		discussionURL, err := lab.MRCreateDiscussion(rn, int(mrNum), &gitlab.CreateMergeRequestDiscussionOptions{
 			Body:     &body,
 			CommitID: commitID,
-			Position: notePos,
+			Position: &notePos,
 		})
 		if err != nil {
 			log.Fatal(err)
