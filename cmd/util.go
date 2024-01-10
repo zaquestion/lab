@@ -709,17 +709,16 @@ func mapLabelsAsStrings(rn string, labelTerms []string) ([]string, error) {
 	return matches, nil
 }
 
-// malLabelsAsLabels returns a list of labels as gitlab.Labels
-func mapLabelsAsLabels(rn string, labelTerms []string) (gitlab.Labels, error) {
+// malLabelsAsLabels returns a list of labels as gitlab.LabelOptions
+func mapLabelsAsLabelOptions(rn string, labelTerms []string) (gitlab.LabelOptions, error) {
 
 	matches, err := mapLabelsAsStrings(rn, labelTerms)
 	if err != nil {
 		return nil, err
 	}
 
-	return gitlab.Labels(matches), nil
+	return gitlab.LabelOptions(matches), nil
 }
-
 // dumpToken dumps information about a specific Personal Access Token
 func dumpToken(tokendata *gitlab.PersonalAccessToken) {
 	fmt.Println("ID:        ", tokendata.ID)

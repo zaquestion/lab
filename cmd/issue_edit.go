@@ -101,7 +101,7 @@ var issueEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		addLabels, err := mapLabelsAsLabels(rn, addLabelTerms)
+		addLabels, err := mapLabelsAsLabelOptions(rn, addLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -114,7 +114,7 @@ var issueEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		rmLabels, err := mapLabelsAsLabels(rn, rmLabelTerms)
+		rmLabels, err := mapLabelsAsLabelOptions(rn, rmLabelTerms)
 		if err != nil {
 			log.Fatal(err)
 		}
