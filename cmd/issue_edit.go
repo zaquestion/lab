@@ -258,7 +258,7 @@ func init() {
 			if err != nil {
 				return carapace.ActionMessage(err.Error())
 			}
-			return action.Labels(project).Invoke(c).Filter(c.Parts).ToA()
+			return action.Labels(project).Invoke(c).FilterParts()
 		}),
 		"milestone": carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 			project, _, err := parseArgsRemoteAndProject(c.Args)
