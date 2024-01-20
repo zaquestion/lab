@@ -73,9 +73,12 @@ func New(confpath string, r io.Reader) error {
 		MainConfig.Set("core.load_token", loadToken)
 	}
 
-	if err := MainConfig.WriteConfigAs(confpath); err != nil {
-		return err
+	if strings.TrimSpace(os.Getenv("LAB_CORE_TOKEN")) == "" && strings.TrimSpace(os.Getenv("LAB_CORE_HOST")) == "" {
+		if err := MainConfig.WriteConfigAs(confpath); err != nil {
+			return err
+		}
 	}
+
 	fmt.Printf("\nConfig saved to %s\n", confpath)
 	err = MainConfig.ReadInConfig()
 	if err != nil {
