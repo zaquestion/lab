@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 	"os/exec"
 	"strconv"
@@ -719,6 +720,7 @@ func mapLabelsAsLabelOptions(rn string, labelTerms []string) (gitlab.LabelOption
 
 	return gitlab.LabelOptions(matches), nil
 }
+
 // dumpToken dumps information about a specific Personal Access Token
 func dumpToken(tokendata *gitlab.PersonalAccessToken) {
 	fmt.Println("ID:        ", tokendata.ID)
@@ -731,4 +733,10 @@ func dumpToken(tokendata *gitlab.PersonalAccessToken) {
 	fmt.Println("Active:    ", tokendata.Active)
 	fmt.Println("ExpiresAt: ", time.Time(*tokendata.ExpiresAt).String())
 	fmt.Println("")
+}
+
+// HexToRGB converts hex color to color.RGBA with "#FFFFFF" format
+func HexToRGB(hex string) color.RGBA {
+	values, _ := strconv.ParseUint(string(hex[1:]), 16, 32)
+	return color.RGBA{R: uint8(values >> 16), G: uint8((values >> 8) & 0xFF), B: uint8(values & 0xFF), A: 255}
 }

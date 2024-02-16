@@ -53,7 +53,10 @@ var labelListCmd = &cobra.Command{
 				description = " - " + label.Description
 			}
 
-			fmt.Printf("%s%s\n", label.Name, description)
+			// Convert hex color to rgb object
+			c := HexToRGB(label.Color)
+
+			fmt.Printf("\033[48;2;%d;%d;%dm%s\033[0m%s\n", c.R, c.G, c.B, label.Name, description)
 		}
 	},
 }
