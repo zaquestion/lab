@@ -18,7 +18,8 @@ var labelListCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab label list
 		lab label list "search term"
-		lab label list remote "search term"`),
+		lab label list remote "search term
+		lab label list --color"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, labelSearch, err := parseArgsRemoteAndProject(args)
