@@ -18,7 +18,8 @@ var labelListCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		lab label list
 		lab label list "search term"
-		lab label list remote "search term"`),
+		lab label list remote "search term
+		lab label list --color"`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		rn, labelSearch, err := parseArgsRemoteAndProject(args)
@@ -27,6 +28,11 @@ var labelListCmd = &cobra.Command{
 		}
 
 		nameOnly, err := cmd.Flags().GetBool("name-only")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		color, err := cmd.Flags().GetBool("color")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,13 +59,22 @@ var labelListCmd = &cobra.Command{
 				description = " - " + label.Description
 			}
 
-			fmt.Printf("%s%s\n", label.Name, description)
+			// Default format without color
+			format := "%s%s\n"
+			if color {
+				// Convert hex color to rgb object
+				c := HexToRGB(label.Color)
+				format = fmt.Sprintf("\033[48;2;%d;%d;%dm%%s\033[0m%%s\n", c.R, c.G, c.B)
+			}
+
+			fmt.Printf(format, label.Name, description)
 		}
 	},
 }
 
 func init() {
 	labelListCmd.Flags().Bool("name-only", false, "only list label names, not descriptions")
+	labelListCmd.Flags().Bool("color", false, "print colored labels")
 	labelCmd.AddCommand(labelListCmd)
 	carapace.Gen(labelCmd).PositionalCompletion(
 		action.Remotes(),
