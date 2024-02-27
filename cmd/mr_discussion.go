@@ -121,7 +121,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			return
 		}
 
-		var notePos gitlab.PositionOptions
+		var discussionOpts gitlab.CreateMergeRequestDiscussionOptions
 		if position != "" {
 			if commit == "" {
 				// We currently only support "--position" when commenting on individual commits within an MR.
@@ -150,7 +150,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			oldLine := int(oldLine64)
 
 			positionType := "text"
-			notePos = gitlab.PositionOptions{
+			discussionOpts.Position = &gitlab.PositionOptions{
 				BaseSHA:      &parentSHA,
 				StartSHA:     &parentSHA,
 				HeadSHA:      &commit,
@@ -165,16 +165,15 @@ var mrCreateDiscussionCmd = &cobra.Command{
 		if body == "" {
 			log.Fatal("aborting discussion due to empty discussion msg")
 		}
+		discussionOpts.Body = &body
+
 		var commitID *string
 		if commit != "" {
 			commitID = &commit
 		}
+		discussionOpts.CommitID = commitID
 
-		discussionURL, err := lab.MRCreateDiscussion(rn, int(mrNum), &gitlab.CreateMergeRequestDiscussionOptions{
-			Body:     &body,
-			CommitID: commitID,
-			Position: &notePos,
-		})
+		discussionURL, err := lab.MRCreateDiscussion(rn, int(mrNum), &discussionOpts)
 		if err != nil {
 			log.Fatal(err)
 		}
