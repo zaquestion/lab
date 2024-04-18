@@ -719,6 +719,7 @@ func mapLabelsAsLabelOptions(rn string, labelTerms []string) (gitlab.LabelOption
 
 	return gitlab.LabelOptions(matches), nil
 }
+
 // dumpToken dumps information about a specific Personal Access Token
 func dumpToken(tokendata *gitlab.PersonalAccessToken) {
 	fmt.Println("ID:        ", tokendata.ID)

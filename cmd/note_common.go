@@ -490,7 +490,7 @@ func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bo
 						NoteURL, err = lab.AddMRDiscussionNote(rn, idNum, discussion.ID, body)
 					}
 					if resolve {
-						NoteURL, err = lab.ResolveMRDiscussion(rn, idNum, discussion.ID, reply)
+						NoteURL, err = lab.ResolveMRDiscussion(rn, idNum, discussion, reply)
 					}
 				} else {
 					NoteURL, err = lab.AddIssueDiscussionNote(rn, idNum, discussion.ID, body)
