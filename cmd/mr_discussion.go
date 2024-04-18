@@ -30,10 +30,17 @@ var mrCreateDiscussionCmd = &cobra.Command{
 		lab mr discussion my-topic-branch
 		lab mr discussion origin 123
 		lab mr discussion origin my-topic-branch
-		lab mr discussion --commit abcdef123456 --position=main.c:+100,100`),
+		lab mr discussion --commit abcdef123456 --position=main.c:+100,100
+		lab mr discussion upstream 613278108 --resolve`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		rn, mrNum, err := parseArgsWithGitBranchMR(args)
+
+		reply, branchArgs, err := filterCommentArg(args)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		rn, mrNum, err := parseArgsWithGitBranchMR(branchArgs)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,6 +64,15 @@ var mrCreateDiscussionCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		resolve, err := cmd.Flags().GetBool("resolve")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var currentDiscussionID string
+		var discussions []*gitlab.Discussion
+		var NoteURL string
+
 		var posFile string
 		var posLineType byte
 		var posLineNumberNew, posLineNumberOld uint64
@@ -98,11 +114,34 @@ var mrCreateDiscussionCmd = &cobra.Command{
 
 		body := ""
 		if filename != "" {
+			fmt.Println("1")
 			content, err := ioutil.ReadFile(filename)
 			if err != nil {
 				log.Fatal(err)
 			}
 			body = string(content)
+		} else if resolve {
+
+			discussions, err = lab.MRListDiscussions(rn, int(mrNum))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// Find discussion sha based on discussion
+			for _, discussion := range discussions {
+				if len(discussion.Notes) > 0 && discussion.Notes[0].ID == reply {
+					fmt.Println(discussion)
+					currentDiscussionID = discussion.ID
+					break
+				}
+			}
+
+			NoteURL, err = lab.ResolveMRDiscussion(rn, int(mrNum), currentDiscussionID, reply)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(NoteURL)
+			return
 		} else if position != "" || commit == "" {
 			// TODO If we are commenting on a specific position in the diff, we should include some context in the template.
 			body, err = mrDiscussionMsg(int(mrNum), state, commit, msgs, "\n")
@@ -212,6 +251,7 @@ func init() {
 	mrCreateDiscussionCmd.Flags().StringSliceP("message", "m", []string{}, "use the given <msg>; multiple -m are concatenated as separate paragraphs")
 	mrCreateDiscussionCmd.Flags().StringP("file", "F", "", "use the given file as the message")
 	mrCreateDiscussionCmd.Flags().StringP("commit", "c", "", "start a thread on a commit")
+	mrCreateDiscussionCmd.Flags().Bool("resolve", false, "mark thread resolved")
 
 	mrCreateDiscussionCmd.Flags().StringP("position", "", "", heredoc.Doc(`
 		start a thread on a specific line of the diff
@@ -223,7 +263,7 @@ func init() {
 		<old_line> is ignored. If the line type is "-", then <new_line> is ignored.
 
 		Here's an example diff that explains how to determine the old/new line numbers:
-	    
+
 			--- a/README.md		old	new
 			+++ b/README.md
 			@@ -100,3 +100,4 @@
