@@ -1603,14 +1603,19 @@ func GetMRApprovalsConfiguration(projID interface{}, id int) (*gitlab.MergeReque
 }
 
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
-func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, noteID int) (string, error) {
+func ResolveMRDiscussion(projID interface{}, mrID int, discussion *gitlab.Discussion, noteID int) (string, error) {
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
 		Resolved: gitlab.Bool(true),
 	}
 
-	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(projID, mrID, discussionID, opts)
+	if discussion.Notes[0].Resolved {
+		log.Fatal("Cannot resolve already resolved thread")
+		return "", nil
+	}
+
+	resp, _, err := lab.Discussions.ResolveMergeRequestDiscussion(projID, mrID, discussion.ID, opts)
 	if err != nil {
-		return discussion.ID, err
+		return resp.ID, err
 	}
 
 	p, err := FindProject(projID)

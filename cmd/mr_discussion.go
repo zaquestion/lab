@@ -69,7 +69,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		var currentDiscussionID string
+		var currentDiscussion *gitlab.Discussion
 		var discussions []*gitlab.Discussion
 		var NoteURL string
 
@@ -130,13 +130,12 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			// Find discussion sha based on discussion
 			for _, discussion := range discussions {
 				if len(discussion.Notes) > 0 && discussion.Notes[0].ID == reply {
-					fmt.Println(discussion)
-					currentDiscussionID = discussion.ID
+					currentDiscussion = discussion
 					break
 				}
 			}
 
-			NoteURL, err = lab.ResolveMRDiscussion(rn, int(mrNum), currentDiscussionID, reply)
+			NoteURL, err = lab.ResolveMRDiscussion(rn, int(mrNum), currentDiscussion, reply)
 			if err != nil {
 				log.Fatal(err)
 			}
