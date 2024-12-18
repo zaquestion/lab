@@ -145,6 +145,14 @@ func guessDefaultRemote() string {
 		if defaultRemote != "" {
 			return defaultRemote
 		}
+		remoteFromBranch := config.GetBool("core.remote_from_branch")
+		currentBranch, err := git.CurrentBranch()
+		if remoteFromBranch && err == nil {
+			remoteConf := fmt.Sprintf("branch.%s.remote", currentBranch)
+			if remote, err := gitconfig.Local(remoteConf); err == nil {
+				return remote
+			}
+		}
 	}
 
 	guess := ""
