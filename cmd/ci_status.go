@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -91,7 +92,16 @@ var ciStatusCmd = &cobra.Command{
 
 			// print the status of all current jobs
 			for _, job := range jobs {
-				fmt.Fprintf(w, "%s:\t%s\t-\t%s\n", job.Stage, job.Name, job.Status)
+				jobStatus := color.YellowString(job.Status)
+				switch job.Status {
+				case "failed":
+					jobStatus = color.RedString(job.Status)
+				case "cancelled":
+					jobStatus = color.RedString(job.Status)
+				case "success":
+					jobStatus = color.GreenString(job.Status)
+				}
+				fmt.Fprintf(w, "%s:\t%s\t-\t%s\n", job.Stage, job.Name, jobStatus)
 			}
 
 			dontWaitForJobsToFinish := !wait ||
@@ -107,7 +117,17 @@ var ciStatusCmd = &cobra.Command{
 			time.Sleep(10 * time.Second)
 		}
 
-		fmt.Fprintf(w, "\nPipeline Status: %s\n", jobs[0].Pipeline.Status)
+		mrPipelineStatus := color.YellowString(jobs[0].Pipeline.Status)
+		switch jobs[0].Pipeline.Status {
+		case "failed":
+			mrPipelineStatus = color.RedString(jobs[0].Pipeline.Status)
+		case "cancelled":
+			mrPipelineStatus = color.RedString(jobs[0].Pipeline.Status)
+		case "success":
+			mrPipelineStatus = color.GreenString(jobs[0].Pipeline.Status)
+		}
+
+		fmt.Fprintf(w, "\nPipeline Status: %s\n", mrPipelineStatus)
 		// exit w/ status code 1 to indicate a job failure
 		if wait && jobs[0].Pipeline.Status != "success" {
 			os.Exit(1)
