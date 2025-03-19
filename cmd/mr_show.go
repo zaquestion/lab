@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"

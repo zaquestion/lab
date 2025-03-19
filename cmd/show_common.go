@@ -15,7 +15,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jaytaylor/html2text"
 	"github.com/muesli/termenv"
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/config"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
