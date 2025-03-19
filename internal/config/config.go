@@ -18,7 +18,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/git"
 	"github.com/zaquestion/lab/internal/logger"
 	"golang.org/x/crypto/ssh/terminal"
