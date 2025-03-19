@@ -78,7 +78,7 @@ var mrShowCmd = &cobra.Command{
 		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
-		printMR(mr, rn, renderMarkdown)
+		printMR(&mr.BasicMergeRequest, rn, renderMarkdown)
 
 		var noteLevel = NoteLevelNone
 
@@ -141,7 +141,7 @@ func findLocalRemote(ProjectID int) string {
 	return remote
 }
 
-func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
+func printMR(mr *gitlab.BasicMergeRequest, project string, renderMarkdown bool) {
 	assignee := "None"
 	milestone := "None"
 	labels := "None"
@@ -158,7 +158,7 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 
 	var _tmpStringArray []string
 
-	if state == "Open" && mr.MergeStatus == "cannot_be_merged" {
+	if state == "Open" && mr.DetailedMergeStatus == "cannot_be_merged" {
 		state = "Open (Needs Rebase)"
 	}
 
@@ -228,7 +228,12 @@ func printMR(mr *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		_tmpStringArray = nil
 	}
 
-	if mr.Subscribed {
+	bmr, err := lab.MRGet(project, mr.IID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if bmr.Subscribed {
 		subscribed = "Yes"
 	}
 

@@ -267,7 +267,8 @@ func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
 		return "", 0, err
 	}
 
-	commit, err := lab.GetCommit(rn, refName)
+	// FIXME use gitlab.GetCommitOptions
+	commit, err := lab.GetCommit(rn, refName, nil)
 	if err != nil {
 		return "", 0, err
 	}

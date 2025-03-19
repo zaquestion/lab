@@ -89,8 +89,9 @@ func init() {
 	)
 }
 
-func verifyRemoteBranch(projID string, branch string) error {
-	if _, err := lab.GetCommit(projID, branch); err != nil {
+func verifyRemoteBranch(projID interface{}, branch string) error {
+	// FIXME replace nil with gitlab.GetCommitOptions
+	if _, err := lab.GetCommit(projID, branch, nil); err != nil {
 		return fmt.Errorf("%s is not a valid reference", branch)
 	}
 	return nil

@@ -119,6 +119,11 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 
 	sort := gitlab.String(issueSortedBy)
 
+	intIssueAssigneeID, err := strconv.Atoi(fmt.Sprintf("%v", issueAssigneeID))
+	if err != nil {
+		log.Fatalf("issueAssigneeID (%s) cannot be converted to int", issueAssigneeID)
+	}
+
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: num,
@@ -129,7 +134,7 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		OrderBy:    orderBy,
 		Sort:       sort,
 		AuthorID:   issueAuthorID,
-		AssigneeID: issueAssigneeID,
+		AssigneeID: &intIssueAssigneeID,
 	}
 
 	if issueExactMatch {

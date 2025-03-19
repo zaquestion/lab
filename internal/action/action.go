@@ -75,7 +75,7 @@ func Issues(issueList func(args []string) ([]*gitlab.Issue, error)) carapace.Act
 
 // MergeRequests retuns a carapace.Action containing all available merge
 // requests
-func MergeRequests(mrList func(args []string) ([]*gitlab.MergeRequest, error)) carapace.Action {
+func MergeRequests(mrList func(args []string) ([]*gitlab.BasicMergeRequest, error)) carapace.Action {
 	return carapace.ActionCallback(func(c carapace.Context) carapace.Action {
 		mergeRequests, err := mrList(c.Args[:0])
 		if err != nil {
