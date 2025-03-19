@@ -432,8 +432,8 @@ func MRGet(projID interface{}, id int) (*gitlab.MergeRequest, error) {
 }
 
 // MRList lists the MRs on a GitLab project
-func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.MergeRequest, error) {
-	var list []*gitlab.MergeRequest
+func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n int) ([]*gitlab.BasicMergeRequest, error) {
+	var list []*gitlab.BasicMergeRequest
 	for true {
 		opts.PerPage = maxItemsPerPage
 		if n != -1 {
@@ -528,8 +528,8 @@ func MRListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, error)
 }
 
 // MRRebase merges an mr on a GitLab project
-func MRRebase(projID interface{}, id int) error {
-	_, err := lab.MergeRequests.RebaseMergeRequest(projID, int(id))
+func MRRebase(projID interface{}, id int, opts *gitlab.RebaseMergeRequestOptions) error {
+	_, err := lab.MergeRequests.RebaseMergeRequest(projID, int(id), opts)
 	if err != nil {
 		return err
 	}
@@ -811,8 +811,8 @@ func IssueUnsubscribe(projID interface{}, id int) error {
 }
 
 // GetCommit returns top Commit by ref (hash, branch or tag).
-func GetCommit(projID interface{}, ref string) (*gitlab.Commit, error) {
-	c, _, err := lab.Commits.GetCommit(projID, ref)
+func GetCommit(projID interface{}, ref string, opts *gitlab.GetCommitOptions) (*gitlab.Commit, error) {
+	c, _, err := lab.Commits.GetCommit(projID, ref, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1099,8 +1099,8 @@ func ProjectCreate(opts *gitlab.CreateProjectOptions) (*gitlab.Project, error) {
 }
 
 // ProjectDelete deletes a project on GitLab
-func ProjectDelete(projID interface{}) error {
-	_, err := lab.Projects.DeleteProject(projID)
+func ProjectDelete(projID interface{}, opts *gitlab.DeleteProjectOptions) error {
+	_, err := lab.Projects.DeleteProject(projID, opts)
 	if err != nil {
 		return err
 	}
@@ -1755,7 +1755,8 @@ func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile
 	// that API only support comments on linetype=new.
 	//
 	// https://gitlab.com/gitlab-org/gitlab/-/issues/335337
-	commitInfo, err := GetCommit(projID, sha)
+	// FIXME: Pass *gitlab.GetCommitOptions instead of nil
+	commitInfo, err := GetCommit(projID, sha, nil)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
 		return "", err
@@ -1801,7 +1802,8 @@ func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile
 }
 
 func CreateMergeRequestCommitDiscussion(projID interface{}, id int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
-	commitInfo, err := GetCommit(projID, sha)
+	// FIXME: Pass *gitlab.GetCommitOptions instead of nil
+	commitInfo, err := GetCommit(projID, sha, nil)
 	if err != nil {
 		fmt.Printf("Could not get diff for commit %s.\n", sha)
 		return "", err

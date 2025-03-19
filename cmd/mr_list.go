@@ -79,7 +79,7 @@ var listCmd = &cobra.Command{
 	},
 }
 
-func mrList(args []string) ([]*gitlab.MergeRequest, error) {
+func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 	rn, search, err := parseArgsRemoteAndProject(args)
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func mrList(args []string) ([]*gitlab.MergeRequest, error) {
 
 	// only return MRs that matches the Conflicts requirement
 	if mrCheckConflicts {
-		var newMrList []*gitlab.MergeRequest
+		var newMrList []*gitlab.BasicMergeRequest
 		for _, mr := range mrs {
 			if mr.HasConflicts && mrConflicts {
 				newMrList = append(newMrList, mr)
