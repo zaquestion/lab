@@ -154,7 +154,7 @@ func Test_mrFilterByTargetBranch(t *testing.T) {
 }
 
 var (
-	latestCreatedTestMR = "!1447 Test for mr approval rules"
+	latestCreatedTestMR = "!1476 create mr request"
 	latestUpdatedTestMR = "!329 MR for assign and review commands"
 )
 

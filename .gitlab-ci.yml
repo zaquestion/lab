@@ -17,7 +17,7 @@ stages:
   - release
 
 default:
-  image: golang:1.18
+  image: golang:1.21
   tags:
     - gitlab-org
 
