@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/fatih/color"
 	"github.com/charmbracelet/glamour"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -160,8 +161,21 @@ func printMR(mrx *gitlab.MergeRequest, project string, renderMarkdown bool) {
 
 	mr := mrx.BasicMergeRequest
 
-	if state == "Open" && mr.DetailedMergeStatus == "cannot_be_merged" {
-		state = "Open (Needs Rebase)"
+	// only mergeable is green, everything else is red
+	detailedMergeStatus := strings.Replace(mr.DetailedMergeStatus, "_", " ", -1)
+	detailedMergeStatus = color.RedString(detailedMergeStatus)
+	if detailedMergeStatus == "mergeable" {
+		detailedMergeStatus = color.GreenString(detailedMergeStatus)
+	}
+
+	// colorize State output
+	switch state {
+	case "Open":
+		state = color.GreenString(state)
+	case "Closed":
+		state = color.GreenString(state)
+	case "Merged":
+		state = color.BlueString(state)
 	}
 
 	if mr.Assignee != nil && mr.Assignee.Username != "" {
@@ -239,6 +253,16 @@ func printMR(mrx *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		subscribed = "Yes"
 	}
 
+	ciStatus := mrx.HeadPipeline.Status
+	switch ciStatus {
+	case "failed":
+		ciStatus = color.RedString(ciStatus)
+	case "cancelled":
+		ciStatus = color.RedString(ciStatus)
+	case "success":
+		ciStatus = color.GreenString(ciStatus)
+	}
+
 	fmt.Printf(
 		heredoc.Doc(`
 			!%d %s
@@ -260,6 +284,7 @@ func printMR(mrx *gitlab.MergeRequest, project string, renderMarkdown bool) {
 			Subscribed: %s
 			Created At: %s
 			Updated At: %s
+			Merge Status: %s
 			CI Status: %s
 			WebURL: %s
 		`),
@@ -267,7 +292,7 @@ func printMR(mrx *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		mr.TargetBranch, state, assignee, mr.Author.Username,
 		approvedByUsers, approvers, approverGroups, reviewers, milestone, labels,
 		strings.Trim(strings.Replace(fmt.Sprint(closingIssues), " ", ",", -1), "[]"),
-		subscribed, mr.CreatedAt, mr.UpdatedAt, mrx.HeadPipeline.Status, mr.WebURL,
+		subscribed, mr.CreatedAt, mr.UpdatedAt, detailedMergeStatus, ciStatus, mr.WebURL,
 	)
 }
 
