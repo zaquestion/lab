@@ -2,16 +2,21 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/fatih/color"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
+	"github.com/savioxavier/termlink"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	"golang.org/x/term"
 )
 
 var (
@@ -39,6 +44,119 @@ var (
 	mrReviewerID   *gitlab.ReviewerIDValue
 )
 
+func truncateText(s string, length int) (string) {
+	if length > len(s) {
+		return s
+	}
+	return s[:length]
+}
+
+func printRED(text string, cols int) {
+	fmt.Printf(color.RedString("%-"+fmt.Sprintf("%d", cols)+"s", text))
+}
+
+func printGREEN(text string, cols int) {
+	fmt.Printf(color.GreenString("%-"+fmt.Sprintf("%d", cols)+"s", text))
+}
+
+func printYELLOW(text string, cols int) {
+	fmt.Printf(color.YellowString("%-"+fmt.Sprintf("%d", cols)+"s", text))
+}
+
+func printColumns(data [][]string) {
+	spacing := 2 // adjust this variable to increase/decrease spacing between columns
+
+	columnWidths := make([]int, len(data[0]))
+	for _, row := range data {
+		for cellnum, cell := range row {
+			if cellnum == 0 { // the 0th entry is the webURL and is not output
+				continue
+			}
+			if len(cell) > columnWidths[cellnum] {
+				columnWidths[cellnum] = len(cell)
+			}
+		}
+	}
+
+	// Make sure the output fits on the screen.  If it does not, then truncate
+	// the title field.
+
+	// get the screen resolution (only width is needed)
+	width, _, err := term.GetSize(int(os.Stdin.Fd()))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Determine the output string length
+	linelength := 0
+	for _, col := range columnWidths {
+		linelength += col
+	}
+
+	// This is the actual line length.  It is the columnWidths (calculated in the
+	// for loop above), extra spacing in the middle columns (ie, 2 * (# of cols - 2)
+	// and one extra character for the newline.
+	linelength = linelength + (spacing * (len(columnWidths) - 2) + 1)
+
+	// If the line length is greater than the width of the terminal, truncate
+	// the Title column.  The title text itself is truncated in the switch statement below.
+	delta := linelength - width
+	if delta > 0 {
+		columnWidths[2] = columnWidths[2] - delta
+	}
+
+	// output the data to the screen
+	for rownum, row := range data {
+		weburl := row[0]
+		for cellnum, cell := range row {
+			if cellnum == 0 { // the 0th entry is the webURL and is not output
+				continue
+			}
+			if rownum == 0 { // print out the header
+				if cellnum < (len(row) - 1) {
+					fmt.Printf("%-*s", columnWidths[cellnum]+spacing, cell)
+				} else { // no spaces after last column
+					fmt.Printf("%-*s", columnWidths[cellnum], cell)
+				}
+				continue
+			}
+
+			switch cellnum {
+			case 1: // MRID (and weburl link)
+				// Requires initial offset of width+spacing-len(cell)
+				link := termlink.Link(cell, weburl)
+				fmt.Printf("%s%-"+fmt.Sprintf("%d", columnWidths[cellnum]+spacing-len(cell))+"s",link, "")
+
+			case 2: // MR Title
+				fmt.Printf("%-*s", columnWidths[cellnum]+spacing, truncateText(cell, columnWidths[cellnum]))
+			case 3: // CI Status
+				switch cell {
+				case "failed":
+					printRED(cell, columnWidths[cellnum]+spacing)
+				case "cancelled":
+					printRED(cell, columnWidths[cellnum]+spacing)
+				case "success":
+					printGREEN(cell, columnWidths[cellnum]+spacing)
+				case "running":
+					printYELLOW(cell, columnWidths[cellnum]+spacing)
+				default:
+					printGREEN(cell, columnWidths[cellnum]+spacing)
+				}
+
+			case 4: // MR Status
+				// spacing is not added here as this is the last column
+				switch cell {
+				case "mergeable":
+					printGREEN(cell, columnWidths[cellnum])
+				default:
+					printRED(cell, columnWidths[cellnum])
+				}
+			}
+		}
+		fmt.Println()
+	}
+}
+
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:     "list [remote] [search]",
@@ -62,9 +180,15 @@ var listCmd = &cobra.Command{
 		lab mr list --ready
 		lab mr list --no-conflicts
 		lab mr list -x 'test MR'
-		lab mr list -r johndoe`),
+		lab mr list -r johndoe
+		lab mr list --show-status`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		rn, err := git.PathWithNamespace(defaultRemote)
+		if err != nil {
+			return
+		}
+
 		mrs, err := mrList(args)
 		if err != nil {
 			log.Fatal(err)
@@ -73,9 +197,82 @@ var listCmd = &cobra.Command{
 		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
-		for _, mr := range mrs {
-			fmt.Printf("!%d %s\n", mr.IID, mr.Title)
+		showstatus, _ := cmd.Flags().GetBool("show-status")
+
+		if !showstatus {
+			for _, mr := range mrs {
+				fmt.Printf("!%d %s\n", mr.IID, mr.Title)
+			}
+			return
 		}
+
+		output := [][]string{{"", "MRID", "Title", "CIStatus", "MRStatus"}}
+		for _, mr := range mrs {
+			mrx, err := lab.MRGet(rn, int(mr.IID))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// In general we use the Detailed Merge Status.  There are some
+			// cases below where a custom status is used.
+			detailedMergeStatus := strings.Replace(mr.DetailedMergeStatus, "_", " ", -1)
+
+			CIStatus := "no pipeline"
+			if mrx.HeadPipeline != nil {
+				CIStatus = mrx.HeadPipeline.Status
+			}
+
+			// Custom MR Status: If the status is success/not approved, then
+			// check to see if there are any threads that need to be resolved.
+			// If there are report 'unresolved threads' as a status
+			if detailedMergeStatus == "not approved" && CIStatus == "success" {
+				discussions, err := lab.MRListDiscussions(rn, mr.IID)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				totalresolved := 0
+				totalresolvable := 0
+				for _, discussion := range discussions {
+					resolved := 0
+					resolvable := 0
+					for _, note := range discussion.Notes {
+						if note.Resolved {
+							resolved++
+						}
+						if note.Resolvable {
+							resolvable++
+						}
+					}
+					if resolved != 0 {
+						totalresolved++
+					}
+					if resolvable != 0 {
+						totalresolvable++
+					}
+				}
+				if totalresolvable != 0 && totalresolvable != totalresolved {
+					detailedMergeStatus = fmt.Sprintf("unresolved threads(%d/%d)", totalresolved, totalresolvable)
+				}
+			}
+
+			// Custom Status: If the MR Status is 'not approved' also output
+			// the number of remaining approvals necessary.
+			if detailedMergeStatus == "not approved" {
+				approvals, err := lab.GetMRApprovalsConfiguration(rn, mr.IID)
+				if err != nil {
+					log.Fatal(err)
+				}
+				detailedMergeStatus = fmt.Sprintf("%s(%d/%d)", detailedMergeStatus, len(approvals.ApprovedBy), approvals.ApprovalsRequired)
+			}
+			output = append(output,
+					[]string{mr.WebURL, // weburl (used to convert MRID to URL)
+						 strconv.Itoa(mr.IID), // MRID
+						 mr.Title, // Title
+						 CIStatus, // CI Status
+						 detailedMergeStatus}) // MR Status
+		}
+		printColumns(output)
 	},
 }
 
@@ -252,6 +449,8 @@ func init() {
 	listCmd.Flags().BoolVarP(&mrExactMatch, "exact-match", "x", false, "match on the exact (case-insensitive) search terms")
 	listCmd.Flags().StringVar(
 		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username/any/none")
+	listCmd.Flags().BoolP("show-status", "", false, "show CI and MR status (slow on projects with large number of MRs)")
+
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
