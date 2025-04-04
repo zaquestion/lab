@@ -171,7 +171,7 @@ var listCmd = &cobra.Command{
 		lab mr list -l bug
 		lab mr list -l close'
 		lab mr list upstream -n 5
-		lab mr list origin -a
+		lab mr list origin --number 0
 		lab mr list --author johndoe
 		lab mr list --assignee janedoe
 		lab mr list --order created_at
@@ -288,7 +288,7 @@ func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 	}
 
 	num, err := strconv.Atoi(mrNumRet)
-	if mrAll || (err != nil) {
+	if err != nil  || num == 0 {
 		num = -1
 	}
 
@@ -363,9 +363,6 @@ func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 	mrCheckConflicts := (mrConflicts || mrNoConflicts)
 
 	opts := gitlab.ListProjectMergeRequestsOptions{
-		ListOptions: gitlab.ListOptions{
-			PerPage: num,
-		},
 		Labels:                 &labels,
 		State:                  &mrState,
 		TargetBranch:           &mrTargetBranch,
@@ -424,14 +421,15 @@ func init() {
 		&mrState, "state", "s", "opened",
 		"filter merge requests by state (all/opened/closed/merged)")
 	listCmd.Flags().StringVarP(
-		&mrNumRet, "number", "n", "10",
-		"number of merge requests to return")
+		&mrNumRet, "number", "n", "-1",
+		"number of merge requests to return (all by default)")
 	listCmd.Flags().StringVarP(
 		&mrTargetBranch, "target-branch", "t", "",
 		"filter merge requests by target branch")
 	listCmd.Flags().StringVar(
 		&mrMilestone, "milestone", "", "list only MRs for the given milestone/any/none")
-	listCmd.Flags().BoolVarP(&mrAll, "all", "a", false, "list all MRs on the project")
+	listCmd.Flags().BoolVar(&mrAll, "all", false, "list all MRs on the project")
+	listCmd.Flags().MarkDeprecated("all", "use '--number 0' instead")
 	listCmd.Flags().BoolVarP(&mrMine, "mine", "m", false, "list only MRs assigned to me")
 	listCmd.Flags().MarkDeprecated("mine", "use --assignee instead")
 	listCmd.Flags().StringVar(&mrAuthor, "author", "", "list only MRs authored by $username")
@@ -468,7 +466,7 @@ func init() {
 			}
 			return action.Milestones(project, action.MilestoneOpts{Active: true})
 		}),
-		"state": carapace.ActionValues("all", "opened", "closed", "merged"),
+		"state": carapace.ActionValues("opened", "closed", "merged"),
 	})
 
 	carapace.Gen(listCmd).PositionalCompletion(
