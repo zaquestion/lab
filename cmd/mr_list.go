@@ -6,11 +6,14 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/fatih/color"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
+	"github.com/savioxavier/termlink"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
+	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
 )
 
@@ -37,7 +40,89 @@ var (
 	mrSortedBy     string
 	mrReviewer     string
 	mrReviewerID   *gitlab.ReviewerIDValue
+	mrtitlelength  string
 )
+
+func truncateText(s string, length int) (string) {
+	if length > len(s) {
+		return s
+	}
+	return s[:length]
+}
+
+func printRED(text string, cols int) {
+	fmt.Printf(color.RedString("%-"+fmt.Sprintf("%d", cols)+"s", text))
+}
+
+func printGREEN(text string, cols int) {
+	fmt.Printf(color.GreenString("%-"+fmt.Sprintf("%d", cols)+"s", text))
+}
+
+func printYELLOW(text string, cols int) {
+	fmt.Printf(color.YellowString("%-"+fmt.Sprintf("%d", cols)+"s", text))
+}
+
+func printColumns(data [][]string) {
+	spacing := 2 // adjust this variable to increase/decrease spacing between columns
+
+	columnWidths := make([]int, len(data[0]))
+	for _, row := range data {
+		for cellnum, cell := range row {
+			if cellnum == 0 { // the 0th entry is the webURL and is not output
+				continue
+			}
+			if len(cell) > columnWidths[cellnum] {
+				columnWidths[cellnum] = len(cell)
+			}
+		}
+	}
+
+	for rownum, row := range data {
+		weburl := row[0]
+		for cellnum, cell := range row {
+			if cellnum == 0 { // the 0th entry is the webURL and is not output
+				continue
+			}
+			if rownum == 0 { // print out the header
+				fmt.Printf("%-*s", columnWidths[cellnum]+spacing, cell)
+				continue
+			}
+
+			switch cellnum {
+			case 1: // MRID (and weburl link)
+				// Requires initial offset of width+spacing-len(cell)
+				link := termlink.Link(cell, weburl)
+				fmt.Printf("%s%-"+fmt.Sprintf("%d", columnWidths[cellnum]+spacing-len(cell))+"s",link, "")
+
+			case 2:
+				fmt.Printf("%-*s", columnWidths[cellnum]+spacing, cell)
+			case 3: // CI Status
+				switch cell {
+				case "failed":
+					printRED(cell, columnWidths[cellnum]+spacing)
+				case "cancelled":
+					printRED(cell, columnWidths[cellnum]+spacing)
+				case "success":
+					printGREEN(cell, columnWidths[cellnum]+spacing)
+				case "running":
+					printYELLOW(cell, columnWidths[cellnum]+spacing)
+				default:
+					printGREEN(cell, columnWidths[cellnum]+spacing)
+				}
+
+			case 4: // MR Status
+				// spacing is not added here as this is the last column
+				switch cell {
+				case "mergeable":
+					printGREEN(cell, columnWidths[cellnum])
+				default:
+					printRED(cell, columnWidths[cellnum])
+				}
+			}
+		}
+		fmt.Println()
+	}
+}
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
@@ -65,6 +150,11 @@ var listCmd = &cobra.Command{
 		lab mr list -r johndoe`),
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		rn, err := git.PathWithNamespace(defaultRemote)
+		if err != nil {
+			return
+		}
+
 		mrs, err := mrList(args)
 		if err != nil {
 			log.Fatal(err)
@@ -73,9 +163,43 @@ var listCmd = &cobra.Command{
 		pager := newPager(cmd.Flags())
 		defer pager.Close()
 
-		for _, mr := range mrs {
-			fmt.Printf("!%d %s\n", mr.IID, mr.Title)
+		showstatus, _ := cmd.Flags().GetBool("show-status")
+
+		if !showstatus {
+			for _, mr := range mrs {
+				fmt.Printf("!%d %s\n", mr.IID, mr.Title)
+			}
+			return
 		}
+
+		titlelength, err := strconv.Atoi(mrtitlelength)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		output := [][]string{{"", "MRID", "Title", "CIStatus", "MRStatus"}}
+		for _, mr := range mrs {
+			mrx, err := lab.MRGet(rn, int(mr.IID))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			detailedMergeStatus := strings.Replace(mr.DetailedMergeStatus, "_", " ", -1)
+
+			CIStatus := "no pipeline"
+			if mrx.HeadPipeline != nil {
+				CIStatus = mrx.HeadPipeline.Status
+			}
+
+			output = append(output,
+					[]string{mr.WebURL, // weburl (used to convert MRID to URL)
+						 strconv.Itoa(mr.IID), // MRID
+						 truncateText(mr.Title, titlelength), // Title
+						 CIStatus, // CI Status
+						 detailedMergeStatus}) // MR Status
+		}
+
+		printColumns(output)
 	},
 }
 
@@ -252,6 +376,9 @@ func init() {
 	listCmd.Flags().BoolVarP(&mrExactMatch, "exact-match", "x", false, "match on the exact (case-insensitive) search terms")
 	listCmd.Flags().StringVar(
 		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username/any/none")
+	listCmd.Flags().BoolP("show-status", "", false, "show CI and MR status")
+	listCmd.Flags().StringVar(&mrtitlelength, "show-status-length", "60", "length of title, only used with --show-status")
+
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{
