@@ -449,7 +449,8 @@ func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n i
 		}
 		list = append(list, mrs...)
 
-		if len(list) == n {
+		if n != -1 && len(list) >= n {
+			return list[:n], nil
 			break
 		}
 
