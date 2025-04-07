@@ -253,13 +253,18 @@ func printMR(mrx *gitlab.MergeRequest, project string, renderMarkdown bool) {
 		subscribed = "Yes"
 	}
 
-	ciStatus := mrx.HeadPipeline.Status
+	ciStatus := "no pipeline"
+	if mrx.HeadPipeline != nil {
+		ciStatus = mrx.HeadPipeline.Status
+	}
 	switch ciStatus {
 	case "failed":
 		ciStatus = color.RedString(ciStatus)
 	case "cancelled":
 		ciStatus = color.RedString(ciStatus)
 	case "success":
+		ciStatus = color.GreenString(ciStatus)
+	case "no pipeline":
 		ciStatus = color.GreenString(ciStatus)
 	}
 
