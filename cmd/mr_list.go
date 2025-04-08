@@ -52,6 +52,17 @@ func truncateText(s string, length int) (string) {
 	return s[:length]
 }
 
+func overwriteEndOfString(str string, index int, replacement string) string {
+	if index < 0 || index >= len(str) {
+		return str
+	}
+	// The output looks weird if the character before the index is a space
+	if str[index - 1] == ' ' {
+		index--
+	}
+	return str[:index] + replacement
+}
+
 func printRED(text string, cols int) {
 	fmt.Printf(color.RedString("%-"+fmt.Sprintf("%d", cols)+"s", text))
 }
@@ -70,7 +81,9 @@ func printColumns(data [][]string) {
 	columnWidths := make([]int, len(data[0]))
 	for _, row := range data {
 		for cellnum, cell := range row {
-			if cellnum == 0 { // the 0th entry is the webURL and is not output
+			// The 0th entry is the webURL and the 1st entry is the Author.
+			// These are not output to the screen.
+			if cellnum <= 1 {
 				continue
 			}
 			if len(cell) > columnWidths[cellnum] {
@@ -103,14 +116,16 @@ func printColumns(data [][]string) {
 	// the Title column.  The title text itself is truncated in the switch statement below.
 	delta := linelength - width
 	if delta > 0 {
-		columnWidths[2] = columnWidths[2] - delta
+		columnWidths[3] = columnWidths[3] - delta
 	}
 
 	// output the data to the screen
 	for rownum, row := range data {
 		weburl := row[0]
 		for cellnum, cell := range row {
-			if cellnum == 0 { // the 0th entry is the webURL and is not output
+			// The 0th entry is the webURL and the 1st entry is the Author.
+			// These are not output to the screen.
+			if cellnum <= 1 {
 				continue
 			}
 			if rownum == 0 { // print out the header
@@ -123,14 +138,22 @@ func printColumns(data [][]string) {
 			}
 
 			switch cellnum {
-			case 1: // MRID (and weburl link)
+			case 2: // MRID (and weburl link)
 				// Requires initial offset of width+spacing-len(cell)
 				link := termlink.Link(cell, weburl)
 				fmt.Printf("%s%-"+fmt.Sprintf("%d", columnWidths[cellnum]+spacing-len(cell))+"s",link, "")
 
-			case 2: // MR Title
-				fmt.Printf("%-*s", columnWidths[cellnum]+spacing, truncateText(cell, columnWidths[cellnum]))
-			case 3: // CI Status
+			case 3: // MR Title
+				author := fmt.Sprintf(" (%s)", row[1])
+				title := truncateText(cell, columnWidths[cellnum])
+				if len(author) + len(title) < columnWidths[cellnum] {
+					title = fmt.Sprintf("%s%s", title, author)
+				} else {
+					index := columnWidths[cellnum] - len(author)
+					title = overwriteEndOfString(title, index, author)
+				}
+				fmt.Printf("%-*s", columnWidths[cellnum]+spacing, title)
+			case 4: // CI Status
 				switch cell {
 				case "failed":
 					printRED(cell, columnWidths[cellnum]+spacing)
@@ -151,7 +174,7 @@ func printColumns(data [][]string) {
 					}
 				}
 
-			case 4: // MR Status
+			case 5: // MR Status
 				// spacing is not added here as this is the last column
 				switch cell {
 				case "mergeable":
@@ -214,7 +237,7 @@ var listCmd = &cobra.Command{
 			return
 		}
 
-		output := [][]string{{"", "MRID", "Title", "CI", "MRStatus"}}
+		output := [][]string{{"", "", "MRID", "Title (Author)", "CI", "MRStatus"}}
 		for _, mr := range mrs {
 			mrx, err := lab.MRGet(rn, int(mr.IID))
 			if err != nil {
@@ -300,6 +323,7 @@ var listCmd = &cobra.Command{
 			}
 			output = append(output,
 					[]string{mr.WebURL, // weburl (used to convert MRID to URL)
+						 mr.Author.Username, // (Author)
 						 strconv.Itoa(mr.IID), // MRID
 						 mr.Title, // Title
 						 CIStatus, // CI Status
