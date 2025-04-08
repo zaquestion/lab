@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/fatih/color"
@@ -140,7 +141,14 @@ func printColumns(data [][]string) {
 				case "running":
 					printYELLOW(cell, columnWidths[cellnum]+spacing)
 				default:
-					printGREEN(cell, columnWidths[cellnum]+spacing)
+					if cell[0] > unicode.MaxASCII {
+						// unicode characters are detected as length one
+						// but actually take up two characters on screen
+						// so subtract one from the spacing
+						fmt.Printf("%-*s", columnWidths[cellnum]+spacing-1, cell)
+					} else {
+						printGREEN(cell, columnWidths[cellnum]+spacing)
+					}
 				}
 
 			case 4: // MR Status
@@ -206,7 +214,7 @@ var listCmd = &cobra.Command{
 			return
 		}
 
-		output := [][]string{{"", "MRID", "Title", "CIStatus", "MRStatus"}}
+		output := [][]string{{"", "MRID", "Title", "CI", "MRStatus"}}
 		for _, mr := range mrs {
 			mrx, err := lab.MRGet(rn, int(mr.IID))
 			if err != nil {
@@ -253,6 +261,31 @@ var listCmd = &cobra.Command{
 				}
 				if totalresolvable != 0 && totalresolvable != totalresolved {
 					detailedMergeStatus = fmt.Sprintf("unresolved threads(%d/%d)", totalresolved, totalresolvable)
+				}
+			}
+
+			// This needs to be done here, rather than above because
+			// detailedMergeStatus depends on the values of CIStatus
+			nounicode, _ := cmd.Flags().GetBool("no-unicode")
+			if !nounicode {
+				// Custom Status: Use unicode to represent CIStatus
+				//fmt.Printf("\U0001F7E1\n") // yellow circle
+				//fmt.Printf("\U0001F534\n") // red circle
+				//fmt.Printf("\U0001F7E2\n") // green circle
+				//fmt.Printf("\U0000274C\n") // red cross mark
+				//fmt.Printf("\U00002705\n") // green checkmark
+				//fmt.Printf("\U0001F6A7\n") // running man
+				switch CIStatus {
+				case "failed":
+					CIStatus = fmt.Sprintf("\U0000274C")
+				case "cancelled":
+					CIStatus = fmt.Sprintf("\U0000274C")
+				case "success":
+					CIStatus = fmt.Sprintf("\U00002705")
+				case "running":
+					CIStatus = fmt.Sprintf("\U0001F6A7")
+				default:
+					CIStatus = fmt.Sprintf("\U00002705")
 				}
 			}
 
@@ -448,6 +481,7 @@ func init() {
 	listCmd.Flags().StringVar(
 		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username/any/none")
 	listCmd.Flags().BoolP("show-status", "", false, "show CI and MR status (slow on projects with large number of MRs)")
+	listCmd.Flags().BoolP("no-unicode", "", false, "Do not use unicode in output")
 
 
 	mrCmd.AddCommand(listCmd)
