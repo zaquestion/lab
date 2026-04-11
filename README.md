@@ -93,9 +93,11 @@ curl -s https://raw.githubusercontent.com/zaquestion/lab/master/install.sh | sud
 > :warning: Please take care when executing scripts in this fashion. Make sure you trust the developer providing the
 > script and consider peeking at the install script itself (ours is pretty simple ;)
 
-### PreBuilt Binaries
+### go install
 
-Head to the [releases](https://github.com/zaquestion/lab/releases) page and download your preferred release.
+```
+go install github.com/zaquestion/lab@latest
+```
 
 ### Source
 
