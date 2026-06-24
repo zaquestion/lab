@@ -35,7 +35,7 @@ var issueShowCmd = &cobra.Command{
 			log.Fatalf("Specify <id> of issue to be shown")
 		}
 
-		issue, err := lab.IssueGet(rn, int(issueNum))
+		issue, err := lab.IssueGet(rn, issueNum)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,7 +69,7 @@ var issueShowCmd = &cobra.Command{
 		}
 
 		if noteLevel != NoteLevelNone {
-			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
+			discussions, err := lab.IssueListDiscussions(rn, issueNum)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -79,7 +79,7 @@ var issueShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(rn, discussions, since, "issues", int(issueNum), renderMarkdown, noteLevel)
+			printDiscussions(rn, discussions, since, "issues", issueNum, renderMarkdown, noteLevel)
 		}
 	},
 }

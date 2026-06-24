@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc/v2"
 	"os"
+
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -28,7 +29,7 @@ var mrUnapproveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		approvalConfig, err := lab.GetMRApprovalsConfiguration(rn, int(id))
+		approvalConfig, err := lab.GetMRApprovalsConfiguration(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,14 +69,14 @@ var mrUnapproveCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 			if comment {
-				state := noteGetState(rn, true, int(id))
-				msg, _ := noteMsg(msgs, true, int(id), state, "", "")
+				state := noteGetState(rn, true, id)
+				msg, _ := noteMsg(msgs, true, id, state, "", "")
 				msgs = append(msgs, msg)
 			}
 		}
 
 		msgs = append(msgs, "/unapprove")
-		createNote(rn, true, int(id), msgs, filename, linebreak, "", note)
+		createNote(rn, true, id, msgs, filename, linebreak, "", note)
 
 		fmt.Printf("Merge Request !%d unapproved\n", id)
 	},

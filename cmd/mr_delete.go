@@ -23,7 +23,7 @@ var mrDeleteCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		mrNum := int(id)
+		mrNum := id
 
 		err = lab.MRDelete(remote, mrNum)
 		if err != nil {

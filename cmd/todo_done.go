@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/MakeNowJust/heredoc/v2"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	lab "github.com/zaquestion/lab/internal/gitlab"
@@ -35,7 +35,7 @@ var todoDoneCmd = &cobra.Command{
 		if len(args) == 0 {
 			log.Fatalf("Specify todo id to be marked as done")
 		}
-		toDoNum, err := strconv.Atoi(args[0])
+		toDoNum, err := Atoi(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}

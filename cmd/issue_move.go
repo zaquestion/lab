@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
@@ -25,7 +24,7 @@ var issueMoveCmd = &cobra.Command{
 		}
 
 		// get the issue ID
-		id, err := strconv.Atoi(args[0])
+		id, err := Atoi(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}

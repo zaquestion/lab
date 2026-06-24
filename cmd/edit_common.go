@@ -16,19 +16,19 @@ import (
 // GetUpdateUsers returns an int slice of user IDs based on the
 // current users and flags from the command line, and a bool
 // indicating whether the users have changed
-func getUpdateUsers(currentUsers []string, users []string, remove []string) ([]int, bool, error) {
+func getUpdateUsers(currentUsers []string, users []string, remove []string) ([]int64, bool, error) {
 	// add the new users to the current users, then remove the "remove" group
 	users = difference(union(currentUsers, users), remove)
 	usersChanged := !same(currentUsers, users)
 
 	// turn the new user list into a list of user IDs
-	var userIDs []int
+	var userIDs []int64
 	if usersChanged && len(users) == 0 {
 		// if we're removing all users, we have to use []int{0}
 		// see https://github.com/xanzy/go-gitlab/issues/427
-		userIDs = []int{0}
+		userIDs = []int64{0}
 	} else {
-		userIDs = make([]int, len(users))
+		userIDs = make([]int64, len(users))
 		for i, a := range users {
 			if getUserID(a) == nil {
 				return nil, false, fmt.Errorf("%s is not a valid username", a)

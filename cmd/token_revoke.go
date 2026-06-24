@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"strconv"
-
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 
@@ -18,10 +16,10 @@ var tokenRevokeCmd = &cobra.Command{
 
 	PersistentPreRun: labPersistentPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		id := 0
+		var id int64 = 0
 		if len(args) == 1 {
 			var err error
-			id, err = strconv.Atoi(args[0])
+			id, err = Atoi(args[0])
 			if err != nil {
 				log.Fatal(err)
 			}

@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 func cleanupFork(t *testing.T, project string) {
@@ -20,7 +21,7 @@ func cleanupFork(t *testing.T, project string) {
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "failed to find project "+project+" for cleanup"))
 	}
-	err = lab.ProjectDelete(p.ID)
+	err = lab.ProjectDelete(p.ID, &gitlab.DeleteProjectOptions{})
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "failed to delete project "+project+" during cleanup"))
 	}

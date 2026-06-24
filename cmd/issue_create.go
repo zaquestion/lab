@@ -12,10 +12,10 @@ import (
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var issueCreateCmd = &cobra.Command{
@@ -72,7 +72,7 @@ var issueCreateCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		var milestoneID *int
+		var milestoneID *int64
 		if milestoneName != "" {
 			milestone, err := lab.MilestoneGet(rn, milestoneName)
 			if err != nil {
@@ -95,7 +95,7 @@ var issueCreateCmd = &cobra.Command{
 			body = textToMarkdown(body)
 		}
 
-		assigneeIDs := make([]int, len(assignees))
+		assigneeIDs := make([]int64, len(assignees))
 		for i, a := range assignees {
 			assigneeIDs[i] = *getUserID(a)
 		}

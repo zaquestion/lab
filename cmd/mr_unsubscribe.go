@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
@@ -24,7 +25,7 @@ var mrUnsubscribeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.MRUnsubscribe(rn, int(id))
+		err = lab.MRUnsubscribe(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}

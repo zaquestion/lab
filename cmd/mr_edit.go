@@ -10,9 +10,9 @@ import (
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var mrEditCmd = &cobra.Command{
@@ -47,7 +47,7 @@ var mrEditCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		mrNum := int(id)
+		mrNum := id
 
 		if mrNum == 0 {
 			fmt.Println("Error: Cannot determine MR id.")
@@ -64,7 +64,7 @@ var mrEditCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if deleteNote {
-			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
+			discussions, err := lab.MRListDiscussions(rn, mrNum)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -186,7 +186,7 @@ var mrEditCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		updateMilestone := cmd.Flags().Lookup("milestone").Changed
-		milestoneID := 0
+		var milestoneID int64 = 0
 
 		if milestoneName != "" {
 			ms, err := lab.MilestoneGet(rn, milestoneName)
@@ -323,7 +323,7 @@ var mrEditCmd = &cobra.Command{
 			opts.TargetBranch = &targetBranchName
 		}
 
-		mrURL, err := lab.MRUpdate(rn, int(mrNum), opts)
+		mrURL, err := lab.MRUpdate(rn, mrNum, opts)
 		if err != nil {
 			log.Fatal(err)
 		}

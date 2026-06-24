@@ -83,10 +83,10 @@ var snippetCreateCmd = &cobra.Command{
 		rn, _ := git.PathWithNamespace(remote)
 		if global || rn == "" {
 			opts := gitlab.CreateSnippetOptions{
-				Title:       gitlab.String(title),
-				Description: gitlab.String(body),
-				Content:     gitlab.String(code),
-				FileName:    gitlab.String(name),
+				Title:       gitlab.Ptr(title),
+				Description: gitlab.Ptr(body),
+				Content:     gitlab.Ptr(code),
+				FileName:    gitlab.Ptr(name),
 				Visibility:  &visibility,
 			}
 			snip, err := lab.SnippetCreate(&opts)
@@ -98,10 +98,10 @@ var snippetCreateCmd = &cobra.Command{
 		}
 
 		opts := gitlab.CreateProjectSnippetOptions{
-			Title:       gitlab.String(title),
-			Description: gitlab.String(body),
-			Content:     gitlab.String(code),
-			FileName:    gitlab.String(name),
+			Title:       gitlab.Ptr(title),
+			Description: gitlab.Ptr(body),
+			Content:     gitlab.Ptr(code),
+			FileName:    gitlab.Ptr(name),
 			Visibility:  &visibility,
 		}
 		snip, err := lab.ProjectSnippetCreate(rn, &opts)

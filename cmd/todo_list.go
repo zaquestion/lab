@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc/v2"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var (
@@ -113,7 +114,7 @@ func todoList(args []string) ([]*gitlab.Todo, error) {
 
 	opts := gitlab.ListTodosOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: num,
+			PerPage: int64(num),
 		},
 	}
 

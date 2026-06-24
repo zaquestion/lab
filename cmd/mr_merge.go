@@ -6,9 +6,9 @@ import (
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var mergeImmediate bool
@@ -32,10 +32,10 @@ var mrMergeCmd = &cobra.Command{
 		}
 
 		opts := gitlab.AcceptMergeRequestOptions{
-			MergeWhenPipelineSucceeds: gitlab.Bool(!mergeImmediate),
+			MergeWhenPipelineSucceeds: gitlab.Ptr(!mergeImmediate),
 		}
 
-		err = lab.MRMerge(rn, int(id), &opts)
+		err = lab.MRMerge(rn, id, &opts)
 		if err != nil {
 			log.Fatal(err)
 		}

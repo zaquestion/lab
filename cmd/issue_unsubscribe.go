@@ -22,7 +22,7 @@ var issueUnsubscribeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.IssueUnsubscribe(rn, int(id))
+		err = lab.IssueUnsubscribe(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}

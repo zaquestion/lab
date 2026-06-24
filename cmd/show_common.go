@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,21 +14,21 @@ import (
 	"github.com/fatih/color"
 	"github.com/jaytaylor/html2text"
 	"github.com/muesli/termenv"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/config"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
-func inRange(val int, min int, max int) bool {
-	return val >= min && val <= max
+func inRange(val int64, min int64, max int64) bool {
+	return val >= int64(min) && val <= int64(max)
 }
 
 // maxPadding returns the max value of two string numbers
-func maxPadding(x int, y int) int {
+func maxPadding(x int64, y int64) int {
 	if x > y {
-		return len(strconv.Itoa(x))
+		return len(Itoa(x))
 	}
-	return len(strconv.Itoa(y))
+	return len(Itoa(y))
 }
 
 // printDiffLine does a color print of a diff lines.  Red lines are removals
@@ -46,10 +45,10 @@ func printDiffLine(strColor string, maxChars int, sOld string, sNew string, ltex
 }
 
 // displayDiff displays the diff referenced in a discussion
-func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
+func displayDiff(diff string, newLine int64, oldLine int64, outputAll bool) string {
 	var (
-		oldLineNum int = 0
-		newLineNum int = 0
+		oldLineNum int64 = 0
+		newLineNum int64 = 0
 		maxChars   int
 		output     bool   = false
 		diffOutput string = ""
@@ -63,13 +62,13 @@ func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 			dNew := strings.Split(s[2], ",")
 
 			// get the new line number of the first line of the diff
-			newDiffStart, err := strconv.Atoi(strings.Replace(dNew[0], "+", "", -1))
+			newDiffStart, err := Atoi(strings.Replace(dNew[0], "+", "", -1))
 			if err != nil {
 				log.Fatal(err)
 			}
-			newDiffRange := 1
+			var newDiffRange int64 = 1
 			if len(dNew) == 2 {
-				newDiffRange, err = strconv.Atoi(dNew[1])
+				newDiffRange, err = Atoi(dNew[1])
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -78,7 +77,7 @@ func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 			newLineNum = newDiffStart - 1
 
 			// get the old line number of the first line of the diff
-			oldDiffStart, err := strconv.Atoi(strings.Replace(dOld[0], "-", "", -1))
+			oldDiffStart, err := Atoi(strings.Replace(dOld[0], "-", "", -1))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -86,7 +85,7 @@ func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 			oldDiffEnd := newDiffRange
 			oldLineNum = oldDiffStart - 1
 			if len(dOld) > 1 {
-				oldDiffRange, err := strconv.Atoi(dOld[1])
+				oldDiffRange, err := Atoi(dOld[1])
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -131,18 +130,18 @@ func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 			strColor = ""
 			oldLineNum++
 			newLineNum++
-			sOld = strconv.Itoa(oldLineNum)
-			sNew = strconv.Itoa(newLineNum)
+			sOld = Itoa(oldLineNum)
+			sNew = Itoa(newLineNum)
 		case "-":
 			strColor = "red"
 			oldLineNum++
-			sOld = strconv.Itoa(oldLineNum)
+			sOld = Itoa(oldLineNum)
 			sNew = " "
 		case "+":
 			strColor = "green"
 			newLineNum++
 			sOld = " "
-			sNew = strconv.Itoa(newLineNum)
+			sNew = Itoa(newLineNum)
 		}
 
 		// output line
@@ -162,7 +161,7 @@ func displayDiff(diff string, newLine int, oldLine int, outputAll bool) string {
 	return diffOutput
 }
 
-func displayCommitDiscussion(project string, idNum int, note *gitlab.Note) {
+func displayCommitDiscussion(project string, idNum int64, note *gitlab.Note) {
 
 	// Previously, the GitLab API only supports showing comments on the
 	// entire changeset and not per-commit.  IOW, all diffs were shown
@@ -249,7 +248,7 @@ const (
 	NoteLevelFull
 )
 
-func printDiscussions(project string, discussions []*gitlab.Discussion, since string, idstr string, idNum int, renderMarkdown bool, noteLevel int) {
+func printDiscussions(project string, discussions []*gitlab.Discussion, since string, idstr string, idNum int64, renderMarkdown bool, noteLevel int) {
 	newAccessTime := time.Now().UTC()
 
 	issueEntry := fmt.Sprintf("%s%d", idstr, idNum)

@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
+
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var snippetListConfig struct {
@@ -55,17 +56,17 @@ func snippetList(args []string) ([]*gitlab.Snippet, error) {
 	}
 
 	listOpts := gitlab.ListOptions{
-		PerPage: num,
+		PerPage: int64(num),
 	}
 
 	// See if we're in a git repo or if global is set to determine
 	// if this should be a personal snippet
 	if global || rn == "" {
-		opts := gitlab.ListSnippetsOptions(listOpts)
+		opts := gitlab.ListSnippetsOptions{ListOptions: listOpts}
 		return lab.SnippetList(opts, num)
 	}
 
-	opts := gitlab.ListProjectSnippetsOptions(listOpts)
+	opts := gitlab.ListProjectSnippetsOptions{ListOptions: listOpts}
 	return lab.ProjectSnippetList(rn, opts, num)
 }
 

@@ -13,9 +13,9 @@ import (
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 func noteRunFn(cmd *cobra.Command, args []string) {
@@ -31,7 +31,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 
 	var (
 		rn    string
-		idNum int = 0
+		idNum int64 = 0
 	)
 
 	if isMR {
@@ -40,7 +40,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 			fmt.Println("Error: Cannot determine MR id.")
 			os.Exit(1)
 		}
-		idNum = int(mrNum)
+		idNum = mrNum
 		rn = s
 	} else {
 		s, issueNum, _ := parseArgsRemoteAndID(branchArgs)
@@ -48,7 +48,7 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 			fmt.Println("Error: Cannot determine issue id.")
 			os.Exit(1)
 		}
-		idNum = int(issueNum)
+		idNum = issueNum
 		rn = s
 	}
 
@@ -87,14 +87,14 @@ func noteRunFn(cmd *cobra.Command, args []string) {
 			log.Fatal(err)
 		}
 
-		replyNote(rn, isMR, int(idNum), reply, quote, false, filename, linebreak, resolve, msgs)
+		replyNote(rn, isMR, idNum, reply, quote, false, filename, linebreak, resolve, msgs)
 		return
 	}
 
-	createNote(rn, isMR, int(idNum), msgs, filename, linebreak, commit, true)
+	createNote(rn, isMR, idNum, msgs, filename, linebreak, commit, true)
 }
 
-func createCommitNote(rn string, mrID int, sha string, newFile string, oldFile string, linetype string, oldline int, newline int, comment string, block bool) {
+func createCommitNote(rn string, mrID int64, sha string, newFile string, oldFile string, linetype string, oldline int64, newline int64, comment string, block bool) {
 	line := oldline
 	if oldline == -1 {
 		line = newline
@@ -136,7 +136,7 @@ func getCommitBody(project string, commit string) (body string) {
 	return body
 }
 
-func createCommitComments(project string, mrID int, commit string, body string, block bool) {
+func createCommitComments(project string, mrID int64, commit string, body string, block bool) {
 	// Go through the body line-by-line and find lines that do not
 	// begin with |.  These lines are comments that have been made
 	// on the patch.  The lines that begin with | contain patch
@@ -210,7 +210,7 @@ func createCommitComments(project string, mrID int, commit string, body string, 
 				}
 			}
 
-			createCommitNote(project, mrID, commit, newfile, oldfile, linetype, oldLineNum, newLineNum, comments, block)
+			createCommitNote(project, mrID, commit, newfile, oldfile, linetype, int64(oldLineNum), int64(newLineNum), comments, block)
 			comments = ""
 		}
 
@@ -245,7 +245,7 @@ func createCommitComments(project string, mrID int, commit string, body string, 
 	}
 }
 
-func noteGetState(rn string, isMR bool, idNum int) (state string) {
+func noteGetState(rn string, isMR bool, idNum int64) (state string) {
 	if isMR {
 		mr, err := lab.MRGet(rn, idNum)
 		if err != nil {
@@ -272,7 +272,7 @@ func noteGetState(rn string, isMR bool, idNum int) (state string) {
 	return state
 }
 
-func createNote(rn string, isMR bool, idNum int, msgs []string, filename string, linebreak bool, commit string, hasNote bool) {
+func createNote(rn string, isMR bool, idNum int64, msgs []string, filename string, linebreak bool, commit string, hasNote bool) {
 	// hasNote is used by action that take advantage of Gitlab 'quick-action' notes, which do not create a noteURL
 	var err error
 
@@ -314,7 +314,7 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 
 	if isMR {
 		if commit != "" {
-			createCommitComments(rn, int(idNum), commit, body, false)
+			createCommitComments(rn, idNum, commit, body, false)
 		} else {
 			noteURL, err = lab.MRCreateNote(rn, idNum, &gitlab.CreateMergeRequestNoteOptions{
 				Body: &body,
@@ -333,7 +333,7 @@ func createNote(rn string, isMR bool, idNum int, msgs []string, filename string,
 	}
 }
 
-func noteMsg(msgs []string, isMR bool, idNum int, state string, commit string, body string) (string, error) {
+func noteMsg(msgs []string, isMR bool, idNum int64, state string, commit string, body string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
@@ -370,7 +370,7 @@ func noteGetTemplate(isMR bool, commit string) string {
 		{{.CommentChar}} Comment lines beginning with '{{.CommentChar}}' are discarded.`)
 }
 
-func noteText(idNum int, state string, commit string, body string, tmpl string) (string, error) {
+func noteText(idNum int64, state string, commit string, body string, tmpl string) (string, error) {
 	initMsg := body
 	commentChar := git.CommentChar()
 
@@ -389,7 +389,7 @@ func noteText(idNum int, state string, commit string, body string, tmpl string) 
 		InitMsg     string
 		CommentChar string
 		State       string
-		IDnum       int
+		IDnum       int64
 		Commit      string
 	}{
 		InitMsg:     initMsg,
@@ -408,7 +408,7 @@ func noteText(idNum int, state string, commit string, body string, tmpl string) 
 	return b.String(), nil
 }
 
-func replyNote(rn string, isMR bool, idNum int, reply int, quote bool, update bool, filename string, linebreak bool, resolve bool, msgs []string) {
+func replyNote(rn string, isMR bool, idNum int64, reply int64, quote bool, update bool, filename string, linebreak bool, resolve bool, msgs []string) {
 
 	var (
 		discussions []*gitlab.Discussion

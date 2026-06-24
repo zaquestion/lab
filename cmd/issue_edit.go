@@ -2,16 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var issueEditCmd = &cobra.Command{
@@ -38,16 +37,16 @@ var issueEditCmd = &cobra.Command{
 		}
 
 		var (
-			issueNum   int = 0
-			commentNum int = 0
+			issueNum   int64 = 0
+			commentNum int64 = 0
 		)
 
 		if strings.Contains(idString, ":") {
 			ids := strings.Split(idString, ":")
-			issueNum, _ = strconv.Atoi(ids[0])
-			commentNum, _ = strconv.Atoi(ids[1])
+			issueNum, _ = Atoi(ids[0])
+			commentNum, _ = Atoi(ids[1])
 		} else {
-			issueNum, _ = strconv.Atoi(idString)
+			issueNum, _ = Atoi(idString)
 		}
 
 		issue, err := lab.IssueGet(rn, issueNum)
@@ -60,7 +59,7 @@ var issueEditCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if deleteNote {
-			discussions, err := lab.IssueListDiscussions(rn, int(issueNum))
+			discussions, err := lab.IssueListDiscussions(rn, issueNum)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -145,7 +144,7 @@ var issueEditCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		updateMilestone := cmd.Flags().Lookup("milestone").Changed
-		milestoneID := -1
+		var milestoneID int64 = -1
 
 		if milestoneName != "" {
 			ms, err := lab.MilestoneGet(rn, milestoneName)

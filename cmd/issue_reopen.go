@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
@@ -23,7 +24,7 @@ var issueReopenCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.IssueReopen(rn, int(id))
+		err = lab.IssueReopen(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}

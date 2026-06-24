@@ -55,9 +55,9 @@ var forkCmd = &cobra.Command{
 		if targetData.project != "" || targetData.group != "" ||
 			targetData.path != "" {
 			forkOpts = &gitlab.ForkProjectOptions{
-				Name:      gitlab.String(targetData.project),
-				Namespace: gitlab.String(targetData.group),
-				Path:      gitlab.String(targetData.path),
+				Name:      gitlab.Ptr(targetData.project),
+				Namespace: gitlab.Ptr(targetData.group),
+				Path:      gitlab.Ptr(targetData.path),
 			}
 		}
 

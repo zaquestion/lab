@@ -32,13 +32,13 @@ var issueCloseCmd = &cobra.Command{
 			if !strings.Contains(dupID, "#") {
 				dupID = "#" + dupID
 			}
-			err = lab.IssueDuplicate(rn, int(id), dupID)
+			err = lab.IssueDuplicate(rn, id, dupID)
 			if err != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("Issue #%d closed as duplicate of %s\n", id, dupID)
 		} else {
-			err = lab.IssueClose(rn, int(id))
+			err = lab.IssueClose(rn, id)
 			if err != nil {
 				log.Fatal(err)
 			}

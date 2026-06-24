@@ -21,11 +21,11 @@ var todoMRCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		todoAddMergeRequest(rn, int(num))
+		todoAddMergeRequest(rn, num)
 	},
 }
 
-func todoAddMergeRequest(remote string, mrNum int) {
+func todoAddMergeRequest(remote string, mrNum int64) {
 	todoID, err := lab.TodoMRCreate(remote, mrNum)
 	if err != nil {
 		if err == lab.ErrNotModified {

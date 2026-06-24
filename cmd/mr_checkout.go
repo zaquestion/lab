@@ -51,7 +51,7 @@ var checkoutCmd = &cobra.Command{
 			targetRemote = args[0]
 		}
 
-		mr, err := lab.MRGet(rn, int(mrID))
+		mr, err := lab.MRGet(rn, mrID)
 		if err != nil {
 			log.Fatal(err)
 		}

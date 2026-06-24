@@ -13,10 +13,10 @@ import (
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 // mrCmd represents the mr command
@@ -225,9 +225,9 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 	}
 
 	milestoneArg, _ := cmd.Flags().GetString("milestone")
-	milestoneID, _ := strconv.Atoi(milestoneArg)
+	milestoneID, _ := Atoi(milestoneArg)
 
-	var milestone *int
+	var milestone *int64
 	if milestoneID > 0 {
 		milestone = &milestoneID
 	} else if milestoneArg != "" {
@@ -344,7 +344,7 @@ func runMRCreate(cmd *cobra.Command, args []string) {
 
 	mrURL, err := lab.MRCreate(sourceProjectName, &gitlab.CreateMergeRequestOptions{
 		SourceBranch:       &sourceBranch,
-		TargetBranch:       gitlab.String(targetBranch),
+		TargetBranch:       gitlab.Ptr(targetBranch),
 		TargetProjectID:    &targetProject.ID,
 		Title:              &title,
 		Description:        &body,

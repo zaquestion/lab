@@ -16,10 +16,10 @@ import (
 	"github.com/spf13/viper"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	giturls "github.com/whilp/git-urls"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/config"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -83,9 +83,19 @@ func flagConfig(fs *flag.FlagSet) {
 	}
 }
 
+// Atoi is like strconv.Atoi, but kept as an int64
+func Atoi(s string) (int64, error) {
+	return strconv.ParseInt(s, 10, 0)
+}
+
+// Itoa is like strconv.Itoa, but for int64
+func Itoa(i int64) string {
+	return strconv.FormatInt(i, 10)
+}
+
 // getCurrentBranchMR returns the MR ID associated with the current branch.
 // If a MR ID cannot be found, the function returns 0.
-func getCurrentBranchMR(rn string) int {
+func getCurrentBranchMR(rn string) int64 {
 	currentBranch, err := git.CurrentBranch()
 	if err != nil {
 		return 0
@@ -94,8 +104,8 @@ func getCurrentBranchMR(rn string) int {
 	return getBranchMR(rn, currentBranch)
 }
 
-func getBranchMR(rn, branch string) int {
-	var num int = 0
+func getBranchMR(rn, branch string) int64 {
+	var num int64 = 0
 
 	mrBranch, err := git.UpstreamBranch(branch)
 	if err != nil {
@@ -120,8 +130,8 @@ func getBranchMR(rn, branch string) int {
 
 	mrs, err := lab.MRList(rn, gitlab.ListProjectMergeRequestsOptions{
 		State:        &mrState,
-		OrderBy:      gitlab.String("updated_at"),
-		SourceBranch: gitlab.String(mrBranch),
+		OrderBy:      gitlab.Ptr("updated_at"),
+		SourceBranch: gitlab.Ptr(mrBranch),
 	}, -1)
 	if err != nil {
 		log.Fatal(err)
@@ -230,14 +240,14 @@ func parseArgsRemoteAndBranch(args []string) (string, string, error) {
 	return remote, branch, nil
 }
 
-func getPipelineFromArgs(args []string, forMR bool) (string, int, error) {
+func getPipelineFromArgs(args []string, forMR bool) (string, int64, error) {
 	if forMR {
 		rn, mrNum, err := parseArgsWithGitBranchMR(args)
 		if err != nil {
 			return "", 0, err
 		}
 
-		mr, err := lab.MRGet(rn, int(mrNum))
+		mr, err := lab.MRGet(rn, mrNum)
 		if err != nil {
 			return "", 0, err
 		}
@@ -376,7 +386,7 @@ func parseArgsWithGitBranchMR(args []string) (string, int64, error) {
 
 // filterCommentArg separate the case where a command can have both the
 // remote and "<mrID>:<commentID>" at the same time.
-func filterCommentArg(args []string) (int, []string, error) {
+func filterCommentArg(args []string) (int64, []string, error) {
 	branchArgs := []string{}
 	idString := ""
 
@@ -404,7 +414,7 @@ func filterCommentArg(args []string) (int, []string, error) {
 		idString = ""
 	}
 
-	idNum, _ := strconv.Atoi(idString)
+	idNum, _ := Atoi(idString)
 	return idNum, branchArgs, nil
 }
 
@@ -642,10 +652,10 @@ func same(a, b []string) bool {
 }
 
 // getUser returns the userID for use with other GitLab API calls.
-func getUserID(user string) *int {
+func getUserID(user string) *int64 {
 	var (
 		err    error
-		userID int
+		userID int64
 	)
 
 	if user == "" {
@@ -668,12 +678,12 @@ func getUserID(user string) *int {
 		return nil
 	}
 
-	return gitlab.Int(userID)
+	return gitlab.Ptr(userID)
 }
 
 // getUsers returns the userIDs for use with other GitLab API calls.
-func getUserIDs(users []string) []int {
-	var ids []int
+func getUserIDs(users []string) []int64 {
+	var ids []int64
 	for _, user := range users {
 		userID := getUserID(user)
 		if userID != nil {
@@ -720,6 +730,7 @@ func mapLabelsAsLabelOptions(rn string, labelTerms []string) (gitlab.LabelOption
 
 	return gitlab.LabelOptions(matches), nil
 }
+
 // dumpToken dumps information about a specific Personal Access Token
 func dumpToken(tokendata *gitlab.PersonalAccessToken) {
 	fmt.Println("ID:        ", tokendata.ID)

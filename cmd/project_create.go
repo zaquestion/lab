@@ -6,9 +6,9 @@ import (
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
-	"gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 // projectCreateCmd represents the create command
@@ -52,7 +52,7 @@ var projectCreateCmd = &cobra.Command{
 			group = g
 		}
 
-		var namespaceID *int
+		var namespaceID *int64
 		if group != "" {
 			groupObj, err := lab.GroupSearch(group)
 			if err != nil {
@@ -80,11 +80,11 @@ var projectCreateCmd = &cobra.Command{
 			// if namespaceID is nil, the project will be created in user's
 			// namespace
 			NamespaceID:          namespaceID,
-			Path:                 gitlab.String(path),
-			Name:                 gitlab.String(name),
-			Description:          gitlab.String(desc),
+			Path:                 gitlab.Ptr(path),
+			Name:                 gitlab.Ptr(name),
+			Description:          gitlab.Ptr(desc),
 			Visibility:           &visibility,
-			ApprovalsBeforeMerge: gitlab.Int(0),
+			ApprovalsBeforeMerge: gitlab.Ptr(int64(0)),
 		}
 		p, err := lab.ProjectCreate(&opts)
 		if err != nil {

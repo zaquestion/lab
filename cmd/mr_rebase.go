@@ -19,7 +19,7 @@ var mrRebaseCmd = &cobra.Command{
 		}
 
 		// FIXME use gitlab.RebaseMergeRequestOptions
-		err = lab.MRRebase(rn, int(id), nil)
+		err = lab.MRRebase(rn, id, nil)
 		if err != nil {
 			log.Fatal(err)
 		}

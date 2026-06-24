@@ -21,12 +21,12 @@ var todoIssueCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		todoAddIssue(rn, int(num))
+		todoAddIssue(rn, num)
 
 	},
 }
 
-func todoAddIssue(project string, issueNum int) {
+func todoAddIssue(project string, issueNum int64) {
 	todoID, err := lab.TodoIssueCreate(project, issueNum)
 	if err != nil {
 		if err == lab.ErrNotModified {

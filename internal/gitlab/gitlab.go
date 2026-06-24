@@ -20,9 +20,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/git"
 	"github.com/zaquestion/lab/internal/logger"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 // Get internal lab logger instance
@@ -61,7 +61,7 @@ func User() string {
 }
 
 // UserID get the current user ID from gitlab server
-func UserID() (int, error) {
+func UserID() (int64, error) {
 	u, _, err := lab.Users.CurrentUser()
 	if err != nil {
 		return 0, err
@@ -275,7 +275,7 @@ func Fork(projID interface{}, opts *gitlab.ForkProjectOptions, useHTTP bool, wai
 		} else if optPath != "" {
 			name = optPath
 		} else {
-			opts.Name = gitlab.String(name)
+			opts.Name = gitlab.Ptr(name)
 		}
 	}
 
@@ -366,7 +366,7 @@ func MRCreate(projID interface{}, opts *gitlab.CreateMergeRequestOptions) (strin
 }
 
 // MRCreateDiscussion creates a discussion on a merge request on GitLab
-func MRCreateDiscussion(projID interface{}, id int, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
+func MRCreateDiscussion(projID interface{}, id int64, opts *gitlab.CreateMergeRequestDiscussionOptions) (string, error) {
 	discussion, _, err := lab.Discussions.CreateMergeRequestDiscussion(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -384,7 +384,7 @@ func MRCreateDiscussion(projID interface{}, id int, opts *gitlab.CreateMergeRequ
 }
 
 // MRUpdate edits an merge request on a GitLab project
-func MRUpdate(projID interface{}, id int, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
+func MRUpdate(projID interface{}, id int64, opts *gitlab.UpdateMergeRequestOptions) (string, error) {
 	mr, _, err := lab.MergeRequests.UpdateMergeRequest(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -394,8 +394,8 @@ func MRUpdate(projID interface{}, id int, opts *gitlab.UpdateMergeRequestOptions
 }
 
 // MRDelete deletes an merge request on a GitLab project
-func MRDelete(projID interface{}, id int) error {
-	resp, err := lab.MergeRequests.DeleteMergeRequest(projID, id)
+func MRDelete(projID interface{}, id int64) error {
+	resp, err := lab.MergeRequests.DeleteMergeRequest(projID, int64(id))
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
 	}
@@ -406,7 +406,7 @@ func MRDelete(projID interface{}, id int) error {
 }
 
 // MRCreateNote adds a note to a merge request on GitLab
-func MRCreateNote(projID interface{}, id int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
+func MRCreateNote(projID interface{}, id int64, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
 	note, _, err := lab.Notes.CreateMergeRequestNote(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -422,7 +422,7 @@ func MRCreateNote(projID interface{}, id int, opts *gitlab.CreateMergeRequestNot
 }
 
 // MRGet retrieves the merge request from GitLab project
-func MRGet(projID interface{}, id int) (*gitlab.MergeRequest, error) {
+func MRGet(projID interface{}, id int64) (*gitlab.MergeRequest, error) {
 	mr, _, err := lab.MergeRequests.GetMergeRequest(projID, id, nil)
 	if err != nil {
 		return nil, err
@@ -437,7 +437,7 @@ func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n i
 	for true {
 		opts.PerPage = maxItemsPerPage
 		if n != -1 {
-			opts.PerPage = n - len(list)
+			opts.PerPage = int64(n - len(list))
 			if opts.PerPage > maxItemsPerPage {
 				opts.PerPage = maxItemsPerPage
 			}
@@ -451,7 +451,6 @@ func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n i
 
 		if n != -1 && len(list) >= n {
 			return list[:n], nil
-			break
 		}
 
 		var ok bool
@@ -464,7 +463,7 @@ func MRList(projID interface{}, opts gitlab.ListProjectMergeRequestsOptions, n i
 }
 
 // MRClose closes an mr on a GitLab project
-func MRClose(projID interface{}, id int) error {
+func MRClose(projID interface{}, id int64) error {
 	mr, _, err := lab.MergeRequests.GetMergeRequest(projID, id, nil)
 	if err != nil {
 		return err
@@ -472,8 +471,8 @@ func MRClose(projID interface{}, id int) error {
 	if mr.State == "closed" {
 		return fmt.Errorf("mr already closed")
 	}
-	_, _, err = lab.MergeRequests.UpdateMergeRequest(projID, int(id), &gitlab.UpdateMergeRequestOptions{
-		StateEvent: gitlab.String("close"),
+	_, _, err = lab.MergeRequests.UpdateMergeRequest(projID, id, &gitlab.UpdateMergeRequestOptions{
+		StateEvent: gitlab.Ptr("close"),
 	})
 	if err != nil {
 		return err
@@ -482,7 +481,7 @@ func MRClose(projID interface{}, id int) error {
 }
 
 // MRReopen reopen an already close mr on a GitLab project
-func MRReopen(projID interface{}, id int) error {
+func MRReopen(projID interface{}, id int64) error {
 	mr, _, err := lab.MergeRequests.GetMergeRequest(projID, id, nil)
 	if err != nil {
 		return err
@@ -490,8 +489,8 @@ func MRReopen(projID interface{}, id int) error {
 	if mr.State == "opened" {
 		return fmt.Errorf("mr not closed")
 	}
-	_, _, err = lab.MergeRequests.UpdateMergeRequest(projID, int(id), &gitlab.UpdateMergeRequestOptions{
-		StateEvent: gitlab.String("reopen"),
+	_, _, err = lab.MergeRequests.UpdateMergeRequest(projID, id, &gitlab.UpdateMergeRequestOptions{
+		StateEvent: gitlab.Ptr("reopen"),
 	})
 	if err != nil {
 		return err
@@ -500,11 +499,13 @@ func MRReopen(projID interface{}, id int) error {
 }
 
 // MRListDiscussions retrieves the discussions (aka notes & comments) for a merge request
-func MRListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, error) {
+func MRListDiscussions(projID interface{}, id int64) ([]*gitlab.Discussion, error) {
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListMergeRequestDiscussionsOptions{
-		// 100 is the maximum allowed by the API
-		PerPage: maxItemsPerPage,
+		ListOptions: gitlab.ListOptions{
+			// 100 is the maximum allowed by the API
+			PerPage: maxItemsPerPage,
+		},
 	}
 
 	for {
@@ -529,8 +530,8 @@ func MRListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, error)
 }
 
 // MRRebase merges an mr on a GitLab project
-func MRRebase(projID interface{}, id int, opts *gitlab.RebaseMergeRequestOptions) error {
-	_, err := lab.MergeRequests.RebaseMergeRequest(projID, int(id), opts)
+func MRRebase(projID interface{}, id int64, opts *gitlab.RebaseMergeRequestOptions) error {
+	_, err := lab.MergeRequests.RebaseMergeRequest(projID, id, opts)
 	if err != nil {
 		return err
 	}
@@ -538,8 +539,8 @@ func MRRebase(projID interface{}, id int, opts *gitlab.RebaseMergeRequestOptions
 }
 
 // MRMerge merges an mr on a GitLab project
-func MRMerge(projID interface{}, id int, opts *gitlab.AcceptMergeRequestOptions) error {
-	_, _, err := lab.MergeRequests.AcceptMergeRequest(projID, int(id), opts)
+func MRMerge(projID interface{}, id int64, opts *gitlab.AcceptMergeRequestOptions) error {
+	_, _, err := lab.MergeRequests.AcceptMergeRequest(projID, id, opts)
 	if err != nil {
 		return err
 	}
@@ -547,7 +548,7 @@ func MRMerge(projID interface{}, id int, opts *gitlab.AcceptMergeRequestOptions)
 }
 
 // MRApprove approves an mr on a GitLab project
-func MRApprove(projID interface{}, id int) error {
+func MRApprove(projID interface{}, id int64) error {
 	_, resp, err := lab.MergeRequestApprovals.ApproveMergeRequest(projID, id, &gitlab.ApproveMergeRequestOptions{})
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
@@ -563,7 +564,7 @@ func MRApprove(projID interface{}, id int) error {
 }
 
 // MRUnapprove Unapproves a previously approved mr on a GitLab project
-func MRUnapprove(projID interface{}, id int) error {
+func MRUnapprove(projID interface{}, id int64) error {
 	resp, err := lab.MergeRequestApprovals.UnapproveMergeRequest(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		return ErrStatusForbidden
@@ -579,7 +580,7 @@ func MRUnapprove(projID interface{}, id int) error {
 }
 
 // MRSubscribe subscribes to an mr on a GitLab project
-func MRSubscribe(projID interface{}, id int) error {
+func MRSubscribe(projID interface{}, id int64) error {
 	_, resp, err := lab.MergeRequests.SubscribeToMergeRequest(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Already subscribed")
@@ -591,7 +592,7 @@ func MRSubscribe(projID interface{}, id int) error {
 }
 
 // MRUnsubscribe unsubscribes from a previously mr on a GitLab project
-func MRUnsubscribe(projID interface{}, id int) error {
+func MRUnsubscribe(projID interface{}, id int64) error {
 	_, resp, err := lab.MergeRequests.UnsubscribeFromMergeRequest(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Not subscribed")
@@ -603,7 +604,7 @@ func MRUnsubscribe(projID interface{}, id int) error {
 }
 
 // MRThumbUp places a thumb up/down on a merge request
-func MRThumbUp(projID interface{}, id int) error {
+func MRThumbUp(projID interface{}, id int64) error {
 	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(projID, id, &gitlab.CreateAwardEmojiOptions{
 		Name: "thumbsup",
 	})
@@ -614,7 +615,7 @@ func MRThumbUp(projID interface{}, id int) error {
 }
 
 // MRThumbDown places a thumb up/down on a merge request
-func MRThumbDown(projID interface{}, id int) error {
+func MRThumbDown(projID interface{}, id int64) error {
 	_, _, err := lab.AwardEmoji.CreateMergeRequestAwardEmoji(projID, id, &gitlab.CreateAwardEmojiOptions{
 		Name: "thumbsdown",
 	})
@@ -634,7 +635,7 @@ func IssueCreate(projID interface{}, opts *gitlab.CreateIssueOptions) (string, e
 }
 
 // IssueUpdate edits an issue on a GitLab project
-func IssueUpdate(projID interface{}, id int, opts *gitlab.UpdateIssueOptions) (string, error) {
+func IssueUpdate(projID interface{}, id int64, opts *gitlab.UpdateIssueOptions) (string, error) {
 	issue, _, err := lab.Issues.UpdateIssue(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -643,7 +644,7 @@ func IssueUpdate(projID interface{}, id int, opts *gitlab.UpdateIssueOptions) (s
 }
 
 // IssueCreateNote creates a new note on an issue and returns the note URL
-func IssueCreateNote(projID interface{}, id int, opts *gitlab.CreateIssueNoteOptions) (string, error) {
+func IssueCreateNote(projID interface{}, id int64, opts *gitlab.CreateIssueNoteOptions) (string, error) {
 	note, _, err := lab.Notes.CreateIssueNote(projID, id, opts)
 	if err != nil {
 		return "", err
@@ -659,7 +660,7 @@ func IssueCreateNote(projID interface{}, id int, opts *gitlab.CreateIssueNoteOpt
 }
 
 // IssueGet retrieves the issue information from a GitLab project
-func IssueGet(projID interface{}, id int) (*gitlab.Issue, error) {
+func IssueGet(projID interface{}, id int64) (*gitlab.Issue, error) {
 	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if err != nil {
 		return nil, err
@@ -674,7 +675,7 @@ func IssueList(projID interface{}, opts gitlab.ListProjectIssuesOptions, n int) 
 	for true {
 		opts.PerPage = maxItemsPerPage
 		if n != -1 {
-			opts.PerPage = n - len(list)
+			opts.PerPage = int64(int64(n - len(list)))
 			if opts.PerPage > maxItemsPerPage {
 				opts.PerPage = maxItemsPerPage
 			}
@@ -699,7 +700,7 @@ func IssueList(projID interface{}, opts gitlab.ListProjectIssuesOptions, n int) 
 }
 
 // IssueClose closes an issue on a GitLab project
-func IssueClose(projID interface{}, id int) error {
+func IssueClose(projID interface{}, id int64) error {
 	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if err != nil {
 		return err
@@ -708,7 +709,7 @@ func IssueClose(projID interface{}, id int) error {
 		return fmt.Errorf("issue already closed")
 	}
 	_, _, err = lab.Issues.UpdateIssue(projID, id, &gitlab.UpdateIssueOptions{
-		StateEvent: gitlab.String("close"),
+		StateEvent: gitlab.Ptr("close"),
 	})
 	if err != nil {
 		return err
@@ -717,7 +718,7 @@ func IssueClose(projID interface{}, id int) error {
 }
 
 // IssueDuplicate closes an issue as duplicate of another
-func IssueDuplicate(projID interface{}, id int, dupID interface{}) error {
+func IssueDuplicate(projID interface{}, id int64, dupID interface{}) error {
 	dID, err := parseID(dupID)
 	if err != nil {
 		return err
@@ -741,7 +742,7 @@ func IssueDuplicate(projID interface{}, id int, dupID interface{}) error {
 }
 
 // IssueReopen reopens a closed issue
-func IssueReopen(projID interface{}, id int) error {
+func IssueReopen(projID interface{}, id int64) error {
 	issue, _, err := lab.Issues.GetIssue(projID, id)
 	if err != nil {
 		return err
@@ -750,7 +751,7 @@ func IssueReopen(projID interface{}, id int) error {
 		return fmt.Errorf("issue not closed")
 	}
 	_, _, err = lab.Issues.UpdateIssue(projID, id, &gitlab.UpdateIssueOptions{
-		StateEvent: gitlab.String("reopen"),
+		StateEvent: gitlab.Ptr("reopen"),
 	})
 	if err != nil {
 		return err
@@ -759,11 +760,13 @@ func IssueReopen(projID interface{}, id int) error {
 }
 
 // IssueListDiscussions retrieves the discussions (aka notes & comments) for an issue
-func IssueListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, error) {
+func IssueListDiscussions(projID interface{}, id int64) ([]*gitlab.Discussion, error) {
 	discussions := []*gitlab.Discussion{}
 	opt := &gitlab.ListIssueDiscussionsOptions{
-		// 100 is the maximum allowed by the API
-		PerPage: maxItemsPerPage,
+		ListOptions: gitlab.ListOptions{
+			// 100 is the maximum allowed by the API
+			PerPage: maxItemsPerPage,
+		},
 	}
 
 	for {
@@ -788,7 +791,7 @@ func IssueListDiscussions(projID interface{}, id int) ([]*gitlab.Discussion, err
 }
 
 // IssueSubscribe subscribes to an issue on a GitLab project
-func IssueSubscribe(projID interface{}, id int) error {
+func IssueSubscribe(projID interface{}, id int64) error {
 	_, resp, err := lab.Issues.SubscribeToIssue(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Already subscribed")
@@ -800,7 +803,7 @@ func IssueSubscribe(projID interface{}, id int) error {
 }
 
 // IssueUnsubscribe unsubscribes from an issue on a GitLab project
-func IssueUnsubscribe(projID interface{}, id int) error {
+func IssueUnsubscribe(projID interface{}, id int64) error {
 	_, resp, err := lab.Issues.UnsubscribeFromIssue(projID, id, nil)
 	if resp != nil && resp.StatusCode == http.StatusNotModified {
 		return errors.New("Not subscribed")
@@ -997,7 +1000,7 @@ func ProjectSnippetCreate(projID interface{}, opts *gitlab.CreateProjectSnippetO
 }
 
 // ProjectSnippetDelete deletes a project snippet
-func ProjectSnippetDelete(projID interface{}, id int) error {
+func ProjectSnippetDelete(projID interface{}, id int64) error {
 	_, err := lab.ProjectSnippets.DeleteSnippet(projID, id)
 	return err
 }
@@ -1008,7 +1011,7 @@ func ProjectSnippetList(projID interface{}, opts gitlab.ListProjectSnippetsOptio
 	for true {
 		opts.PerPage = maxItemsPerPage
 		if n != -1 {
-			opts.PerPage = n - len(list)
+			opts.PerPage = int64(n - len(list))
 			if opts.PerPage > maxItemsPerPage {
 				opts.PerPage = maxItemsPerPage
 			}
@@ -1044,7 +1047,7 @@ func SnippetCreate(opts *gitlab.CreateSnippetOptions) (*gitlab.Snippet, error) {
 }
 
 // SnippetDelete deletes a personal snippet
-func SnippetDelete(id int) error {
+func SnippetDelete(id int64) error {
 	_, err := lab.Snippets.DeleteSnippet(id)
 	return err
 }
@@ -1057,7 +1060,7 @@ func SnippetList(opts gitlab.ListSnippetsOptions, n int) ([]*gitlab.Snippet, err
 
 	var list []*gitlab.Snippet
 	for len(list) < n {
-		opts.PerPage = n - len(list)
+		opts.PerPage = int64(n - len(list))
 		snips, resp, err := lab.Snippets.ListSnippets(&opts)
 		if err != nil {
 			return nil, err
@@ -1116,7 +1119,7 @@ func ProjectList(opts gitlab.ListProjectsOptions, n int) ([]*gitlab.Project, err
 
 	var list []*gitlab.Project
 	for len(list) < n {
-		opts.PerPage = n - len(list)
+		opts.PerPage = int64(n - len(list))
 		projects, resp, err := lab.Projects.ListProjects(&opts)
 		if err != nil {
 			return nil, err
@@ -1187,7 +1190,7 @@ func GroupSearch(query string) (*gitlab.Group, error) {
 // CIJobs returns a list of jobs in the pipeline with given id.
 // This function by default doesn't follow bridge jobs.
 // The jobs are returned sorted by their CreatedAt time
-func CIJobs(projID interface{}, id int, followBridge bool, bridgeName string) ([]JobStruct, error) {
+func CIJobs(projID interface{}, id int64, followBridge bool, bridgeName string) ([]JobStruct, error) {
 	opts := &gitlab.ListJobsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: maxItemsPerPage,
@@ -1272,7 +1275,7 @@ func CIJobs(projID interface{}, id int, followBridge bool, bridgeName string) ([
 // 1. Last Running Job
 // 2. First Pending Job
 // 3. Last Job in Pipeline
-func CITrace(projID interface{}, id int, name string, followBridge bool, bridgeName string) (io.Reader, *gitlab.Job, error) {
+func CITrace(projID interface{}, id int64, name string, followBridge bool, bridgeName string) (io.Reader, *gitlab.Job, error) {
 	jobs, err := CIJobs(projID, id, followBridge, bridgeName)
 	if len(jobs) == 0 || err != nil {
 		return nil, nil, err
@@ -1320,7 +1323,7 @@ func CITrace(projID interface{}, id int, name string, followBridge bool, bridgeN
 // together with the upstream filename. If path is specified and refers to
 // a single file within the artifacts archive, that file is returned instead.
 // If no name is provided, the last job with an artifacts file is picked.
-func CIArtifacts(projID interface{}, id int, name, path string, followBridge bool, bridgeName string) (io.Reader, string, error) {
+func CIArtifacts(projID interface{}, id int64, name, path string, followBridge bool, bridgeName string) (io.Reader, string, error) {
 	jobs, err := CIJobs(projID, id, followBridge, bridgeName)
 	if len(jobs) == 0 || err != nil {
 		return nil, "", err
@@ -1376,7 +1379,7 @@ func CIArtifacts(projID interface{}, id int, name, path string, followBridge boo
 
 // CIPlayOrRetry runs a job either by playing it for the first time or by
 // retrying it based on the currently known job state
-func CIPlayOrRetry(projID interface{}, jobID int, status string) (*gitlab.Job, error) {
+func CIPlayOrRetry(projID interface{}, jobID int64, status string) (*gitlab.Job, error) {
 	switch status {
 	case "pending", "running":
 		return nil, nil
@@ -1399,7 +1402,7 @@ func CIPlayOrRetry(projID interface{}, jobID int, status string) (*gitlab.Job, e
 }
 
 // CICancel cancels a job for a given project by its ID.
-func CICancel(projID interface{}, jobID int) (*gitlab.Job, error) {
+func CICancel(projID interface{}, jobID int64) (*gitlab.Job, error) {
 	j, _, err := lab.Jobs.CancelJob(projID, jobID)
 	if err != nil {
 		return nil, err
@@ -1427,9 +1430,9 @@ func CITrigger(projID interface{}, opts gitlab.RunPipelineTriggerOptions) (*gitl
 
 // UserIDFromUsername returns the associated Users ID in GitLab. This is useful
 // for API calls that allow you to reference a user, but only by ID.
-func UserIDFromUsername(username string) (int, error) {
+func UserIDFromUsername(username string) (int64, error) {
 	us, _, err := lab.Users.ListUsers(&gitlab.ListUsersOptions{
-		Username: gitlab.String(username),
+		Username: gitlab.Ptr(username),
 	})
 	if err != nil || len(us) == 0 {
 		return -1, err
@@ -1439,9 +1442,9 @@ func UserIDFromUsername(username string) (int, error) {
 
 // UserIDFromEmail returns the associated Users ID in GitLab. This is useful
 // for API calls that allow you to reference a user, but only by ID.
-func UserIDFromEmail(email string) (int, error) {
+func UserIDFromEmail(email string) (int64, error) {
 	us, _, err := lab.Users.ListUsers(&gitlab.ListUsersOptions{
-		Search: gitlab.String(email),
+		Search: gitlab.Ptr(email),
 	})
 	if err != nil || len(us) == 0 {
 		return -1, err
@@ -1450,7 +1453,7 @@ func UserIDFromEmail(email string) (int, error) {
 }
 
 // AddMRDiscussionNote adds a note to an existing MR discussion on GitLab
-func AddMRDiscussionNote(projID interface{}, mrID int, discussionID string, body string) (string, error) {
+func AddMRDiscussionNote(projID interface{}, mrID int64, discussionID string, body string) (string, error) {
 	opts := &gitlab.AddMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1468,7 +1471,7 @@ func AddMRDiscussionNote(projID interface{}, mrID int, discussionID string, body
 }
 
 // AddIssueDiscussionNote adds a note to an existing issue discussion on GitLab
-func AddIssueDiscussionNote(projID interface{}, issueID int, discussionID string, body string) (string, error) {
+func AddIssueDiscussionNote(projID interface{}, issueID int64, discussionID string, body string) (string, error) {
 	opts := &gitlab.AddIssueDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1487,7 +1490,7 @@ func AddIssueDiscussionNote(projID interface{}, issueID int, discussionID string
 
 // UpdateIssueDiscussionNote updates a specific discussion or note in the
 // specified issue number
-func UpdateIssueDiscussionNote(projID interface{}, issueID int, discussionID string, noteID int, body string) (string, error) {
+func UpdateIssueDiscussionNote(projID interface{}, issueID int64, discussionID string, noteID int64, body string) (string, error) {
 	opts := &gitlab.UpdateIssueDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1506,7 +1509,7 @@ func UpdateIssueDiscussionNote(projID interface{}, issueID int, discussionID str
 
 // UpdateMRDiscussionNote updates a specific discussion or note in the
 // specified MR ID.
-func UpdateMRDiscussionNote(projID interface{}, mrID int, discussionID string, noteID int, body string) (string, error) {
+func UpdateMRDiscussionNote(projID interface{}, mrID int64, discussionID string, noteID int64, body string) (string, error) {
 	opts := &gitlab.UpdateMergeRequestDiscussionNoteOptions{
 		Body: &body,
 	}
@@ -1525,8 +1528,8 @@ func UpdateMRDiscussionNote(projID interface{}, mrID int, discussionID string, n
 
 // ListMRsClosingIssue returns a list of MR IDs that has relation to an issue
 // being closed
-func ListMRsClosingIssue(projID interface{}, id int) ([]int, error) {
-	var retArray []int
+func ListMRsClosingIssue(projID interface{}, id int64) ([]int64, error) {
+	var retArray []int64
 
 	mrs, _, err := lab.Issues.ListMergeRequestsClosingIssue(projID, id, nil, nil)
 	if err != nil {
@@ -1542,8 +1545,8 @@ func ListMRsClosingIssue(projID interface{}, id int) ([]int, error) {
 
 // ListMRsRelatedToIssue return a list of MR IDs that has any relations to a
 // certain issue
-func ListMRsRelatedToIssue(projID interface{}, id int) ([]int, error) {
-	var retArray []int
+func ListMRsRelatedToIssue(projID interface{}, id int64) ([]int64, error) {
+	var retArray []int64
 
 	mrs, _, err := lab.Issues.ListMergeRequestsRelatedToIssue(projID, id, nil, nil)
 	if err != nil {
@@ -1559,8 +1562,8 @@ func ListMRsRelatedToIssue(projID interface{}, id int) ([]int, error) {
 
 // ListIssuesClosedOnMerge retuns a list of issue numbers that were closed by
 // an MR being merged
-func ListIssuesClosedOnMerge(projID interface{}, id int) ([]int, error) {
-	var retArray []int
+func ListIssuesClosedOnMerge(projID interface{}, id int64) ([]int64, error) {
+	var retArray []int64
 
 	issues, _, err := lab.MergeRequests.GetIssuesClosedOnMerge(projID, id, nil, nil)
 	if err != nil {
@@ -1575,7 +1578,7 @@ func ListIssuesClosedOnMerge(projID interface{}, id int) ([]int, error) {
 }
 
 // MoveIssue moves one issue from one project to another
-func MoveIssue(projID interface{}, id int, destProjID interface{}) (string, error) {
+func MoveIssue(projID interface{}, id int64, destProjID interface{}) (string, error) {
 	destProject, err := FindProject(destProjID)
 	if err != nil {
 		return "", err
@@ -1594,7 +1597,7 @@ func MoveIssue(projID interface{}, id int, destProjID interface{}) (string, erro
 }
 
 // GetMRApprovalsConfiguration returns the current MR approval rule
-func GetMRApprovalsConfiguration(projID interface{}, id int) (*gitlab.MergeRequestApprovals, error) {
+func GetMRApprovalsConfiguration(projID interface{}, id int64) (*gitlab.MergeRequestApprovals, error) {
 	configuration, _, err := lab.MergeRequestApprovals.GetConfiguration(projID, id)
 	if err != nil {
 		return nil, err
@@ -1604,9 +1607,9 @@ func GetMRApprovalsConfiguration(projID interface{}, id int) (*gitlab.MergeReque
 }
 
 // ResolveMRDiscussion resolves a discussion (blocking thread) based on its ID
-func ResolveMRDiscussion(projID interface{}, mrID int, discussionID string, noteID int) (string, error) {
+func ResolveMRDiscussion(projID interface{}, mrID int64, discussionID string, noteID int64) (string, error) {
 	opts := &gitlab.ResolveMergeRequestDiscussionOptions{
-		Resolved: gitlab.Bool(true),
+		Resolved: gitlab.Ptr(true),
 	}
 
 	discussion, _, err := lab.Discussions.ResolveMergeRequestDiscussion(projID, mrID, discussionID, opts)
@@ -1629,7 +1632,7 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 
 	var list []*gitlab.Todo
 	for len(list) < n {
-		opts.PerPage = n - len(list)
+		opts.PerPage = int64(n - len(list))
 		todos, resp, err := lab.Todos.ListTodos(&opts)
 		if err != nil {
 			return nil, err
@@ -1646,7 +1649,7 @@ func TodoList(opts gitlab.ListTodosOptions, n int) ([]*gitlab.Todo, error) {
 }
 
 // TodoMarkDone marks a specific Todo as done
-func TodoMarkDone(id int) error {
+func TodoMarkDone(id int64) error {
 	_, err := lab.Todos.MarkTodoAsDone(id)
 	if err != nil {
 		return err
@@ -1664,7 +1667,7 @@ func TodoMarkAllDone() error {
 }
 
 // TodoMRCreate create a Todo item for an specific MR
-func TodoMRCreate(projID interface{}, id int) (int, error) {
+func TodoMRCreate(projID interface{}, id int64) (int64, error) {
 	todo, resp, err := lab.MergeRequests.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
@@ -1676,7 +1679,7 @@ func TodoMRCreate(projID interface{}, id int) (int, error) {
 }
 
 // TodoIssueCreate create a Todo item for an specific Issue
-func TodoIssueCreate(projID interface{}, id int) (int, error) {
+func TodoIssueCreate(projID interface{}, id int64) (int64, error) {
 	todo, resp, err := lab.Issues.CreateTodo(projID, id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotModified {
@@ -1717,7 +1720,7 @@ func GetCommitDiff(projID interface{}, sha string) ([]*gitlab.Diff, error) {
 	return diffs, nil
 }
 
-func IssueDeleteNote(projID interface{}, issue int, discussion string, note int) error {
+func IssueDeleteNote(projID interface{}, issue int64, discussion string, note int64) error {
 
 	if discussion == "" {
 		_, err := lab.Notes.DeleteIssueNote(projID, issue, note)
@@ -1734,7 +1737,7 @@ func IssueDeleteNote(projID interface{}, issue int, discussion string, note int)
 	return nil
 }
 
-func MRDeleteNote(projID interface{}, mr int, discussion string, note int) error {
+func MRDeleteNote(projID interface{}, mr int64, discussion string, note int64) error {
 
 	if discussion == "" {
 		_, err := lab.Notes.DeleteMergeRequestNote(projID, mr, note)
@@ -1751,7 +1754,7 @@ func MRDeleteNote(projID interface{}, mr int, discussion string, note int) error
 	return nil
 }
 
-func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile string, line int64, linetype string, comment string) (string, error) {
 	// Ideally want to use lab.Commits.PostCommitComment, however,
 	// that API only support comments on linetype=new.
 	//
@@ -1802,7 +1805,7 @@ func CreateCommitComment(projID interface{}, sha string, newFile string, oldFile
 	return fmt.Sprintf("%s#note_%d", commitInfo.WebURL, commitDiscussion.Notes[0].ID), nil
 }
 
-func CreateMergeRequestCommitDiscussion(projID interface{}, id int, sha string, newFile string, oldFile string, line int, linetype string, comment string) (string, error) {
+func CreateMergeRequestCommitDiscussion(projID interface{}, id int64, sha string, newFile string, oldFile string, line int64, linetype string, comment string) (string, error) {
 	// FIXME: Pass *gitlab.GetCommitOptions instead of nil
 	commitInfo, err := GetCommit(projID, sha, nil)
 	if err != nil {
@@ -1860,7 +1863,7 @@ func CreateMergeRequestCommitDiscussion(projID interface{}, id int, sha string, 
 // since in some cases the API response may come without the HTTP
 // X-Total(-Page) header. Reference:
 // https://docs.gitlab.com/ee/user/gitlab_com/index.html#pagination-response-headers
-func hasNextPage(resp *gitlab.Response) (int, bool) {
+func hasNextPage(resp *gitlab.Response) (int64, bool) {
 	if resp.CurrentPage >= resp.NextPage {
 		return 0, false
 	}
@@ -1908,7 +1911,7 @@ func CreatePAT(name string, ExpiresAt time.Time, scopes []string) (*gitlab.Perso
 	return token, nil
 }
 
-func RevokePAT(id int) error {
+func RevokePAT(id int64) error {
 	PATs, err := GetAllPATs()
 	if err != nil {
 		return err

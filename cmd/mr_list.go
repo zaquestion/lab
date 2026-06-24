@@ -9,7 +9,6 @@ import (
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/fatih/color"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/savioxavier/termlink"
@@ -17,6 +16,7 @@ import (
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"golang.org/x/term"
 )
 
@@ -29,7 +29,7 @@ var (
 	mrAll          bool
 	mrMine         bool
 	mrAuthor       string
-	mrAuthorID     *int
+	mrAuthorID     *int64
 	mrDraft        bool
 	mrReady        bool
 	mrConflicts    bool
@@ -45,7 +45,7 @@ var (
 	mrReviewerID   *gitlab.ReviewerIDValue
 )
 
-func truncateText(s string, length int) (string) {
+func truncateText(s string, length int) string {
 	if length > len(s) {
 		return s
 	}
@@ -57,7 +57,7 @@ func overwriteEndOfString(str string, index int, replacement string) string {
 		return str
 	}
 	// The output looks weird if the character before the index is a space
-	if str[index - 1] == ' ' {
+	if str[index-1] == ' ' {
 		index--
 	}
 	return str[:index] + replacement
@@ -110,7 +110,7 @@ func printColumns(data [][]string) {
 	// This is the actual line length.  It is the columnWidths (calculated in the
 	// for loop above), extra spacing in the middle columns (ie, 2 * (# of cols - 2)
 	// and one extra character for the newline.
-	linelength = linelength + (spacing * (len(columnWidths) - 2) + 1)
+	linelength = linelength + (spacing*(len(columnWidths)-2) + 1)
 
 	// If the line length is greater than the width of the terminal, truncate
 	// the Title column.  The title text itself is truncated in the switch statement below.
@@ -141,12 +141,12 @@ func printColumns(data [][]string) {
 			case 2: // MRID (and weburl link)
 				// Requires initial offset of width+spacing-len(cell)
 				link := termlink.Link(cell, weburl)
-				fmt.Printf("%s%-"+fmt.Sprintf("%d", columnWidths[cellnum]+spacing-len(cell))+"s",link, "")
+				fmt.Printf("%s%-"+fmt.Sprintf("%d", columnWidths[cellnum]+spacing-len(cell))+"s", link, "")
 
 			case 3: // MR Title
 				author := fmt.Sprintf(" (%s)", row[1])
 				title := truncateText(cell, columnWidths[cellnum])
-				if len(author) + len(title) < columnWidths[cellnum] {
+				if len(author)+len(title) < columnWidths[cellnum] {
 					title = fmt.Sprintf("%s%s", title, author)
 				} else {
 					index := columnWidths[cellnum] - len(author)
@@ -239,7 +239,7 @@ var listCmd = &cobra.Command{
 
 		output := [][]string{{"", "", "MRID", "Title (Author)", "CI", "MRStatus"}}
 		for _, mr := range mrs {
-			mrx, err := lab.MRGet(rn, int(mr.IID))
+			mrx, err := lab.MRGet(rn, mr.IID)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -322,12 +322,12 @@ var listCmd = &cobra.Command{
 				detailedMergeStatus = fmt.Sprintf("%s(%d/%d)", detailedMergeStatus, len(approvals.ApprovedBy), approvals.ApprovalsRequired)
 			}
 			output = append(output,
-					[]string{mr.WebURL, // weburl (used to convert MRID to URL)
-						 mr.Author.Username, // (Author)
-						 strconv.Itoa(mr.IID), // MRID
-						 mr.Title, // Title
-						 CIStatus, // CI Status
-						 detailedMergeStatus}) // MR Status
+				[]string{mr.WebURL, // weburl (used to convert MRID to URL)
+					mr.Author.Username,   // (Author)
+					Itoa(mr.IID),         // MRID
+					mr.Title,             // Title
+					CIStatus,             // CI Status
+					detailedMergeStatus}) // MR Status
 		}
 		printColumns(output)
 	},
@@ -345,7 +345,7 @@ func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 	}
 
 	num, err := strconv.Atoi(mrNumRet)
-	if err != nil  || num == 0 {
+	if err != nil || num == 0 {
 		num = -1
 	}
 
@@ -358,7 +358,7 @@ func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 		if approverID == nil {
 			log.Fatalf("%s user not found\n", mrApprover)
 		}
-		mrApproverID = gitlab.ApproverIDs([]int{*approverID})
+		mrApproverID = gitlab.ApproverIDs([]int64{*approverID})
 	}
 
 	// gitlab lib still doesn't have search by assignee and author username
@@ -412,9 +412,9 @@ func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 		mrReviewerID = gitlab.ReviewerID(*reviewerID)
 	}
 
-	orderBy := gitlab.String(mrOrder)
+	orderBy := gitlab.Ptr(mrOrder)
 
-	sort := gitlab.String(mrSortedBy)
+	sort := gitlab.Ptr(mrSortedBy)
 
 	// if none of the flags are set, return every single MR
 	mrCheckConflicts := (mrConflicts || mrNoConflicts)
@@ -429,14 +429,14 @@ func mrList(args []string) ([]*gitlab.BasicMergeRequest, error) {
 		AuthorID:               mrAuthorID,
 		ApprovedByIDs:          mrApproverID,
 		AssigneeID:             mrAssigneeID,
-		WithMergeStatusRecheck: gitlab.Bool(mrCheckConflicts),
+		WithMergeStatusRecheck: gitlab.Ptr(mrCheckConflicts),
 		ReviewerID:             mrReviewerID,
 	}
 
 	if mrDraft && !mrReady {
-		opts.WIP = gitlab.String("yes")
+		opts.WIP = gitlab.Ptr("yes")
 	} else if mrReady && !mrDraft {
-		opts.WIP = gitlab.String("no")
+		opts.WIP = gitlab.Ptr("no")
 	}
 
 	if mrExactMatch {
@@ -506,7 +506,6 @@ func init() {
 		&mrReviewer, "reviewer", "", "list only MRs with reviewer set to $username/any/none")
 	listCmd.Flags().BoolP("show-status", "", false, "show CI and MR status (slow on projects with large number of MRs)")
 	listCmd.Flags().BoolP("no-unicode", "", false, "Do not use unicode in output")
-
 
 	mrCmd.AddCommand(listCmd)
 	carapace.Gen(listCmd).FlagCompletion(carapace.ActionMap{

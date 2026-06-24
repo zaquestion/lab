@@ -26,7 +26,7 @@ import (
 
 var (
 	projectID  string
-	pipelineID int
+	pipelineID int64
 )
 
 // ciViewCmd represents the ci command

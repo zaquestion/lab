@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc/v2"
 	"strconv"
 
+	"github.com/MakeNowJust/heredoc/v2"
+
 	"github.com/spf13/cobra"
-	"gitlab.com/gitlab-org/api/client-go"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var projectListConfig struct {
@@ -42,15 +43,15 @@ var projectListCmd = &cobra.Command{
 
 		opt := gitlab.ListProjectsOptions{
 			ListOptions: gitlab.ListOptions{
-				PerPage: num,
+				PerPage: int64(num),
 			},
-			Simple:     gitlab.Bool(true),
-			OrderBy:    gitlab.String("id"),
-			Sort:       gitlab.String("asc"),
-			Owned:      gitlab.Bool(projectListConfig.Owned),
-			Membership: gitlab.Bool(projectListConfig.Membership),
-			Starred:    gitlab.Bool(projectListConfig.Starred),
-			Search:     gitlab.String(search),
+			Simple:     gitlab.Ptr(true),
+			OrderBy:    gitlab.Ptr("id"),
+			Sort:       gitlab.Ptr("asc"),
+			Owned:      gitlab.Ptr(projectListConfig.Owned),
+			Membership: gitlab.Ptr(projectListConfig.Membership),
+			Starred:    gitlab.Ptr(projectListConfig.Starred),
+			Search:     gitlab.Ptr(search),
 		}
 		projects, err := lab.ProjectList(opt, num)
 		if err != nil {

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
@@ -24,7 +25,7 @@ var snippetDeleteCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if global || rn == "" {
-			err = lab.SnippetDelete(int(id))
+			err = lab.SnippetDelete(id)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -32,7 +33,7 @@ var snippetDeleteCmd = &cobra.Command{
 			return
 		}
 
-		err = lab.ProjectSnippetDelete(rn, int(id))
+		err = lab.ProjectSnippetDelete(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}

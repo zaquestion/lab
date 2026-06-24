@@ -83,7 +83,7 @@ var ciTraceCmd = &cobra.Command{
 	},
 }
 
-func doTrace(ctx context.Context, w io.Writer, projID string, pipelineID int, name string) error {
+func doTrace(ctx context.Context, w io.Writer, projID string, pipelineID int64, name string) error {
 	var (
 		once   sync.Once
 		offset int64

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/rsteube/carapace"
@@ -31,7 +32,7 @@ var mrThumbUpCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.MRThumbUp(rn, int(id))
+		err = lab.MRThumbUp(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,7 +53,7 @@ var mrThumbDownCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.MRThumbDown(rn, int(id))
+		err = lab.MRThumbDown(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}

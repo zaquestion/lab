@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 func Test_projectCreateCmd(t *testing.T) {
@@ -53,7 +54,7 @@ func Test_projectCreateCmd(t *testing.T) {
 		if err != nil {
 			t.Fatal(errors.Wrap(err, "failed to find project for cleanup"))
 		}
-		err = lab.ProjectDelete(p.ID)
+		err = lab.ProjectDelete(p.ID, &gitlab.DeleteProjectOptions{})
 		if err != nil {
 			t.Fatal(errors.Wrap(err, "failed to delete project during cleanup"))
 		}

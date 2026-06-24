@@ -21,7 +21,7 @@ var issueSubscribeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		err = lab.IssueSubscribe(rn, int(id))
+		err = lab.IssueSubscribe(rn, id)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -9,9 +9,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var (
@@ -25,7 +25,7 @@ var (
 	issueAssignee   string
 	issueAssigneeID *gitlab.AssigneeIDValue
 	issueAuthor     string
-	issueAuthorID   *int
+	issueAuthorID   *int64
 	issueOrder      string
 	issueSortedBy   string
 )
@@ -113,20 +113,17 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 			log.Fatalf("%s user not found\n", issueAssignee)
 		}
 		issueAssigneeID = gitlab.AssigneeID(*assigneeID)
+	} else {
+		issueAssigneeID = nil
 	}
 
-	orderBy := gitlab.String(issueOrder)
+	orderBy := gitlab.Ptr(issueOrder)
 
-	sort := gitlab.String(issueSortedBy)
-
-	intIssueAssigneeID, err := strconv.Atoi(fmt.Sprintf("%v", issueAssigneeID))
-	if err != nil {
-		log.Fatalf("issueAssigneeID (%s) cannot be converted to int", issueAssigneeID)
-	}
+	sort := gitlab.Ptr(issueSortedBy)
 
 	opts := gitlab.ListProjectIssuesOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: num,
+			PerPage: int64(num),
 		},
 		Labels:     &labels,
 		Milestone:  &issueMilestone,
@@ -134,7 +131,7 @@ func issueList(args []string) ([]*gitlab.Issue, error) {
 		OrderBy:    orderBy,
 		Sort:       sort,
 		AuthorID:   issueAuthorID,
-		AssigneeID: &intIssueAssigneeID,
+		AssigneeID: issueAssigneeID,
 	}
 
 	if issueExactMatch {

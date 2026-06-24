@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
-	"github.com/fatih/color"
 	"github.com/charmbracelet/glamour"
+	"github.com/fatih/color"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var (
@@ -43,7 +43,7 @@ var mrShowCmd = &cobra.Command{
 			os.Exit(0x16) // EINVAL
 		}
 
-		mr, err := lab.MRGet(rn, int(mrNum))
+		mr, err := lab.MRGet(rn, mrNum)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -96,7 +96,7 @@ var mrShowCmd = &cobra.Command{
 		}
 
 		if noteLevel != NoteLevelNone {
-			discussions, err := lab.MRListDiscussions(rn, int(mrNum))
+			discussions, err := lab.MRListDiscussions(rn, mrNum)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -106,12 +106,12 @@ var mrShowCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			printDiscussions(rn, discussions, since, "mr", int(mrNum), renderMarkdown, noteLevel)
+			printDiscussions(rn, discussions, since, "mr", mrNum, renderMarkdown, noteLevel)
 		}
 	},
 }
 
-func findLocalRemote(ProjectID int) string {
+func findLocalRemote(ProjectID int64) string {
 	var remote string
 
 	project, err := lab.GetProject(ProjectID)

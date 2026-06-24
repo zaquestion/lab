@@ -11,10 +11,10 @@ import (
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/rsteube/carapace"
 	"github.com/spf13/cobra"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"github.com/zaquestion/lab/internal/action"
 	"github.com/zaquestion/lab/internal/git"
 	lab "github.com/zaquestion/lab/internal/gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var mrCreateDiscussionCmd = &cobra.Command{
@@ -94,7 +94,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			}
 		}
 
-		state := noteGetState(rn, true, int(mrNum))
+		state := noteGetState(rn, true, mrNum)
 
 		body := ""
 		if filename != "" {
@@ -105,19 +105,19 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			body = string(content)
 		} else if position != "" || commit == "" {
 			// TODO If we are commenting on a specific position in the diff, we should include some context in the template.
-			body, err = mrDiscussionMsg(int(mrNum), state, commit, msgs, "\n")
+			body, err = mrDiscussionMsg(mrNum, state, commit, msgs, "\n")
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 			}
 		} else {
 			body = getCommitBody(rn, commit)
-			body, err = mrDiscussionMsg(int(mrNum), state, commit, nil, body)
+			body, err = mrDiscussionMsg(mrNum, state, commit, nil, body)
 			if err != nil {
 				_, f, l, _ := runtime.Caller(0)
 				log.Fatal(f+":"+strconv.Itoa(l)+" ", err)
 			}
-			createCommitComments(rn, int(mrNum), commit, body, true)
+			createCommitComments(rn, mrNum, commit, body, true)
 			return
 		}
 
@@ -137,17 +137,16 @@ var mrCreateDiscussionCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 			// WORKAROUND For added (-) and deleted (+) lines we only need one line number parameter, but for context lines we need both. https://gitlab.com/gitlab-org/gitlab/-/issues/325161
-			newLine64 := posLineNumberNew
+			newLine := int64(posLineNumberNew)
 			if posLineType == '-' {
-				newLine64 = 0
+				newLine = 0
 			}
-			newLine := int(newLine64)
+			// newLine := int(newLine64)
 
-			oldLine64 := posLineNumberOld
+			oldLine := int64(posLineNumberOld)
 			if posLineType == '+' {
-				oldLine64 = 0
+				oldLine = 0
 			}
-			oldLine := int(oldLine64)
 
 			positionType := "text"
 			notePos = gitlab.PositionOptions{
@@ -170,7 +169,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 			commitID = &commit
 		}
 
-		discussionURL, err := lab.MRCreateDiscussion(rn, int(mrNum), &gitlab.CreateMergeRequestDiscussionOptions{
+		discussionURL, err := lab.MRCreateDiscussion(rn, mrNum, &gitlab.CreateMergeRequestDiscussionOptions{
 			Body:     &body,
 			CommitID: commitID,
 			Position: &notePos,
@@ -182,7 +181,7 @@ var mrCreateDiscussionCmd = &cobra.Command{
 	},
 }
 
-func mrDiscussionMsg(mrNum int, state string, commit string, msgs []string, body string) (string, error) {
+func mrDiscussionMsg(mrNum int64, state string, commit string, msgs []string, body string) (string, error) {
 	if len(msgs) > 0 {
 		return strings.Join(msgs[0:], "\n\n"), nil
 	}
@@ -224,7 +223,7 @@ func init() {
 		<old_line> is ignored. If the line type is "-", then <new_line> is ignored.
 
 		Here's an example diff that explains how to determine the old/new line numbers:
-	    
+
 			--- a/README.md		old	new
 			+++ b/README.md
 			@@ -100,3 +100,4 @@
