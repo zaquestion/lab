@@ -146,7 +146,7 @@ func TestGetCommit(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			test := test
 			t.Parallel()
-			b, err := GetCommit(4181224, test.ref)
+			b, err := GetCommit(4181224, test.ref, nil)
 			if test.ok {
 				require.NoError(t, err)
 				require.Equal(t, test.expectID, b.ID)

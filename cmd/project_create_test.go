@@ -53,7 +53,7 @@ func Test_projectCreateCmd(t *testing.T) {
 		if err != nil {
 			t.Fatal(errors.Wrap(err, "failed to find project for cleanup"))
 		}
-		err = lab.ProjectDelete(p.ID)
+		err = lab.ProjectDelete(p.ID, nil)
 		if err != nil {
 			t.Fatal(errors.Wrap(err, "failed to delete project during cleanup"))
 		}

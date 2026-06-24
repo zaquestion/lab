@@ -20,7 +20,7 @@ func cleanupFork(t *testing.T, project string) {
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "failed to find project "+project+" for cleanup"))
 	}
-	err = lab.ProjectDelete(p.ID)
+	err = lab.ProjectDelete(p.ID, nil)
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "failed to delete project "+project+" during cleanup"))
 	}
