@@ -90,7 +90,6 @@ var ciViewCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		screen.Init()
 
 		var navi navigator
 		a.SetInputCapture(inputCapture(a, root, navi, inputCh))
